@@ -1,8 +1,6 @@
 ---
-description: Gitに関する操作をしたとき
-alwaysApply: false
+alwaysApply: true
 ---
-
 ghコマンドを使用すること
 
 ## Git Commit Messages
