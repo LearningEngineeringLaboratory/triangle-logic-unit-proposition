@@ -1,210 +1,157 @@
 ---
 alwaysApply: true
 ---
-# 単位命題三角ロジック演習システム 要件定義 v0.1
+# 単位命題三角ロジック演習システム 要件定義 v0.2
 
-作成日：2025-10-04（JST）／作成者：前土井プロジェクト＋GPT-5 Thinking
+作成日：2025-01-27（JST）／更新：答え合わせ機能とクリア条件を明確化
 
 ---
 
 ## 1. 背景・目的
 
-* 単位命題三角ロジックを用いた学習演習システムを研究目的で開発し，学習過程の詳細ログを収集・分析できる基盤を構築する．
-* Googleアカウント等の外部認証を用いず，匿名・即時参加を実現する．
-* 最小構成で素早く公開し，実験・改良を反復する．
+単位命題三角ロジックを用いた学習演習システムを研究目的で開発し，学習過程の詳細ログを収集・分析できる基盤を構築する．
 
-## 2. スコープ
+## 2. 技術スタック
 
-* Webアプリ（Next.js，TypeScript，TailwindCSS＋shadcn/ui＋Radix UI）
-* バックエンド（Next.js Server Actions／Route Handlers）
-* データ層（Supabase：Postgres・RLS・Storage）
-* デプロイ（Vercel）
-* 研究用データ収集（イベントログ，状態スナップショット，確定提出）
+* **フロントエンド**: Next.js App Router, TypeScript, TailwindCSS, shadcn/ui, Radix UI
+* **バックエンド**: Next.js Server Actions, Route Handlers
+* **データベース**: Supabase (PostgreSQL + RLS)
+* **デプロイ**: Vercel
 
-## 3. 非スコープ（v1）
+## 3. 主要機能
 
-* 学習者の恒久アカウント作成・外部SSO
-* モバイルアプリ（ネイティブ）
-* リアルタイム同時編集，チャット等の同期機能
-* 重学習モデルのサーバ内推論（必要時は外部API）
-* アプリ内での同意取得UI（※同意は事前に別ツールで取得・管理）
+### 3.1 学習フロー
+1. **ユーザー登録**: 初回アクセスで名前・メールアドレスを入力し`user_id`（ULID）を発行
+2. **セッション管理**: `session_id`（ULID）を発行しHttpOnly Cookieに保存
+3. **ステップ型演習**: 問題一覧→問題詳細→**ステップ型UI（必ず順番に進行）**
+4. **答え合わせ機能**: 各ステップで即座に正誤判定を実行
+5. **クリア条件**: **各ステップで正解しないと次のステップに進めない**
+6. **状態保存**: 問題ごとの最新状態を随時更新し，Cookieで復帰
 
-## 4. 成果物
+### 3.2 ログ収集
+* **即時ログ送信**: 選択系操作はすべて即座にAPI送信
+* **イベント記録**: 操作内容、正誤判定、所要時間を詳細記録
 
-* 稼働アプリ（本番URL）
-* スキーマ／RLS／APIの実装一式
-* 研究倫理（同意文・保持方針）
-* 分析用エクスポートとKPIダッシュボードの雛形
+## 4. データモデル
 
-## 5. 主要ユーザ／ペルソナ
+### 4.1 テーブル構成
+* `users`: ユーザー情報（`user_id`, `name`, `email`, `created_at`）
+* `problems`: 問題データ（`problem_id`, `title`, `body`, `rubric`, `options`, `version`）
+* `sessions`: セッション管理（`session_id`, `user_id`, `created_at`）
+* `attempts`: 試行記録（`session_id`, `user_id`, `problem_id`, `started_at`, `finished_at`, `status`）
+* `events`: 操作ログ（`session_id`, `user_id`, `attempt_id`, `seq`, `kind`, `payload`, `client_ts`, `server_ts`）
+* `responses`: 回答状態（`session_id`, `user_id`, `attempt_id`, `state`, `current_step`, `passed_steps`）
+* `submissions`: 最終提出（`session_id`, `user_id`, `attempt_id`, `answer`, `score`, `submitted_at`）
 
-* 学習者：高校～大学の受講生．匿名で即参加．
-* 研究者／運用者：データ閲覧・分析，問題更新．
+### 4.2 データ構造詳細
+* `problems.options`: ドロップダウン選択肢の配列（例：["Pである", "Qである", "Rである", "Sである"]）
+* `problems.rubric`: 各ステップの正解条件（JSON形式）
+* `responses.state`: 現在の回答状態（選択された値、リンクの向き等）
 
-## 6. 代表ユースケース
+### 4.3 問題ID命名規則
+形式：`TLU-<set>-Q<nn>-v<semver>` 例）`TLU-A-Q01-v1.0.0`
 
-* UC-01：学習者がトップへアクセス→（同意は事前取得済み）→演習開始→途中でリロード→Cookieで自動復帰→提出．
-* UC-02：複数問題を横断して学習→同一セッションで複数attemptを記録．
-* UC-03：通信不安定時，ローカルバッファにログを蓄積→回復後に一括送信．
-* UC-04：研究者が対象期間のログを抽出し，操作系列と所要時間を分析．
+## 5. ステップ進行とクリア条件
 
-## 7. 機能要件（概要）
+### 5.1 ステップ構成（初期問題）
+**問題文**: PであるならばQである。また，QであるならばRである。したがって，PであるならばRである。
 
-1. **匿名参加**：初回アクセスで`session_id`（ULID推奨）を発行しHttpOnly Cookieに保存．
-2. **同意**：アプリ内での同意取得は**非採用**（事前に別ツールで取得・紐付け）．
-3. **演習**：問題一覧→問題詳細→**ステップ型UI（必ず順番に進行／各ステップ合格で次へ）**．
-4. **ログ収集**：ドラッグ操作は**非採用**．**選択系操作はすべて即時ログ**（選ぶたびに送信）．
-5. **状態保存**：問題ごとの最新状態（`responses`）を随時更新し，復帰に利用（Cookie復帰のみ）．
-6. **提出**：最終回答（`submissions`）と採点結果を保存．
-7. **復帰**：**Cookieのみ**（再開URL／6桁コードは非採用）．
-8. **管理**：v1は**Supabaseコンソール上で確認**（アプリ内管理画面は後続）．
-9. **ステップゲーティング**：サーバ側でも**不正スキップ防止チェック**を実施（詳細は§11）．
+* **Step1**: 導出命題を構成（前件/後件ドロップダウン選択）
+  - クリア条件: 正しい前件・後件の組み合わせを選択
+* **Step2**: 所与命題を構成（ドロップダウン選択＋矢印向き反転）
+  - クリア条件: 正しい所与命題の組み合わせと矢印方向を設定
+* **Step3**: 推論形式と妥当性を選択
+  - クリア条件: 正しい推論形式（演繹/仮説/非形式）と妥当性（妥当/非妥当）を選択
 
-## 8. 非機能要件（抜粋）
+### 5.2 サーバ側検証
+* **ステップゲーティング**: サーバ側で不正スキップ防止チェックを実施
+* **状態管理**: `responses.state`に`current_step`と`passed_steps[]`を保持
+* **飛び級防止**: 前のステップが合格していない場合は次ステップへの進行を拒否
 
-* パフォーマンス：通常操作でP95応答< 300ms（地域近接）．
-* 可用性：学習時間帯の無停止運用（Vercel＋SupabaseのSLA準拠）．
-* セキュリティ：RLS常時有効，Service Roleはサーバのみ．CSRF/リプレイ対策．
-* 監視：構造化ログ＋アラート（エラー率，レイテンシ，バッチ再送失敗）．
-* アクセシビリティ：WCAG 2.1 AA相当（キーボード操作，コントラスト）．
-* ブラウザ対象：最新のChromium/Firefox/Safari（モバイル含む）．
+## 6. イベント記録
 
-## 9. 情報設計（データモデル案）
+### 6.1 主要イベント
+* `user_registered`: ユーザー登録（`name`, `email`）
+* `select_dropdown`: ドロップダウン選択（`control_id`, `value`）
+* `toggle_link_direction`: 矢印反転（`link_id`, `new_direction`）
+* `step_completed`: ステップ完了（`step`, `result`, `is_correct`）
+* `attempt_started`: 試行開始（`problem_id`）
+* `attempt_finished`: 試行終了（`problem_id`, `success`）
+* `check_answer`: 答え合わせボタンクリック
+* `step_navigation`: ステップ切り替え（`from_step`, `to_step`）
 
-### 9.1 問題ID命名（提案／お任せ反映）
+### 6.2 ログ送信方式
+* **即時送信**: 選択操作のたびに即座にAPI送信
+* **バッチ送信**: ネットワーク不安定時のバッファリング機能
+* **冪等性**: `idempotency_key`と`(session_id, seq)`で重複防止
 
-* 形式：`TLU-<set>-Q<nn>-v<semver>` 例）`TLU-A-Q01-v1.0.0`
+## 7. API設計
 
-  * `set`: 問題セット名（A/B/C…）
-  * `Q<nn>`: 2桁の連番
-  * `v`: 仕様変更に備えSemVerで管理
+### 7.1 エンドポイント
+* `POST /api/register`: ユーザー登録
+* `POST /api/log`: イベントログ送信
+* `POST /api/submit`: 最終回答提出
+* `POST /api/check-step`: ステップ正誤判定
 
-### 9.2 テーブル
+### 7.2 セキュリティ
+* **RLS**: 常時有効、`user_id`と`session_id`一致の行のみ参照可能
+* **CSRF**: POST時にOrigin/Referer検証＋CSRFトークン
+* **レート制限**: per-session 60 events/min, per-IP 300 events/min
+* **メール重複チェック**: 同一メールアドレスの重複登録を防止
 
-* `problems`：`problem_id`PK，`title`，`body`，`difficulty`，`rubric`jsonb，`version`
-* `sessions`：`session_id`(ulid)PK，`created_at`，`ua_hash`，`ip_hash`，`consent_version`（事前取得時の参照用），`consent_at`
-* `attempts`：`id`PK，`session_id`FK，`problem_id`，`started_at`，`finished_at`，`status`
-* `events`：`id`ULID PK，`session_id`，`attempt_id`，`problem_id`，`seq`int，`kind`text，`payload`jsonb，`client_ts`，`server_ts`，`idempotency_key` text，**UNIQUE(`session_id`,`seq`)**
-* `responses`：`session_id`，`attempt_id`，`problem_id`，`state`jsonb，`updated_at`，**PK(`session_id`,`attempt_id`)**
-* `submissions`：`id`PK，`session_id`，`attempt_id`，`problem_id`，`answer`jsonb，`score`numeric，`submitted_at`
+## 8. UI設計
 
-### 9.3 キーと時系列
+### 8.1 レイアウト構成
 
-* `seq`：クライアント単調増加．サーバで一意制約＋重複拒否．
-* 時刻：`client_ts`＋`server_ts`併記．
+#### PC画面（左右分割）
+* **左側パネル**:
+  - 最上部: 大問進捗インジケーター（[1]-[2]-[3]-[4]-[5]...形式）
+  - 上部: 論証文表示
+  - 下部: ステップ問題文（カルーセル形式で切り替え）
+* **右側パネル**:
+  - 単位命題三角ロジック表示エリア
+  - 下部: 答え合わせボタン
 
-## 10. イベント辞書（抜粋／今回仕様反映）
+#### モバイル画面（上下分割）
+* 最上部: 論証文表示
+* 上部: ステップ問題文（カルーセル形式で切り替え）
+* 下部: 単位命題三角ロジック表示エリア
+* 最下部: 答え合わせボタン
 
-選択操作を中心に**すべて即時ログ送信**。
+### 8.2 単位命題三角ロジック仕様
 
-* `select_dropdown`：{ control_id, value }（導出命題の前件/後件，所与命題の項，推論形式/妥当性 など）
-* `toggle_link_direction`：{ link_id, new_direction }（Step2の矢印反転）
-* `step_completed`：{ step, result }（合否・採点情報の要約）
-* `attempt_started`：{ problem_id }
-* `attempt_finished`：{ problem_id, success }
-* `submit_click`：{}
-* `network_flush`：{ buffered, sent }
+#### 基本構造
+* **形状**: 逆正三角形
+* **ノード**: 単位命題を表示（ドロップダウンで選択可能）
+* **リンク**: 有向リンクでノード間を接続
+* **選択肢**: 全ノードで同一の選択肢を使用
 
-> 共通フィールド：`seq`,`client_ts`,`attempt_id`,`problem_id`,`session_id`,`idempotency_key`。
+#### ステップ別表示
+* **Step1**: 2ノード構成（左上・右上頂点）
+  - 導出命題の前件・後件を選択
+  - 例：「Pである→Rである」
+* **Step2**: 3ノード構成（Step1 + 中央下頂点）
+  - 所与命題の単位命題を選択
+  - リンクの向き反転ボタン付き
+  - 例：「Pである→Qである」「Qである→Rである」
+* **Step3**: 表示のみ（操作不可）
+  - 推論形式・妥当性選択UI
 
-## 11. API／サーバ設計
+### 8.3 インタラクション仕様
 
-* 入口：**Route Handler**（`POST /api/log`，`POST /api/submit`）
-* **Service Roleはサーバのみ**に保持し，アプリからは**SQL関数（security definer）**を呼ぶ：
+#### 答え合わせ
+* **タイミング**: 答え合わせボタン押下時
+* **判定**: 全ステップで正解しないと次ステップに進行不可
+* **フィードバック**: 正誤結果を即座に表示
 
-  * `rpc_log_events(jsonb[])`：バルク挿入＋順序／重複検査→`events`保存→必要に応じ`responses`更新
-  * `rpc_submit(payload)`：整合性検査→`submissions`保存→スコア算出
-* **ステップゲーティング（サーバ検証）**：
+#### 進捗管理
+* **大問進捗**: 完了した大問番号まで色付き表示
+* **ステップ進捗**: カルーセル形式で問題文切り替え
+* **状態保存**: Cookieで進捗を保持
 
-  * `step1`合格→`step2`へ，…の**遷移規則をサーバで再検証**（フロント改変対策）
-  * `responses.state`に`current_step`と`passed_steps[]`を保持し，飛び級を拒否
-* **冪等性**：`idempotency_key`と`(session_id, seq)`で重複抑止．
-* **レート制限（お任せ→デフォルト値）**：
+## 9. 非機能要件
 
-  * per-session：**60 events/min**（バースト120）
-  * per-IP：**300 events/min**
-  * `/api/log`の1回あたり最大**50イベント**，失敗時指数バックオフ
-
-## 12. セキュリティ
-
-* **RLS**：常時有効．`session_id`一致の行のみ参照可能．書込はRPCのみ許可．
-* **Cookie**：HttpOnly＋Secure＋SameSite=Lax/Strict．
-* **CSRF**：POST時にOrigin/Referer検証＋CSRFトークン．
-* **リプレイ防止**：`seq`と`server_ts`検証，必要に応じHMAC署名．
-* **鍵管理**：Service Roleはサーバ環境変数のみ（Vercel env）．
-
-## 13. 研究倫理・プライバシー
-
-* **同意**：本アプリ内での同意UIは**非採用**。**事前取得した同意**を別ツールで管理し，必要に応じて`consent_version/at`を参照項目として保持。
-* **PII**：収集しない方針。IPはソルト付きハッシュ化（短期保持）．
-* **保持**：研究計画に沿った保持期間を設定（例：原データ3年）．削除申請に対応．
-
-## 14. UX要件
-
-* ダーク／ライト自動切替＋手動トグル．
-* ステップ指標（Step1〜）と進捗バー．
-* PWA対応（オフライン時はIndexedDBにバッファ）．
-* i18n基盤（jaを既定）．
-
-## 15. パフォーマンス／信頼性
-
-* クライアント側で**バッチ送信**（件数／間隔閾値，指数バックオフ，再試行上限）．
-* ログ欠損を最小化する**一時キュー**と**送信結果のACK**．
-* 大量イベント時はサーバで**COPY相当**の一括挿入（Supabase側で最適化）．
-
-## 16. 運用・監視
-
-* OpenTelemetry／構造化ログ（`request_id`,`session_id`,`attempt_id`）．
-* 監視指標：エラー率，P95，バッチ失敗率，重複挿入率，日次DAU，提出完了率．
-* 週次バックアップ確認とリストア手順の演習．
-
-## 17. バージョニング／実験
-
-* `problems.version`と`ui_variant`でA/B管理（初期はUI/ヒント/問題文のいずれかに適用可）．
-* ログに`app_version`を付与し差分分析を容易化．
-
-## 18. 環境・デプロイ
-
-* **開発**：非Dockerで開始（Vercel＋Supabase Cloud）．必要時にDev Container／Supabase CLIを段階導入．
-* **本番**：Vercel Production，Supabase Project（RLS有効）．
-
-## 19. テスト
-
-* ユニット：イベント生成，RPCの整合性検査．
-* E2E：UC-01〜03（同意→学習→リロード→復帰→提出）．
-* 負荷：イベント毎秒X件の耐性とロス率．
-
-## 20. マイルストーン（案）
-
-* M1（2週）：スキーマ＆RLS／`/api/log`雛形／ステップUI骨格（Step1〜3：導出→所与→推論形式）
-* M2（2週）：バッチ送信・レート制限／提出フロー／SupabaseでのCSV確認手順整備
-* M3（2週）：大問1の投入とパイロット／Cookie復帰のE2E
-* M4（継続）：A/B準備と分析テンプレ更新
-
-## 21. 既知リスクと対策
-
-* 連打・大量イベント：レート制限とサンプリング。
-* 端末時刻ずれ：`server_ts`基準で分析。
-* Cookie拒否：今回は仕様として復帰不能（利用ガイドで周知）。
-
-## 22. 決定事項（今回回答反映）
-
-1. **問題データの供給方法**：**Supabaseテーブル**
-2. **問題ID命名**：本書§9.1の提案形式を採用（お任せ）。
-3. **ステップ構成**：大問ごとに `step1 → step2 → step3 → …` の順で**必ずこの順番**。各ステップは**合格しないと次へ進めない**（サーバ検証あり）。
-4. **ログ粒度**：ドラッグは非採用。**選択系操作は全てログ**（選ぶたびに送信）。
-5. **復帰手段**：**Cookieのみ**（再開URL／6桁コードは**非採用**）。
-6. **同意**：**アプリ外の別ツールで事前取得**（アプリ内同意UIは非採用）。
-7. **レート制限**：本書§11の**デフォルト値**を採用（per-session 60/min, per-IP 300/min）。
-8. **優先事項**：**学習機能（UI/ロジック）／アカウント別（=セッション別）ログ取得／デプロイ**。
-9. **初期問題（大問1）**：
-
-   * 問題文：
-
-     > PであるならばQである。
-     > また，QであるならばRである。
-     > したがって，PであるならばRである。
-   * Step1：導出命題を構成（前件/後件ドロップダウン）
-   * Step2：所与命題を構成（ドロップダウン＋矢印向き反転ボタン）
-   * Step3：推論形式（演繹／仮説／非形式）と妥当性（妥当／非妥当）を選択
-10. **管理者機能v1**：**Supabase上で確認**（アプリ内UIは後続）
+* **パフォーマンス**: 通常操作でP95応答< 300ms
+* **可用性**: 学習時間帯の無停止運用
+* **アクセシビリティ**: WCAG 2.1 AA相当
+* **ブラウザ対応**: 最新のChromium/Firefox/Safari（モバイル含む）
