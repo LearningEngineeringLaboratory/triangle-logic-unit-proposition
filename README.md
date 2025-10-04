@@ -1,36 +1,89 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 単位命題三角ロジック演習システム
 
-## Getting Started
+単位命題三角ロジックを用いた学習演習システムです。学習過程の詳細ログを収集・分析できる研究用の基盤を提供します。
 
-First, run the development server:
+## 📖 概要
+
+このシステムは、論理推論の学習を支援するためのWebアプリケーションです。単位命題三角ロジックという視覚的な手法を用いて、学習者が論証の構造を理解し、段階的に学習を進められるよう設計されています。
+
+### 主な機能
+- ステップ型演習システム（各ステップで正解しないと次に進めない）
+- 単位命題三角ロジックの視覚的表示
+- 学習過程の詳細ログ収集
+- リアルタイム答え合わせ機能
+
+## 🛠️ 技術スタック
+
+### フロントエンド
+![Next.js](https://img.shields.io/badge/Next.js-15.5.4-black?style=flat-square&logo=next.js)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?style=flat-square&logo=typescript)
+![TailwindCSS](https://img.shields.io/badge/TailwindCSS-4.0-38B2AC?style=flat-square&logo=tailwind-css)
+![React](https://img.shields.io/badge/React-19.1.0-61DAFB?style=flat-square&logo=react)
+
+### UI/UX
+![shadcn/ui](https://img.shields.io/badge/shadcn/ui-最新-000000?style=flat-square)
+![Radix UI](https://img.shields.io/badge/Radix_UI-最新-161618?style=flat-square&logo=radix-ui)
+
+### バックエンド・データベース
+![Supabase](https://img.shields.io/badge/Supabase-2.58.0-3ECF8E?style=flat-square&logo=supabase)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-最新-336791?style=flat-square&logo=postgresql)
+
+### デプロイ
+![Vercel](https://img.shields.io/badge/Vercel-デプロイ-000000?style=flat-square&logo=vercel)
+
+## 🚀 セットアップ
+
+### 前提条件
+- Node.js 18.0以上
+- npm または yarn
+
+### インストール
+
+```bash
+# リポジトリをクローン
+git clone https://github.com/LearningEngineeringLaboratory/triangle-logic-unit-proposition.git
+
+# 依存関係をインストール
+npm install
+
+# 環境変数を設定
+cp .env.example .env.local
+# .env.localにSupabaseの接続情報を設定
+```
+
+### 開発サーバー起動
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+[http://localhost:3000](http://localhost:3000) でアプリケーションにアクセスできます。
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 📁 プロジェクト構造
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+src/
+├── app/                    # Next.js App Router
+│   ├── (auth)/            # 認証関連ページ
+│   ├── (main)/            # メイン機能
+│   └── api/               # API エンドポイント
+├── components/            # Reactコンポーネント
+│   ├── ui/               # shadcn/uiコンポーネント
+│   ├── triangle-logic/   # 単位命題三角ロジック専用
+│   └── forms/            # フォーム関連
+├── lib/                  # ユーティリティ・設定
+└── hooks/                # カスタムReactフック
+```
 
-## Learn More
+## 🎯 開発状況
 
-To learn more about Next.js, take a look at the following resources:
+- [x] Next.js初期セットアップ
+- [x] Supabase接続設定
+- [ ] データベーススキーマ設計
+- [ ] ユーザー登録機能
+- [ ] 単位命題三角ロジックUI
+- [ ] 演習システム実装
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 📄 ライセンス
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+このプロジェクトは研究目的で開発されています。
