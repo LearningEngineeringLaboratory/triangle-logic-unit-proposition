@@ -1,8 +1,6 @@
 ---
-description: Gitに関する操作をしたとき
-alwaysApply: false
+alwaysApply: true
 ---
-
 ghコマンドを使用すること
 
 ## Git Commit Messages
@@ -58,6 +56,82 @@ docs: READMEに環境構築手順を追記
   feat: 問題演習ページのUI設計
   chore: CIにLintチェックを追加
   ```
+
+---
+
+## ブランチ戦略
+
+### ブランチ命名規則
+* **形式**: `type/issue-number-short-description`
+* **Type**: `feat`, `fix`, `docs`, `chore`, `setup`
+* **例**:
+  ```
+  setup/1-nextjs-initialization
+  feat/2-user-registration
+  fix/3-triangle-logic-bug
+  ```
+
+### ブランチ運用フロー
+1. **Issue作成** → ブランチ作成 → 開発 → PR → マージ → Issueクローズ
+2. **mainブランチ**: 本番環境用（常にデプロイ可能な状態）
+3. **developブランチ**: 開発統合用（オプション）
+4. **機能ブランチ**: 各機能開発用
+
+### ブランチ作成コマンド
+```bash
+# Issue番号を指定してブランチ作成
+git checkout -b setup/1-nextjs-initialization
+
+# または ghコマンドでIssueと連携
+gh issue create --title "setup: Next.js初期セットアップ" --body "Next.js App Router + TypeScript + TailwindCSSの初期セットアップ"
+gh issue view 1  # Issue番号を確認
+git checkout -b setup/1-nextjs-initialization
+```
+
+---
+
+## Issue管理
+
+### Issue作成のタイミング
+* **機能開発前**: 必ずIssueを作成してからブランチ作成
+* **バグ発見時**: 即座にIssue作成
+* **改善提案時**: 議論用Issue作成
+
+### Issue作成テンプレート
+```bash
+# 機能開発用
+gh issue create --title "feat: ユーザー登録機能" --body "## 概要
+名前・メールアドレス入力によるユーザー登録機能
+
+## 要件
+- フォームバリデーション
+- メール重複チェック
+- セッション管理
+
+## 受け入れ条件
+- [ ] 名前・メール入力フォーム
+- [ ] バリデーション機能
+- [ ] 登録完了後のリダイレクト"
+
+# セットアップ用
+gh issue create --title "setup: Next.js初期セットアップ" --body "## 概要
+Next.js App Router + TypeScript + TailwindCSSの初期セットアップ
+
+## 作業内容
+- [ ] Next.jsプロジェクト初期化
+- [ ] 依存関係インストール
+- [ ] 基本ディレクトリ構造作成
+- [ ] ESLint/Prettier設定"
+```
+
+### Issueラベル
+* `setup`: セットアップ・環境構築
+* `feat`: 新機能
+* `fix`: バグ修正
+* `ui`: UI/UX関連
+* `api`: API/バックエンド関連
+* `db`: データベース関連
+* `docs`: ドキュメント
 
 ---
 
