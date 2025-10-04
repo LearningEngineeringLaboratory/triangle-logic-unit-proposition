@@ -1,16 +1,16 @@
 # 単位命題三角ロジック演習システム
 
-単位命題三角ロジックを用いた学習演習システムです。学習過程の詳細ログを収集・分析できる研究用の基盤を提供します。
+単位命題三角ロジックを用いた学習演習システムです。
 
 ## 📖 概要
 
-このシステムは、論理推論の学習を支援するためのWebアプリケーションです。単位命題三角ロジックという視覚的な手法を用いて、学習者が論証の構造を理解し、段階的に学習を進められるよう設計されています。
+このシステムは、三項論証の推論形式や妥当性の判別の学習を支援するためのWebアプリケーションです。単位命題三角ロジックにより論証構造の可視化・操作が可能となっています。
 
 ### 主な機能
-- ステップ型演習システム（各ステップで正解しないと次に進めない）
-- 単位命題三角ロジックの視覚的表示
+- 単位命題三角ロジックによる論証構造の可視化
+- ステップ型演習システム
 - 学習過程の詳細ログ収集
-- リアルタイム答え合わせ機能
+- 答え合わせ機能
 
 ## 🛠️ 技術スタック
 
@@ -21,12 +21,18 @@
 ![React](https://img.shields.io/badge/React-19.1.0-61DAFB?style=flat-square&logo=react)
 
 ### UI/UX
-![shadcn/ui](https://img.shields.io/badge/shadcn/ui-最新-000000?style=flat-square)
-![Radix UI](https://img.shields.io/badge/Radix_UI-最新-161618?style=flat-square&logo=radix-ui)
+![shadcn/ui](https://img.shields.io/badge/shadcn/ui-latest-000000?style=flat-square)
+![Radix UI](https://img.shields.io/badge/Radix_UI-latest-161618?style=flat-square&logo=radix-ui)
+![Lucide React](https://img.shields.io/badge/Lucide_React-0.544.0-000000?style=flat-square&logo=lucide)
 
 ### バックエンド・データベース
 ![Supabase](https://img.shields.io/badge/Supabase-2.58.0-3ECF8E?style=flat-square&logo=supabase)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-最新-336791?style=flat-square&logo=postgresql)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-latest-336791?style=flat-square&logo=postgresql)
+
+### ユーティリティ
+![ULID](https://img.shields.io/badge/ULID-3.0.1-000000?style=flat-square)
+![CVA](https://img.shields.io/badge/CVA-0.7.1-000000?style=flat-square)
+![clsx](https://img.shields.io/badge/clsx-2.1.1-000000?style=flat-square)
 
 ### デプロイ
 ![Vercel](https://img.shields.io/badge/Vercel-デプロイ-000000?style=flat-square&logo=vercel)
