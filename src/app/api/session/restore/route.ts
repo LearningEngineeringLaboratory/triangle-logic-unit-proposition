@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
 
   const { data, error } = await supabase
     .from('sessions')
-    .select('session_id, user_id, created_at, last_activity, users:user_id(name, email, user_id)')
+    .select('session_id, user_id, created_at, last_activity, users!inner(name, email, user_id)')
     .eq('session_id', session_id)
     .gte('last_activity', since)
     .maybeSingle()
@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
     success: true,
     data: {
       session,
-      user: data.users,
+      user: (data as unknown as { users: { name: string; email: string; user_id: string } }).users,
       isReturningUser: true,
     },
   })
