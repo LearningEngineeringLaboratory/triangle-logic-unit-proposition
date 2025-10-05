@@ -1,9 +1,9 @@
 ---
 alwaysApply: true
 ---
-# 単位命題三角ロジック演習システム 要件定義 v0.2
+# 単位命題三角ロジック演習システム 要件定義 v0.3
 
-作成日：2025-10-04（JST）／更新：答え合わせ機能とクリア条件を明確化
+作成日：2025-10-05（JST）／更新：認証・セッション管理の詳細化
 
 ---
 
@@ -32,28 +32,228 @@ alwaysApply: true
 * **即時ログ送信**: 選択系操作はすべて即座にAPI送信
 * **イベント記録**: 操作内容、正誤判定、所要時間を詳細記録
 
-## 4. データモデル
+## 4. 認証・セッション管理
 
-### 4.1 テーブル構成
+### 4.1 認証フロー
+
+#### 初回アクセス時
+1. **セッション確認**: HttpOnly Cookieから`session_id`を取得
+2. **セッション有効性チェック**: セッションが存在し、有効期限内かチェック
+3. **セッション復帰**: 有効なセッションがあれば、既存の学習状態で復帰
+
+#### セッションがない場合
+1. **ユーザー登録フォーム表示**: 名前・メールアドレス入力フォームを表示（新規・復帰共通）
+2. **既存ユーザー検索**: 入力されたメールアドレスで既存ユーザーを検索
+3. **学習進捗確認**: 既存ユーザーの場合、過去の学習進捗を確認
+4. **処理分岐**:
+   - **既存ユーザー（途中の問題あり）**: 継続確認ダイアログを表示
+   - **既存ユーザー（完了済み）**: 新セッション作成
+   - **新規ユーザー**: ユーザー登録 → 新セッション作成
+
+#### 再アクセス時（同じメールアドレス）
+1. **セッション復帰を優先**: 有効なセッションがあれば復帰
+2. **既存ユーザー検索**: セッションがない場合はメールアドレスで既存ユーザーを検索
+3. **学習進捗確認**: 既存ユーザーの場合、過去の学習進捗を確認
+4. **継続確認ダイアログ**: 途中の問題がある場合、継続確認を表示
+5. **新セッション作成**: 選択に応じて新しいセッションを作成
+
+### 4.2 セッション管理仕様
+
+#### セッション作成
+```typescript
+interface SessionData {
+  session_id: string;        // ULID形式
+  user_id: string;          // 既存ユーザーのID
+  created_at: Date;         // セッション開始日時
+  last_activity: Date;      // 最終活動日時
+}
+```
+
+#### セッション有効性
+- **有効期限**: 24時間（設定可能）
+- **活動更新**: ユーザー操作のたびに`last_activity`を更新
+- **自動延長**: 活動がある限りセッションを延長
+
+#### セッション復帰処理
+```typescript
+// 1. CookieからセッションIDを取得
+const sessionId = getCookie('session_id');
+
+// 2. セッションの有効性をチェック
+const session = await supabase
+  .from('sessions')
+  .select(`
+    session_id,
+    user_id,
+    created_at,
+    last_activity,
+    users!inner(name, email)
+  `)
+  .eq('session_id', sessionId)
+  .gte('last_activity', new Date(Date.now() - 24 * 60 * 60 * 1000)) // 24時間以内
+  .single();
+
+// 3. 有効なセッションがあれば復帰
+if (session.data) {
+  return {
+    user: session.data.users,
+    session: session.data,
+    isReturningUser: true
+  };
+}
+```
+
+### 4.3 学習進捗の引き継ぎ
+
+#### 既存ユーザーの場合
+1. **学習進捗の確認**: 問題番号・ステップ番号を含む進捗状況を取得
+2. **途中の問題の検出**: 未完了の問題があるかチェック
+3. **継続確認ダイアログ**: 途中の問題がある場合、継続方法を選択
+4. **進捗の復元**: 選択に応じて学習状態を復元
+
+#### 学習進捗確認のクエリ例
+```sql
+-- 途中の問題があるかチェック
+SELECT 
+  problem_id,
+  problem_number,
+  current_step,
+  is_completed,
+  updated_at
+FROM responses 
+WHERE user_id = $1 
+  AND is_completed = false
+  AND updated_at > NOW() - INTERVAL '24 hours'
+ORDER BY problem_number, updated_at DESC;
+
+-- 完了済み問題の確認
+SELECT problem_number
+FROM responses 
+WHERE user_id = $1 
+  AND is_completed = true
+ORDER BY problem_number;
+```
+
+### 4.4 継続確認ダイアログ
+
+#### 表示条件
+- **途中の問題**: `responses`テーブルで`is_completed = false`のレコードが存在
+- **最終活動**: 24時間以内の活動がある場合のみ表示
+- **ステップ進捗**: `current_step > 1`の場合のみ表示
+
+#### 継続オプション
+- **続きから始める**: 既存の進捗で復帰
+- **最初から始める**: 進捗をリセットして新規開始
+- **前の問題から始める**: 完了済みの最後の問題から開始
+
+#### ダイアログ表示内容
+```typescript
+interface ContinueDialog {
+  message: "回答途中の問題があります。続きから始めますか？";
+  progress: {
+    problemNumber: number;        // 現在の問題番号
+    currentStep: number;          // 現在のステップ番号
+    totalSteps: number;           // 総ステップ数
+    completedProblems: number[];  // 完了済み問題番号の配列
+    lastActivity: Date;           // 最終活動日時
+  };
+  options: {
+    continue: "続きから始める";
+    restart: "最初から始める";
+    previousProblem: "前の問題から始める";
+  };
+}
+```
+
+## 5. データモデル
+
+### 5.1 テーブル構成
 * `users`: ユーザー情報（`user_id`, `name`, `email`, `created_at`）
-* `problems`: 問題データ（`problem_id`, `title`, `body`, `rubric`, `options`, `version`）
-* `sessions`: セッション管理（`session_id`, `user_id`, `created_at`）
+* `problems`: 問題データ（`problem_id`, `title`, `argument`, `total_steps`, `steps`, `version`）
+* `sessions`: セッション管理（`session_id`, `user_id`, `created_at`, `last_activity`）
 * `attempts`: 試行記録（`session_id`, `user_id`, `problem_id`, `started_at`, `finished_at`, `status`）
 * `events`: 操作ログ（`session_id`, `user_id`, `attempt_id`, `seq`, `kind`, `payload`, `client_ts`, `server_ts`）
-* `responses`: 回答状態（`session_id`, `user_id`, `attempt_id`, `state`, `current_step`, `passed_steps`）
-* `submissions`: 最終提出（`session_id`, `user_id`, `attempt_id`, `answer`, `score`, `submitted_at`）
+* `responses`: 回答状態（`response_id`, `session_id`, `user_id`, `problem_id`, `problem_number`, `state`, `current_step`, `is_completed`）
 
-### 4.2 データ構造詳細
-* `problems.options`: ドロップダウン選択肢の配列（例：["Pである", "Qである", "Rである", "Sである"]）
-* `problems.rubric`: 各ステップの正解条件（JSON形式）
-* `responses.state`: 現在の回答状態（選択された値、リンクの向き等）
+### 5.2 データ構造詳細
+* `problems.total_steps`: 問題内のステップ数（可変対応）
+* `problems.steps`: ステップ情報の配列（JSONB形式）
+* `responses.state`: 全ステップの回答状態（JSONB形式）
+* `responses.problem_number`: 問題番号（1, 2, 3...）
+* `responses.current_step`: 現在のステップ番号
+* `responses.is_completed`: 問題全体の完了状態
 
-### 4.3 問題ID命名規則
-形式：`TLU-<set>-Q<nn>-v<semver>` 例）`TLU-A-Q01-v1.0.0`
+### 5.3 JSONBフィールドの詳細
 
-## 5. ステップ進行とクリア条件
+#### `problems.steps`の構造
+```json
+{
+  "step1": {
+    "rubric": {
+      "correct_answer": {
+        "antecedent": "Pである",
+        "consequent": "Rである"
+      }
+    },
+    "options": ["Pである", "Qである", "Rである"]
+  },
+  "step2": {
+    "rubric": {
+      "answer_type": "selectable",
+      "correct_answer": {
+        "premise": "Qである",
+        "link_directions": {
+          "antecedent-link": true,
+          "consequent-link": true
+        }
+      }
+    },
+    "options": ["Pである", "Qである", "Rである"]
+  },
+  "step3": {
+    "rubric": {
+      "correct_answer": {
+        "inference_type": "演繹",
+        "validity": true
+      }
+    },
+  }
+}
+```
 
-### 5.1 ステップ構成（初期問題）
+#### `responses.state`の構造
+```json
+{
+  "step1": {
+    "antecedent": "Pである",
+    "consequent": "Rである",
+    "is_passed": true
+  },
+  "step2": {
+    "answer_type": "selectable",
+    "premise": "Qである",
+    "link_directions": {
+      "antecedent-link": true,
+      "consequent-link": true
+    },
+    "is_passed": false
+  },
+  "step3": {
+    "inference_type": "演繹",
+    "validity": true,
+    "is_passed": false
+  }
+}
+```
+
+### 5.4 ID命名規則
+* **問題ID**: `TLU-<set>-v<semver>` 例）`TLU-A-v1.0.0`
+
+## 6. ステップ進行とクリア条件
+
+### 6.1 問題・ステップ構成
+
+#### 問題1（例）
 **問題文**: PであるならばQである。また，QであるならばRである。したがって，PであるならばRである。
 
 * **Step1**: 導出命題を構成（前件/後件ドロップダウン選択）
@@ -63,15 +263,35 @@ alwaysApply: true
 * **Step3**: 推論形式と妥当性を選択
   - クリア条件: 正しい推論形式（演繹/仮説/非形式）と妥当性（妥当/非妥当）を選択
 
-### 5.2 サーバ側検証
+#### 問題2以降
+- 同様の構造で複数の問題を配置
+- 各問題は独立したステップ構成を持つ
+- ステップ数は問題ごとに可変（現在は3ステップ、将来は4ステップ以上も可能）
+
+### 6.2 進捗管理の統合構造
+
+#### 回答状態管理（responses）
+* **問題番号**: `problem_number`で現在の問題番号を管理
+* **現在のステップ**: `current_step`で現在のステップ番号を管理
+* **問題完了**: `is_completed`で問題全体の完了状態を管理
+* **ステップ状態**: `state`で全ステップの詳細な回答状態を管理
+* **ステップ合格**: 各ステップの`is_passed`フラグで合格状態を管理
+
+### 6.3 サーバ側検証
 * **ステップゲーティング**: サーバ側で不正スキップ防止チェックを実施
-* **状態管理**: `responses.state`に`current_step`と`passed_steps[]`を保持
+* **統合状態管理**: `responses.state`で全ステップの状態を一元管理
 * **飛び級防止**: 前のステップが合格していない場合は次ステップへの進行を拒否
+* **問題進行**: 全ステップが合格した場合のみ次の問題に進行可能
+* **問題番号管理**: `problem_number`で問題の順序を管理し、適切な進捗復帰を実現
 
-## 6. イベント記録
+## 7. イベント記録
 
-### 6.1 主要イベント
+### 7.1 主要イベント
 * `user_registered`: ユーザー登録（`name`, `email`）
+* `session_created`: セッション作成（`user_id`, `session_id`）
+* `session_restored`: セッション復帰（`user_id`, `session_id`）
+* `continue_dialog_shown`: 継続確認ダイアログ表示（`user_id`, `problem_number`, `current_step`）
+* `continue_selected`: 継続方法選択（`user_id`, `choice`, `problem_number`, `current_step`）
 * `select_dropdown`: ドロップダウン選択（`control_id`, `value`）
 * `toggle_link_direction`: 矢印反転（`link_id`, `new_direction`）
 * `step_completed`: ステップ完了（`step`, `result`, `is_correct`）
@@ -80,32 +300,34 @@ alwaysApply: true
 * `check_answer`: 答え合わせボタンクリック
 * `step_navigation`: ステップ切り替え（`from_step`, `to_step`）
 
-### 6.2 ログ送信方式
+### 7.2 ログ送信方式
 * **即時送信**: 選択操作のたびに即座にAPI送信
 * **バッチ送信**: ネットワーク不安定時のバッファリング機能
 * **冪等性**: `idempotency_key`と`(session_id, seq)`で重複防止
 
-## 7. API設計
+## 8. API設計
 
-### 7.1 エンドポイント
+### 8.1 エンドポイント
 * `POST /api/register`: ユーザー登録
+* `POST /api/session/create`: セッション作成
+* `POST /api/session/restore`: セッション復帰
 * `POST /api/log`: イベントログ送信
 * `POST /api/submit`: 最終回答提出
 * `POST /api/check-step`: ステップ正誤判定
 
-### 7.2 セキュリティ
+### 8.2 セキュリティ
 * **RLS**: 常時有効、`user_id`と`session_id`一致の行のみ参照可能
 * **CSRF**: POST時にOrigin/Referer検証＋CSRFトークン
 * **レート制限**: per-session 60 events/min, per-IP 300 events/min
 * **メール重複チェック**: 同一メールアドレスの重複登録を防止
 
-## 8. UI設計
+## 9. UI設計
 
-### 8.1 レイアウト構成
+### 9.1 レイアウト構成
 
 #### PC画面（左右分割）
 * **左側パネル**:
-  - 最上部: 大問進捗インジケーター（[1]-[2]-[3]-[4]-[5]...形式）
+  - 最上部: 問題進捗インジケーター（[1]-[2]-[3]-[4]-[5]...形式）
   - 上部: 論証文表示
   - 下部: ステップ問題文（カルーセル形式で切り替え）
 * **右側パネル**:
@@ -118,7 +340,7 @@ alwaysApply: true
 * 下部: 単位命題三角ロジック表示エリア
 * 最下部: 答え合わせボタン
 
-### 8.2 単位命題三角ロジック仕様
+### 9.2 単位命題三角ロジック仕様
 
 #### 基本構造
 * **形状**: 逆正三角形
@@ -137,7 +359,7 @@ alwaysApply: true
 * **Step3**: 表示のみ（操作不可）
   - 推論形式・妥当性選択UI
 
-### 8.3 インタラクション仕様
+### 9.3 インタラクション仕様
 
 #### 答え合わせ
 * **タイミング**: 答え合わせボタン押下時
@@ -145,13 +367,36 @@ alwaysApply: true
 * **フィードバック**: 正誤結果を即座に表示
 
 #### 進捗管理
-* **大問進捗**: 完了した大問番号まで色付き表示
+* **問題進捗**: 完了した問題番号まで色付き表示（[1]-[2]-[3]-[4]-[5]...形式）
 * **ステップ進捗**: カルーセル形式で問題文切り替え
-* **状態保存**: Cookieで進捗を保持
+* **統合状態保存**: `responses.state`で全ステップの状態を一元管理してCookieで進捗を保持
+* **復帰時の整合性**: セッション復帰時に問題・ステップ両方の状態を復元
 
-## 9. 非機能要件
+## 10. 非機能要件
 
 * **パフォーマンス**: 通常操作でP95応答< 300ms
 * **可用性**: 学習時間帯の無停止運用
 * **アクセシビリティ**: WCAG 2.1 AA相当
 * **ブラウザ対応**: 最新のChromium/Firefox/Safari（モバイル含む）
+
+## 11. 実装上の注意点
+
+### 11.1 セッション管理
+- **セッション有効期限**: 24時間（設定可能）
+- **自動延長**: ユーザー活動がある限りセッションを延長
+- **セッション復帰**: 有効なセッションがあれば即座に復帰
+
+### 11.2 学習進捗の保持
+- **統合状態管理**: `responses.state`で全ステップの状態を一元管理
+- **問題番号管理**: `problem_number`で問題の順序を管理し、適切な進捗復帰を実現
+- **状態の永続化**: すべての操作を即座にデータベースに保存
+- **復帰時の整合性**: セッション復帰時に問題・ステップ両方の最新状態を確実に復元
+- **継続確認機能**: 途中で中断した学習を適切に継続できる仕組み
+- **データの整合性**: 外部キー制約とRLSでデータの整合性を保証
+- **可変ステップ対応**: JSONB構造により問題ごとに異なるステップ数に対応可能
+- **ログ分析の簡素化**: テーブル統合によりJOINが不要で分析クエリが簡潔
+
+### 11.3 エラーハンドリング
+- **ネットワークエラー**: オフライン時の操作をバッファリング
+- **セッション切れ**: 自動的に再認証フローに遷移
+- **データ不整合**: サーバー側で整合性チェックを実施
