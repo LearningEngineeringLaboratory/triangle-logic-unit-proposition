@@ -5,6 +5,14 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
+export async function setAppUser(userId: string) {
+  try {
+    await supabase.rpc('set_app_user', { p_user_id: userId })
+  } catch {
+    // 開発時は関数未定義でも続行
+  }
+}
+
 // 接続テスト用の関数
 export async function testConnection() {
   try {
