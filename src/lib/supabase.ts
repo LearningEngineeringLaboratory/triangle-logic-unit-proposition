@@ -5,6 +5,12 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
+export async function setAppUser(userId: string) {
+  // RLSでcurrent_setting('app.current_user_id')を参照するために、RPCを呼び出す
+  // 注意: anonキーで実行可能なようにサーバ側でEXECUTE権限を付与済み
+  await supabase.rpc('set_app_user', { p_user_id: userId })
+}
+
 // 接続テスト用の関数
 export async function testConnection() {
   try {

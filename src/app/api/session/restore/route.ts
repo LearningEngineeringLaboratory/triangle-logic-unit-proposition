@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getSupabaseAdmin } from '@/lib/supabase-server'
+import { supabase } from '@/lib/supabase'
 import type { ApiResponse, RestoreSessionResponse, SessionData } from '@/lib/types'
+import { setAppUser } from '@/lib/supabase'
 
 const SESSION_TTL_MS = 24 * 60 * 60 * 1000
 
@@ -13,8 +14,7 @@ export async function POST(req: NextRequest) {
 
   const since = new Date(Date.now() - SESSION_TTL_MS).toISOString()
 
-  const supabaseAdmin = getSupabaseAdmin()
-  const { data, error } = await supabaseAdmin
+  const { data, error } = await supabase
     .from('sessions')
     .select('session_id, user_id, created_at, last_activity, users!inner(name, email, user_id)')
     .eq('session_id', session_id)
@@ -37,7 +37,8 @@ export async function POST(req: NextRequest) {
   }
 
   // 活動更新
-  await supabaseAdmin
+  await setAppUser(data.user_id)
+  await supabase
     .from('sessions')
     .update({ last_activity: new Date().toISOString() })
     .eq('session_id', data.session_id)

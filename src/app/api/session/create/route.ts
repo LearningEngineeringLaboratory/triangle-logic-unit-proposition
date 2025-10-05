@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getSupabaseAdmin } from '@/lib/supabase-server'
+import { supabase } from '@/lib/supabase'
 import type { ApiResponse, CreateSessionRequestBody, CreateSessionResponse, SessionData } from '@/lib/types'
+import { setAppUser } from '@/lib/supabase'
 import { ulid } from 'ulid'
 
 const SESSION_TTL_MS = 24 * 60 * 60 * 1000
@@ -15,8 +16,8 @@ export async function POST(req: NextRequest) {
   const session_id = ulid()
   const now = new Date().toISOString()
 
-  const supabaseAdmin = getSupabaseAdmin()
-  const { error } = await supabaseAdmin
+  await setAppUser(user_id)
+  const { error } = await supabase
     .from('sessions')
     .insert({ session_id, user_id, created_at: now, last_activity: now })
 
