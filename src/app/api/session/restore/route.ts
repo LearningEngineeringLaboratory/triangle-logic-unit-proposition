@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabaseAdmin } from '@/lib/supabase-server'
+import { getSupabaseAdmin } from '@/lib/supabase-server'
 import type { ApiResponse, RestoreSessionResponse, SessionData } from '@/lib/types'
 
 const SESSION_TTL_MS = 24 * 60 * 60 * 1000
@@ -13,6 +13,7 @@ export async function POST(req: NextRequest) {
 
   const since = new Date(Date.now() - SESSION_TTL_MS).toISOString()
 
+  const supabaseAdmin = getSupabaseAdmin()
   const { data, error } = await supabaseAdmin
     .from('sessions')
     .select('session_id, user_id, created_at, last_activity, users!inner(name, email, user_id)')

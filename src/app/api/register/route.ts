@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabaseAdmin } from '@/lib/supabase-server'
+import { getSupabaseAdmin } from '@/lib/supabase-server'
 import type { ApiResponse, RegisterRequestBody, RegisterResponse } from '@/lib/types'
 import { ulid } from 'ulid'
 
@@ -13,6 +13,7 @@ export async function POST(req: NextRequest) {
   }
 
   // 既存ユーザー検索
+  const supabaseAdmin = getSupabaseAdmin()
   const { data: existing, error: selectError } = await supabaseAdmin
     .from('users')
     .select('user_id, name, email')

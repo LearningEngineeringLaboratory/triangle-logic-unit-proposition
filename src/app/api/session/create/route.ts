@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabaseAdmin } from '@/lib/supabase-server'
+import { getSupabaseAdmin } from '@/lib/supabase-server'
 import type { ApiResponse, CreateSessionRequestBody, CreateSessionResponse, SessionData } from '@/lib/types'
 import { ulid } from 'ulid'
 
@@ -15,6 +15,7 @@ export async function POST(req: NextRequest) {
   const session_id = ulid()
   const now = new Date().toISOString()
 
+  const supabaseAdmin = getSupabaseAdmin()
   const { error } = await supabaseAdmin
     .from('sessions')
     .insert({ session_id, user_id, created_at: now, last_activity: now })
