@@ -1,10 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getSupabaseAdmin } from '@/lib/supabase-server'
+import { supabase } from '@/lib/supabase'
 import type { ApiResponse, RegisterRequestBody, RegisterResponse } from '@/lib/types'
 import { ulid } from 'ulid'
 
 export async function POST(req: NextRequest) {
-  const body = (await req.json()) as RegisterRequestBody
+  let body: RegisterRequestBody
+  try {
+    body = (await req.json()) as RegisterRequestBody
+  } catch {
+    return NextResponse.json<ApiResponse<never>>({ success: false, error: 'invalid_request' }, { status: 400 })
+  }
   const name = body?.name?.trim()
   const email = body?.email?.trim().toLowerCase()
 
@@ -13,15 +18,16 @@ export async function POST(req: NextRequest) {
   }
 
   // 既存ユーザー検索
-  const supabaseAdmin = getSupabaseAdmin()
-  const { data: existing, error: selectError } = await supabaseAdmin
+  const supabaseClient = supabase
+  const { data: existing, error: selectError } = await supabaseClient
     .from('users')
     .select('user_id, name, email')
     .eq('email', email)
     .maybeSingle()
 
   if (selectError) {
-    return NextResponse.json<ApiResponse<never>>({ success: false, error: 'db_error' }, { status: 500 })
+    const detail = process.env.NODE_ENV !== 'production' ? selectError.message : undefined
+    return NextResponse.json({ success: false, error: 'db_error_select', detail }, { status: 500 })
   }
 
   if (existing) {
@@ -36,12 +42,13 @@ export async function POST(req: NextRequest) {
 
   // 新規作成
   const user_id = ulid()
-  const { error: insertError } = await supabaseAdmin
+  const { error: insertError } = await supabaseClient
     .from('users')
     .insert({ user_id, name, email })
 
   if (insertError) {
-    return NextResponse.json<ApiResponse<never>>({ success: false, error: 'db_error' }, { status: 500 })
+    const detail = process.env.NODE_ENV !== 'production' ? insertError.message : undefined
+    return NextResponse.json({ success: false, error: 'db_error_insert', detail }, { status: 500 })
   }
 
   const res: RegisterResponse = { user_id, name, email, isNewUser: true }
