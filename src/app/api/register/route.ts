@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { supabaseAdmin } from '@/lib/supabase-server'
 import type { ApiResponse, RegisterRequestBody, RegisterResponse } from '@/lib/types'
 import { ulid } from 'ulid'
 
@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
   }
 
   // 既存ユーザー検索
-  const { data: existing, error: selectError } = await supabase
+  const { data: existing, error: selectError } = await supabaseAdmin
     .from('users')
     .select('user_id, name, email')
     .eq('email', email)
@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
 
   // 新規作成
   const user_id = ulid()
-  const { error: insertError } = await supabase
+  const { error: insertError } = await supabaseAdmin
     .from('users')
     .insert({ user_id, name, email })
 
