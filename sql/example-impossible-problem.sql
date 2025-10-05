@@ -5,34 +5,36 @@
 -- ==============================================
 -- 組立不可が正解となる問題の例
 -- ==============================================
-INSERT INTO problems (problem_id, title, body, rubric, options, version) VALUES (
-  'TLU-A-Q02-v1.0.0',
-  '組立不可問題の例',
+INSERT INTO problems (problem_id, title, argument, total_steps, steps, version) VALUES (
+  'TLU-B-v1.0.0',
+  '問題2（組立不可問題の例）',
   'PであるならばQである。また，QであるならばRである。したがって，RであるならばSである。',
+  3,
   '{
     "step1": {
-      "description": "導出命題を構成してください",
-      "correct_answer": {
-        "antecedent": "Rである",
-        "consequent": "Sである"
-      }
+      "rubric": {
+        "correct_answer": {
+          "antecedent": "Rである",
+          "consequent": "Sである"
+        }
+      },
+      "options": ["Pである", "Qである", "Rである", "Sである"]
     },
     "step2": {
-      "description": "所与命題を構成してください",
-      "answer_type": "impossible",
-      "correct_answer": {
-        "is_impossible": true
-      }
+      "rubric": {
+        "answer_type": "impossible"
+      },
+      "options": ["Pである", "Qである", "Rである", "Sである"]
     },
     "step3": {
-      "description": "推論形式と妥当性を選択してください",
-      "correct_answer": {
-        "inference_type": "演繹",
-        "validity": "非妥当"
+      "rubric": {
+        "correct_answer": {
+          "inference_type": "非形式",
+          "validity": false
+        }
       }
     }
   }',
-  '["Pである", "Qである", "Rである", "Sである"]',
   '1.0.0'
 );
 
@@ -40,10 +42,10 @@ INSERT INTO problems (problem_id, title, body, rubric, options, version) VALUES 
 -- 組立不可回答のテストデータ
 -- ==============================================
 -- 組立不可が正解となる問題の回答例
-INSERT INTO responses (response_id, session_id, user_id, attempt_id, state, current_step, passed_steps) VALUES 
-  ('01HZ8X9K2M3N4P5Q6R7S8T9U2A', '01HZ8X9K2M3N4P5Q6R7S8T9U0Y', '01HZ8X9K2M3N4P5Q6R7S8T9U0V', '01HZ8X9K2M3N4P5Q6R7S8T9U1B', 
-   '{"step1": {"antecedent": "Rである", "consequent": "Sである"}, "step2": {"answer_type": "impossible", "is_impossible": true}}', 
-   2, '{1}');
+INSERT INTO responses (response_id, session_id, user_id, problem_id, problem_number, state, current_step, is_completed) VALUES 
+  ('01HZ8X9K2M3N4P5Q6R7S8T9U2A', '01HZ8X9K2M3N4P5Q6R7S8T9U0Y', '01HZ8X9K2M3N4P5Q6R7S8T9U0V', 'TLU-B-v1.0.0', 2,
+   '{"step1": {"antecedent": "Rである", "consequent": "Sである", "is_passed": true}, "step2": {"answer_type": "impossible", "is_passed": true}}', 
+   2, false);
 
 -- ==============================================
 -- 組立不可ボタンクリックのイベント例

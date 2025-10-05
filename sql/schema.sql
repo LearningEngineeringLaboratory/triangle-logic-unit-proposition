@@ -211,9 +211,11 @@ CREATE TRIGGER update_responses_updated_at
 -- ==============================================
 -- 9. テストデータ用のサンプル問題
 -- ==============================================
+
+-- 問題1: 通常の三段論法問題
 INSERT INTO problems (problem_id, title, argument, total_steps, steps, version) VALUES (
   'TLU-A-v1.0.0',
-  '三段論法の基本問題',
+  '問題1',
   'PであるならばQである。また，QであるならばRである。したがって，PであるならばRである。',
   3,
   '{
@@ -244,6 +246,40 @@ INSERT INTO problems (problem_id, title, argument, total_steps, steps, version) 
         "correct_answer": {
           "inference_type": "演繹",
           "validity": true
+        }
+      }
+    }
+  }',
+  '1.0.0'
+);
+
+-- 問題2: 組立不可が正解となる問題
+INSERT INTO problems (problem_id, title, argument, total_steps, steps, version) VALUES (
+  'TLU-B-v1.0.0',
+  '問題2（組立不可問題の例）',
+  'PであるならばQである。また，QであるならばRである。したがって，RであるならばSである。',
+  3,
+  '{
+    "step1": {
+      "rubric": {
+        "correct_answer": {
+          "antecedent": "Rである",
+          "consequent": "Sである"
+        }
+      },
+      "options": ["Pである", "Qである", "Rである", "Sである"]
+    },
+    "step2": {
+      "rubric": {
+        "answer_type": "impossible"
+      },
+      "options": ["Pである", "Qである", "Rである", "Sである"]
+    },
+    "step3": {
+      "rubric": {
+        "correct_answer": {
+          "inference_type": "非形式",
+          "validity": false
         }
       }
     }

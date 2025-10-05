@@ -212,7 +212,6 @@
   },
   "step2": {
     "answer_type": "impossible",
-    "is_impossible": true,
     "is_passed": true
   },
   "step3": {
