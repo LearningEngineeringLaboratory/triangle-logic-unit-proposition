@@ -24,7 +24,7 @@ export default async function ProblemsPage() {
         </Card>
       ) : (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {problems.map((problem) => (
+          {problems.map((problem: Problem) => (
             <ProblemCard key={problem.problem_id} problem={problem} />
           ))}
         </div>

@@ -37,4 +37,12 @@ export interface RestoreSessionResponse {
   isReturningUser: boolean
 }
 
+export interface Problem {
+  problem_id: string
+  title: string
+  argument: string
+  total_steps: number
+  completed_steps?: number
+}
+
 
