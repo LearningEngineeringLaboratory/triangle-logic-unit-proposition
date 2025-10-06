@@ -15,27 +15,27 @@
 ## 🛠️ 技術スタック
 
 ### フロントエンド
-![Next.js](https://img.shields.io/badge/Next.js-15.5.4-black?style=flat-square&logo=next.js)
-![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?style=flat-square&logo=typescript)
-![TailwindCSS](https://img.shields.io/badge/TailwindCSS-4.0-38B2AC?style=flat-square&logo=tailwind-css)
-![React](https://img.shields.io/badge/React-19.1.0-61DAFB?style=flat-square&logo=react)
+![Next.js](https://img.shields.io/badge/Next.js-black?style=flat-square&logo=next.js)
+![TypeScript](https://img.shields.io/badge/TypeScript-blue?style=flat-square&logo=typescript)
+![TailwindCSS](https://img.shields.io/badge/TailwindCSS-38B2AC?style=flat-square&logo=tailwind-css)
+![React](https://img.shields.io/badge/React-61DAFB?style=flat-square&logo=react)
 
 ### UI/UX
-![shadcn/ui](https://img.shields.io/badge/shadcn/ui-latest-000000?style=flat-square)
-![Radix UI](https://img.shields.io/badge/Radix_UI-latest-161618?style=flat-square&logo=radix-ui)
-![Lucide React](https://img.shields.io/badge/Lucide_React-0.544.0-000000?style=flat-square&logo=lucide)
+![shadcn/ui](https://img.shields.io/badge/shadcn/ui-000000?style=flat-square)
+![Radix UI](https://img.shields.io/badge/Radix_UI-161618?style=flat-square&logo=radix-ui)
+![Lucide React](https://img.shields.io/badge/Lucide_React-000000?style=flat-square&logo=lucide)
 
 ### バックエンド・データベース
-![Supabase](https://img.shields.io/badge/Supabase-2.58.0-3ECF8E?style=flat-square&logo=supabase)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-latest-336791?style=flat-square&logo=postgresql)
+![Supabase](https://img.shields.io/badge/Supabase-3ECF8E?style=flat-square&logo=supabase)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-336791?style=flat-square&logo=postgresql)
 
 ### ユーティリティ
-![ULID](https://img.shields.io/badge/ULID-3.0.1-000000?style=flat-square)
-![CVA](https://img.shields.io/badge/CVA-0.7.1-000000?style=flat-square)
-![clsx](https://img.shields.io/badge/clsx-2.1.1-000000?style=flat-square)
+![ULID](https://img.shields.io/badge/ULID-000000?style=flat-square)
+![CVA](https://img.shields.io/badge/CVA-000000?style=flat-square)
+![clsx](https://img.shields.io/badge/clsx-000000?style=flat-square)
 
 ### デプロイ
-![Vercel](https://img.shields.io/badge/Vercel-デプロイ-000000?style=flat-square&logo=vercel)
+![Vercel](https://img.shields.io/badge/Vercel-000000?style=flat-square&logo=vercel)
 
 ## 🚀 セットアップ
 
@@ -53,8 +53,9 @@ git clone https://github.com/LearningEngineeringLaboratory/triangle-logic-unit-p
 npm install
 
 # 環境変数を設定
-cp .env.example .env.local
-# .env.localにSupabaseの接続情報を設定
+# .env.localファイルを作成し、以下の環境変数を設定
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 ```
 
 ### 開発サーバー起動
@@ -71,13 +72,20 @@ npm run dev
 src/
 ├── app/                    # Next.js App Router
 │   ├── (auth)/            # 認証関連ページ
+│   │   └── register/      # ユーザー登録ページ
 │   ├── (main)/            # メイン機能
+│   │   └── problems/      # 問題一覧・詳細ページ
 │   └── api/               # API エンドポイント
+│       ├── register/      # ユーザー登録API
+│       └── session/       # セッション管理API
 ├── components/            # Reactコンポーネント
 │   ├── ui/               # shadcn/uiコンポーネント
 │   ├── triangle-logic/   # 単位命題三角ロジック専用
 │   └── forms/            # フォーム関連
 ├── lib/                  # ユーティリティ・設定
+│   ├── supabase.ts       # Supabaseクライアント
+│   ├── problems.ts       # 問題データ取得
+│   └── types.ts          # TypeScript型定義
 └── hooks/                # カスタムReactフック
 ```
 
@@ -85,11 +93,10 @@ src/
 
 - [x] Next.js初期セットアップ
 - [x] Supabase接続設定
-- [ ] データベーススキーマ設計
-- [ ] ユーザー登録機能
+- [x] データベーススキーマ設計
+- [x] ユーザー登録・セッション管理API
+- [x] 問題一覧ページ実装
+- [ ] 問題詳細ページ実装
 - [ ] 単位命題三角ロジックUI
-- [ ] 演習システム実装
-
-## 📄 ライセンス
-
-このプロジェクトは研究目的で開発されています。
+- [ ] ステップ型演習システム
+- [ ] 答え合わせ機能

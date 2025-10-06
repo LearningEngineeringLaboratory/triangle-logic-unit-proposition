@@ -22,6 +22,7 @@ ghコマンドを使用すること
 * `perf:` パフォーマンス改善
 * `test:` テスト関連
 * `chore:` ビルド/CI/依存関係など
+* `merge:` ブランチマージ
 
 ### 例
 
@@ -71,11 +72,104 @@ docs: READMEに環境構築手順を追記
   fix/3-triangle-logic-bug
   ```
 
+### ブランチ構成
+- **mainブランチ**: 本番環境用（developブランチから適宜マージ）
+- **developブランチ**: 開発統合用（常に最新の開発状態を保持）
+- **featブランチ**: 各機能開発用（developから作成）
+
 ### ブランチ運用フロー
-1. **Issue作成** → ブランチ作成 → 開発 → PR → マージ → Issueクローズ
-2. **mainブランチ**: 本番環境用（常にデプロイ可能な状態）
-3. **developブランチ**: 開発統合用（オプション）
-4. **機能ブランチ**: 各機能開発用
+
+#### 1. 機能開発の流れ
+```bash
+# 1. Issue作成
+gh issue create --title "feat: 問題詳細ページとステップ型演習UI" --body "..."
+
+# 2. developブランチを最新に更新
+git checkout develop
+git pull origin develop
+
+# 3. featブランチを作成（developから）
+git checkout -b feat/10-problem-detail-page
+
+# 4. 開発作業
+# ... 実装 ...
+
+# 5. コミット（Angular規約に従う）
+git add -A
+git commit -m "feat: 問題詳細ページの動的ルーティングを実装"
+
+# 6. developブランチにマージ
+git checkout develop
+git merge feat/10-problem-detail-page
+git push origin develop
+
+# 7. featブランチを削除
+git branch -d feat/10-problem-detail-page
+
+# 8. Issueをクローズ
+gh issue close 10 --comment "実装完了: 問題詳細ページが正常に動作することを確認しました。"
+```
+
+#### 2. 本番リリースの流れ
+```bash
+# 1. developブランチの内容をmainブランチにマージ
+git checkout main
+git pull origin main
+git merge develop
+git push origin main
+
+# 2. タグを作成（リリース管理）
+git tag -a v1.0.0 -m "リリース v1.0.0: 問題詳細ページ実装"
+git push origin v1.0.0
+```
+
+#### 3. 緊急修正の流れ
+```bash
+# 1. 緊急Issue作成
+gh issue create --title "fix: データベース接続エラーの修正" --body "..."
+
+# 2. developブランチからfixブランチを作成
+git checkout develop
+git pull origin develop
+git checkout -b fix/12-database-connection-error
+
+# 3. 修正作業
+# ... 修正 ...
+
+# 4. developブランチにマージ
+git checkout develop
+git merge fix/12-database-connection-error
+git push origin develop
+
+# 5. mainブランチにも即座にマージ（緊急のため）
+git checkout main
+git merge develop
+git push origin main
+
+# 6. fixブランチを削除
+git branch -d fix/12-database-connection-error
+```
+
+### マージ戦略
+
+#### developブランチ中心の開発
+- **developブランチが常に最新の開発状態を保持**
+- **mainブランチはdevelopブランチから適宜マージ**
+- **featブランチは必ずdevelopから作成**
+
+#### 本番リリースのタイミング
+- **機能が完成した時点でdevelopからmainにマージ**
+- **リリースタグを作成してバージョン管理**
+- **緊急修正時は即座にmainにも反映**
+
+#### マージコンフリクトの解決
+```bash
+# コンフリクト発生時
+git status  # コンフリクトファイルを確認
+# 各ファイルを手動で修正
+git add -A
+git commit -m "merge: featブランチをdevelopにマージ"
+```
 
 ### ブランチ作成コマンド
 ```bash
@@ -139,5 +233,34 @@ Next.js App Router + TypeScript + TailwindCSSの初期セットアップ
 
 * **日本語で記述**
 * チームメンバーが全員日本語を理解する前提のため、英語コメントは不要
+
+---
+
+## 運用のポイント
+
+### 1. developブランチ中心の開発
+- **developブランチが常に最新の開発状態を保持**
+- **featブランチは必ずdevelopから作成**
+- **機能完成後はdevelopにマージして統合**
+
+### 2. 本番リリース管理
+- **developブランチからmainブランチに適宜マージ**
+- **リリースタグでバージョン管理**
+- **mainブランチは常にデプロイ可能な状態を維持**
+
+### 3. コミットの粒度
+- **1つのコミットは1つの機能単位**
+- **小さく頻繁にコミット**
+- **意味のあるコミットメッセージを記述**
+
+### 4. マージ後の処理
+- **マージ完了後は必ずブランチを削除**
+- **Issueを適切にクローズ**
+- **動作確認を実施**
+
+### 5. 緊急時の対応
+- **緊急修正もdevelopブランチから開始**
+- **修正後はdevelopとmainの両方に反映**
+- **事後対応としてIssueを作成**
 
 ---
