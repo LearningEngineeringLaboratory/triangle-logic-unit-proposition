@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { supabase, setAppUser } from '@/lib/supabase'
 import type { ApiResponse, RestoreSessionResponse, SessionData } from '@/lib/types'
-import { setAppUser } from '@/lib/supabase'
 
 const SESSION_TTL_MS = 24 * 60 * 60 * 1000
 
@@ -36,7 +35,6 @@ export async function POST(req: NextRequest) {
     last_activity: data.last_activity,
   }
 
-  // 活動更新
   await setAppUser(data.user_id)
   await supabase
     .from('sessions')
