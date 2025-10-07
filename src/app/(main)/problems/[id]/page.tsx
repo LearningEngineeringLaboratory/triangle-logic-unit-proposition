@@ -140,9 +140,6 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
                         <Card className="flex-1">
                             <CardHeader>
                                 <CardTitle>単位命題三角ロジック</CardTitle>
-                                <CardDescription>
-                                    選択肢から単位命題を選択し、三角ロジックを構成してください
-                                </CardDescription>
                             </CardHeader>
                             <CardContent className="flex items-center justify-center">
                                 <TriangleLogicDisplay
@@ -235,13 +232,6 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
                             />
                         </CardContent>
                     </Card>
-
-                    {/* 答え合わせボタン */}
-                    <div className="flex justify-center">
-                        <Button size="lg" className="w-full">
-                            答え合わせ
-                        </Button>
-                    </div>
                 </div>
             </div>
         </div>
