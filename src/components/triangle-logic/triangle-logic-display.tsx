@@ -18,6 +18,10 @@ interface TriangleLogicDisplayProps {
   antecedentLinkDirection?: boolean
   consequentLinkDirection?: boolean
   currentStep: number
+  onInferenceTypeChange?: (value: string) => void
+  onValidityChange?: (value: string) => void
+  inferenceTypeValue?: string
+  validityValue?: string
 }
 
 export function TriangleLogicDisplay({
@@ -31,7 +35,11 @@ export function TriangleLogicDisplay({
   premiseValue = '',
   antecedentLinkDirection = true,
   consequentLinkDirection = true,
-  currentStep
+  currentStep,
+  onInferenceTypeChange,
+  onValidityChange,
+  inferenceTypeValue = '',
+  validityValue = ''
 }: TriangleLogicDisplayProps) {
   return (
     <div className="w-full max-w-2xl mx-auto">
@@ -156,19 +164,43 @@ export function TriangleLogicDisplay({
               />
             </>
           )}
-
-          {/* Step 3: 表示のみ（操作不可） */}
-          {currentStep >= 3 && (
-            <div className="absolute bottom-16 left-1/2 transform -translate-x-1/2">
-              <div className="text-center">
-                <div className="text-sm text-muted-foreground mb-2">推論形式と妥当性</div>
-                <div className="text-lg font-medium">
-                  {antecedentValue} → {consequentValue}
+        </div>
+        {/* Step 3: 表示のみ（操作不可） */}
+        {currentStep >= 3 && (
+          <div className="absolute bottom-[-40px] left-1/2 transform -translate-x-1/2 w-full px-4  border-t-1">
+            <div className="flex flex-col items-center gap-4 mt-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-xl">
+                {/* 推論形式 */}
+                <div className="flex flex-col gap-2">
+                  <span className="text-sm text-muted-foreground">推論形式</span>
+                  <Select value={inferenceTypeValue} onValueChange={onInferenceTypeChange ?? (() => { })}>
+                    <SelectTrigger className="w-full h-10">
+                      <SelectValue placeholder="選択してください" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="演繹推論">演繹推論</SelectItem>
+                      <SelectItem value="仮説推論">仮説推論</SelectItem>
+                      <SelectItem value="非形式推論">非形式推論</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                {/* 妥当性 */}
+                <div className="flex flex-col gap-2">
+                  <span className="text-sm text-muted-foreground">妥当性</span>
+                  <Select value={validityValue} onValueChange={onValidityChange ?? (() => { })}>
+                    <SelectTrigger className="w-full h-10">
+                      <SelectValue placeholder="選択してください" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="妥当">妥当</SelectItem>
+                      <SelectItem value="非妥当">非妥当</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </div>
   )
