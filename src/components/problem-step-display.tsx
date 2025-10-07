@@ -42,44 +42,51 @@ export function ProblemStepDisplay({
 
   return (
     <div className="space-y-4">
-      {/* ステップ進捗インジケーター */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
+      {/* カルーセル形式のステップ表示 */}
+      <div className="relative">
+        {/* ステップ内容のカルーセル */}
+        <div className="overflow-hidden">
+          <div 
+            className="flex transition-transform duration-300 ease-in-out"
+            style={{ transform: `translateX(-${(currentStep - 1) * 100}%)` }}
+          >
+            {steps.map((step) => (
+              <div key={step.number} className="w-full flex-shrink-0">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      Step {step.number}: {step.title}
+                    </CardTitle>
+                    <CardDescription>
+                      {step.description}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm leading-relaxed">
+                      {step.content}
+                    </p>
+                  </CardContent>
+                </Card>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* カルーセルインジケーター */}
+        <div className="flex justify-center mt-4 gap-2">
           {steps.map((step) => (
-            <div key={step.number} className="flex items-center">
-              <Badge 
-                variant={step.number <= currentStep ? "default" : "outline"}
-                className="w-8 h-8 rounded-full flex items-center justify-center"
-              >
-                {step.number}
-              </Badge>
-              {step.number < steps.length && (
-                <div className="w-8 h-0.5 bg-border mx-2" />
-              )}
-            </div>
+            <button
+              key={step.number}
+              onClick={() => onStepChange(step.number)}
+              className={`w-3 h-3 rounded-full transition-colors ${
+                step.number === currentStep 
+                  ? 'bg-primary' 
+                  : 'bg-muted hover:bg-muted-foreground/50'
+              }`}
+            />
           ))}
         </div>
-        <div className="text-sm text-muted-foreground">
-          {currentStep} / {steps.length}
-        </div>
       </div>
-
-      {/* 現在のステップ内容 */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            Step {currentStep}: {currentStepData.title}
-          </CardTitle>
-          <CardDescription>
-            {currentStepData.description}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm leading-relaxed">
-            {currentStepData.content}
-          </p>
-        </CardContent>
-      </Card>
 
       {/* ステップナビゲーション */}
       <div className="flex justify-between">
