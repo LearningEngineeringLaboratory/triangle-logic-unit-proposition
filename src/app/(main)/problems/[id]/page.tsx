@@ -105,9 +105,9 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
         {/* PC画面: 左右分割レイアウト */}
         <div className="hidden lg:grid lg:grid-cols-2 lg:gap-8 lg:h-[calc(100vh-200px)]">
                     {/* 左側パネル */}
-                    <div className="flex flex-col space-y-6">
+                    <div className="flex flex-col space-y-6 h-full">
                         {/* ステップ問題文（カード形式を廃止） */}
-                        <section className="flex-1">
+                        <section className="flex-1 flex flex-col">
                             <h3 className="text-xl font-semibold tracking-tight mb-1">{problem.title}</h3>
                             <p className="text-sm text-muted-foreground mb-4">
                                 以下のステップに従って、単位命題三角ロジックを構成してください
@@ -121,11 +121,13 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
                                     <p className="text-lg leading-relaxed">{problem.argument}</p>
                                 </CardContent>
                             </Card>
-                            <ProblemStepDisplay
-                                problem={problem}
-                                currentStep={currentStep}
-                                onStepChange={setCurrentStep}
-                            />
+                            <div className="flex-1 flex flex-col">
+                                <ProblemStepDisplay
+                                    problem={problem}
+                                    currentStep={currentStep}
+                                    onStepChange={setCurrentStep}
+                                />
+                            </div>
                         </section>
                     </div>
 

@@ -52,34 +52,46 @@ export function TriangleLogicDisplay({
             <>
               {/* 左上頂点 - 前件 */}
               <div className="absolute top-8 left-0">
-                <Select value={antecedentValue} onValueChange={onAntecedentChange}>
-                  <SelectTrigger className="w-48 h-20 text-lg px-4 py-6 min-h-[70px]">
-                    <SelectValue placeholder="前件" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {options.map((option) => (
-                      <SelectItem key={option} value={option} className="text-lg py-3">
-                        {option}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                {currentStep === 1 ? (
+                  <Select value={antecedentValue} onValueChange={onAntecedentChange}>
+                    <SelectTrigger className="w-48 text-lg px-4 py-6 min-h-[70px]">
+                      <SelectValue placeholder="前件" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {options.map((option) => (
+                        <SelectItem key={option} value={option} className="text-lg py-3">
+                          {option}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <div className="w-48 h-16 text-lg px-4 py-6 min-h-[70px] border border-input bg-background rounded-md flex items-center justify-center">
+                    <span className="text-lg">{antecedentValue || "選択されていません"}</span>
+                  </div>
+                )}
               </div>
 
               {/* 右上頂点 - 後件 */}
               <div className="absolute top-8 right-0">
-                <Select value={consequentValue} onValueChange={onConsequentChange}>
-                  <SelectTrigger className="w-48 h-20 text-lg px-4 py-6 min-h-[70px]">
-                    <SelectValue placeholder="後件" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {options.map((option) => (
-                      <SelectItem key={option} value={option} className="text-lg py-3">
-                        {option}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                {currentStep === 1 ? (
+                  <Select value={consequentValue} onValueChange={onConsequentChange}>
+                    <SelectTrigger className="w-48 text-lg px-4 py-6 min-h-[70px]">
+                      <SelectValue placeholder="後件" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {options.map((option) => (
+                        <SelectItem key={option} value={option} className="text-lg py-3">
+                          {option}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <div className="w-48 h-16 text-lg px-4 py-6 min-h-[70px] border border-input bg-background rounded-md flex items-center justify-center">
+                    <span className="text-lg">{consequentValue || "選択されていません"}</span>
+                  </div>
+                )}
               </div>
 
               {/* 導出命題の矢印（常に表示） */}
@@ -104,18 +116,24 @@ export function TriangleLogicDisplay({
             <>
               {/* 中央下頂点 - 所与命題 */}
               <div className="absolute top-60 left-1/2 transform -translate-x-1/2">
-                <Select value={premiseValue} onValueChange={onPremiseChange}>
-                  <SelectTrigger className="w-48 h-20 text-lg px-4 py-6 min-h-[70px]">
-                    <SelectValue placeholder="所与命題" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {options.map((option) => (
-                      <SelectItem key={option} value={option} className="text-lg py-3">
-                        {option}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                {currentStep === 2 ? (
+                  <Select value={premiseValue} onValueChange={onPremiseChange}>
+                    <SelectTrigger className="w-48 text-lg px-4 py-6 min-h-[70px]">
+                      <SelectValue placeholder="所与命題" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {options.map((option) => (
+                        <SelectItem key={option} value={option} className="text-lg py-3">
+                          {option}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <div className="w-48 h-16 text-lg px-4 py-6 min-h-[70px] border border-input bg-background rounded-md flex items-center justify-center">
+                    <span className="text-lg">{premiseValue || "選択されていません"}</span>
+                  </div>
+                )}
               </div>
 
               {/* 所与命題から前件への矢印（常に表示） */}

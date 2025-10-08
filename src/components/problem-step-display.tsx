@@ -36,17 +36,17 @@ export function ProblemStepDisplay({
     const currentStepData = steps[currentStep - 1]
 
     return (
-        <div className="space-y-4">
+        <div className="flex flex-col h-full">
             {/* カルーセル形式のステップ表示 */}
-            <div className="relative">
+            <div className="relative flex-1">
                 {/* ステップ内容のカルーセル */}
-                <div className="overflow-hidden">
+                <div className="overflow-hidden h-full">
                     <div
-                        className="flex transition-transform duration-300 ease-in-out"
+                        className="flex transition-transform duration-300 ease-in-out h-full"
                         style={{ transform: `translateX(-${(currentStep - 1) * 100}%)` }}
                     >
                         {steps.map((step) => (
-                            <div key={step.number} className="w-full flex-shrink-0 p-4">
+                            <div key={step.number} className="w-full flex-shrink-0 p-4 flex items-start">
                                 <div className="space-y-3">
                                     <h3 className="text-lg font-semibold text-foreground">
                                         Step {step.number}: {step.title}
@@ -59,11 +59,10 @@ export function ProblemStepDisplay({
                         ))}
                     </div>
                 </div>
-
             </div>
 
-            {/* ステップナビゲーション */}
-            <div className="flex items-center justify-between mt-6">
+            {/* ステップナビゲーション（最下部に固定） */}
+            <div className="flex items-center justify-between mt-6 flex-shrink-0">
                 <Button
                     variant="outline"
                     onClick={() => onStepChange(Math.max(1, currentStep - 1))}
