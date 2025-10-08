@@ -48,7 +48,7 @@ export function TriangleLogicDisplay({
   impossibleValue = false
 }: TriangleLogicDisplayProps) {
   return (
-    <div className="w-full max-w-2xl mx-auto">
+    <div className="w-full max-w-2xl mx-auto mb-8">
       <div className="relative">
         {/* 逆正三角形のコンテナ */}
         <div className="relative w-[520px] h-96 mx-auto">
@@ -194,21 +194,23 @@ export function TriangleLogicDisplay({
           )}
         </div>
 
-        {/* Step 2以上: 組み立て不可能トグル */}
-        {currentStep >= 2 && (
-          <div className="absolute bottom-0 left-20 flex items-center gap-3">
+        {/* Step 2以上: 組み立て不可能トグル（Step3ではONのときのみ表示） */}
+        {currentStep >= 2 && (currentStep < 3 || impossibleValue) && (
+          <div className="absolute left-16 flex items-center gap-3">
             <span className="text-sm font-medium">組み立て不可能</span>
             <Switch
               checked={impossibleValue}
               onCheckedChange={onImpossibleToggle}
+              disabled={currentStep > 2}
+              aria-readonly={currentStep > 2}
             />
           </div>
         )}
 
         {/* Step 3: 表示のみ（操作不可） */}
         {currentStep >= 3 && (
-          <div className="absolute bottom-[-80px] left-1/2 transform -translate-x-1/2 w-full px-4  border-t-1">
-            <div className="flex flex-col items-center gap-4 mt-6">
+          <div className="mt-16 w-full px-4 border-t pt-6">
+            <div className="flex flex-col items-center gap-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-xl">
                 {/* 推論形式 */}
                 <div className="flex flex-col gap-2">
