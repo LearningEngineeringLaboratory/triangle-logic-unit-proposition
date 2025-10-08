@@ -3,6 +3,7 @@ import { Problem } from '@/lib/types'
 
 export interface ProblemDetail extends Problem {
   steps: any // JSONB形式のステップデータ
+  options?: string[]
 }
 
 export async function getProblems(): Promise<Problem[]> {
@@ -40,7 +41,7 @@ export async function getProblem(problemId: string): Promise<ProblemDetail | nul
   try {
     const { data: problem, error } = await supabase
       .from('problems')
-      .select('problem_id, title, argument, total_steps, steps')
+      .select('problem_id, title, argument, total_steps, steps, options')
       .eq('problem_id', problemId)
       .single()
 

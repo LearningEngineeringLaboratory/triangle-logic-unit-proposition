@@ -132,7 +132,7 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
           {/* 右側パネル（カードなし・左側に縦罫線） */}
             <div className="flex-1 flex items-center justify-center border-l pl-8">
               <TriangleLogicDisplay
-                options={['Pである', 'Qである', 'Rである']}
+                options={problem.options ?? ['選択肢が設定されていません']}
                 onAntecedentChange={(value) => setAnswers(prev => ({ ...prev, antecedent: value }))}
                 onConsequentChange={(value) => setAnswers(prev => ({ ...prev, consequent: value }))}
                 onPremiseChange={(value) => setAnswers(prev => ({ ...prev, premise: value }))}
@@ -192,7 +192,7 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
             </CardHeader>
             <CardContent>
               <TriangleLogicDisplay
-                options={['Pである', 'Qである', 'Rである']}
+                options={problem.options ?? ['Pである', 'Qである', 'Rである']}
                 onAntecedentChange={(value) => setAnswers(prev => ({ ...prev, antecedent: value }))}
                 onConsequentChange={(value) => setAnswers(prev => ({ ...prev, consequent: value }))}
                 onPremiseChange={(value) => setAnswers(prev => ({ ...prev, premise: value }))}
