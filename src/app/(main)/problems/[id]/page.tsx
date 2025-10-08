@@ -103,94 +103,80 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
 
       {/* メインコンテンツ */}
       <div className="container mx-auto px-4 py-8">
-        {/* PC画面: 左右分割レイアウト */}
+        {/* PC画面: 左右分割レイアウト（右パネルは縦線で区切り、カード廃止） */}
         <div className="hidden lg:grid lg:grid-cols-2 lg:gap-8 lg:h-[calc(100vh-200px)]">
-                    {/* 左側パネル */}
-                    <div className="flex flex-col space-y-6 h-full">
-                        {/* ステップ問題文（カード形式を廃止） */}
-                        <section className="flex-1 flex flex-col">
-                            <h3 className="text-xl font-semibold tracking-tight mb-1">{problem.title}</h3>
-                            <p className="text-sm text-muted-foreground mb-4">
-                                以下のステップに従って、単位命題三角ロジックを構成してください
-                            </p>
-                            {/* 論証文カード（タイトル・説明とステップの間に挿入） */}
-                            <Card className="mb-4">
-                                <CardHeader>
-                                    <CardTitle>論証文</CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <p className="text-lg leading-relaxed">{problem.argument}</p>
-                                </CardContent>
-                            </Card>
-                            <div className="flex-1 flex flex-col">
-                                <ProblemStepDisplay
-                                    problem={problem}
-                                    currentStep={currentStep}
-                                    onStepChange={setCurrentStep}
-                                />
-                            </div>
-                        </section>
-                    </div>
-
-          {/* 右側パネル */}
-          <div className="flex flex-col space-y-4">
-            {/* 単位命題三角ロジック表示エリア */}
-            <Card className="flex-1">
-              <CardHeader>
-                <CardTitle>単位命題三角ロジック</CardTitle>
-              </CardHeader>
-              <CardContent className="flex items-center justify-center">
-                <TriangleLogicDisplay
-                  options={['Pである', 'Qである', 'Rである']}
-                  onAntecedentChange={(value) => setAnswers(prev => ({ ...prev, antecedent: value }))}
-                  onConsequentChange={(value) => setAnswers(prev => ({ ...prev, consequent: value }))}
-                  onPremiseChange={(value) => setAnswers(prev => ({ ...prev, premise: value }))}
-                  onLinkDirectionToggle={(linkType) => {
-                    if (linkType === 'antecedent') {
-                      setAnswers(prev => ({ ...prev, antecedentLinkDirection: !prev.antecedentLinkDirection }))
-                    } else {
-                      setAnswers(prev => ({ ...prev, consequentLinkDirection: !prev.consequentLinkDirection }))
-                    }
-                  }}
-                  onInferenceTypeChange={(value) => setAnswers(prev => ({ ...prev, inferenceType: value }))}
-                  onValidityChange={(value) => setAnswers(prev => ({ ...prev, validity: value }))}
-                  inferenceTypeValue={answers.inferenceType}
-                  validityValue={answers.validity}
-                  antecedentValue={answers.antecedent}
-                  consequentValue={answers.consequent}
-                  premiseValue={answers.premise}
-                  antecedentLinkDirection={answers.antecedentLinkDirection}
-                  consequentLinkDirection={answers.consequentLinkDirection}
+          {/* 左側パネル */}
+          <div className="flex flex-col space-y-6 h-full">
+            {/* ステップ問題文（カード形式を廃止） */}
+            <section className="flex-1 flex flex-col">
+              <h3 className="text-xl font-semibold tracking-tight mb-4">{problem.title}</h3>
+              {/* 論証文カード（タイトル・説明とステップの間に挿入） */}
+              <Card className="mb-4">
+                <CardHeader>
+                  <CardTitle>論証文</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-lg leading-relaxed">{problem.argument}</p>
+                </CardContent>
+              </Card>
+              <div className="flex-1 flex flex-col">
+                <ProblemStepDisplay
+                  problem={problem}
                   currentStep={currentStep}
-                  impossibleValue={answers.impossible}
-                  onImpossibleToggle={(value) => setAnswers(prev => ({ ...prev, impossible: value }))}
+                  onStepChange={setCurrentStep}
                 />
-              </CardContent>
-            </Card>
+              </div>
+            </section>
+          </div>
+
+          {/* 右側パネル（カードなし・左側に縦罫線） */}
+            <div className="flex-1 flex items-center justify-center border-l pl-8">
+              <TriangleLogicDisplay
+                options={['Pである', 'Qである', 'Rである']}
+                onAntecedentChange={(value) => setAnswers(prev => ({ ...prev, antecedent: value }))}
+                onConsequentChange={(value) => setAnswers(prev => ({ ...prev, consequent: value }))}
+                onPremiseChange={(value) => setAnswers(prev => ({ ...prev, premise: value }))}
+                onLinkDirectionToggle={(linkType) => {
+                  if (linkType === 'antecedent') {
+                    setAnswers(prev => ({ ...prev, antecedentLinkDirection: !prev.antecedentLinkDirection }))
+                  } else {
+                    setAnswers(prev => ({ ...prev, consequentLinkDirection: !prev.consequentLinkDirection }))
+                  }
+                }}
+                onInferenceTypeChange={(value) => setAnswers(prev => ({ ...prev, inferenceType: value }))}
+                onValidityChange={(value) => setAnswers(prev => ({ ...prev, validity: value }))}
+                inferenceTypeValue={answers.inferenceType}
+                validityValue={answers.validity}
+                antecedentValue={answers.antecedent}
+                consequentValue={answers.consequent}
+                premiseValue={answers.premise}
+                antecedentLinkDirection={answers.antecedentLinkDirection}
+                consequentLinkDirection={answers.consequentLinkDirection}
+                currentStep={currentStep}
+                impossibleValue={answers.impossible}
+                onImpossibleToggle={(value) => setAnswers(prev => ({ ...prev, impossible: value }))}
+              />
           </div>
         </div>
 
         {/* モバイル画面: 上下分割レイアウト */}
         <div className="lg:hidden space-y-4">
-          {/* 論証文表示 */}
-          <Card>
-            <CardHeader>
-              <CardTitle>論証文</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-lg leading-relaxed">{problem.argument}</p>
-            </CardContent>
-          </Card>
 
           {/* ステップ問題文（カルーセル形式） */}
           <Card>
             <CardHeader>
-              <CardTitle>ステップ問題文</CardTitle>
-              <CardDescription>
-                以下のステップに従って、単位命題三角ロジックを構成してください
-              </CardDescription>
+            <h3 className="text-xl font-semibold tracking-tight mb-1">{problem.title}</h3>
             </CardHeader>
             <CardContent>
+              {/* 論証文表示 */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>論証文</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-lg leading-relaxed">{problem.argument}</p>
+                </CardContent>
+              </Card>
               <ProblemStepDisplay
                 problem={problem}
                 currentStep={currentStep}
@@ -203,9 +189,6 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
           <Card>
             <CardHeader>
               <CardTitle>単位命題三角ロジック</CardTitle>
-              <CardDescription>
-                選択肢から単位命題を選択し、三角ロジックを構成してください
-              </CardDescription>
             </CardHeader>
             <CardContent>
               <TriangleLogicDisplay

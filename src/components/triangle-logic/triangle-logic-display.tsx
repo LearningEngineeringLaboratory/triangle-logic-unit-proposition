@@ -60,7 +60,7 @@ export function TriangleLogicDisplay({
                 {currentStep === 1 ? (
                   <Select value={antecedentValue} onValueChange={onAntecedentChange}>
                     <SelectTrigger className="w-48 text-lg px-4 py-6 min-h-[70px]">
-                      <SelectValue placeholder="前件" />
+                      <SelectValue placeholder="選択" />
                     </SelectTrigger>
                     <SelectContent>
                       {options.map((option) => (
@@ -82,7 +82,7 @@ export function TriangleLogicDisplay({
                 {currentStep === 1 ? (
                   <Select value={consequentValue} onValueChange={onConsequentChange}>
                     <SelectTrigger className="w-48 text-lg px-4 py-6 min-h-[70px]">
-                      <SelectValue placeholder="後件" />
+                      <SelectValue placeholder="選択" />
                     </SelectTrigger>
                     <SelectContent>
                       {options.map((option) => (
@@ -124,7 +124,7 @@ export function TriangleLogicDisplay({
                 {currentStep === 2 ? (
                   <Select value={premiseValue} onValueChange={onPremiseChange}>
                     <SelectTrigger className="w-48 text-lg px-4 py-6 min-h-[70px]">
-                      <SelectValue placeholder="所与命題" />
+                      <SelectValue placeholder="選択" />
                     </SelectTrigger>
                     <SelectContent>
                       {options.map((option) => (
@@ -196,8 +196,8 @@ export function TriangleLogicDisplay({
 
         {/* Step 2以上: 組み立て不可能トグル（Step3ではONのときのみ表示） */}
         {currentStep >= 2 && (currentStep < 3 || impossibleValue) && (
-          <div className="absolute left-16 flex items-center gap-3">
-            <span className="text-sm font-medium">組み立て不可能</span>
+          <div className="absolute left-10 bottom-8 flex items-center gap-3">
+            <span className="text-md font-medium">前提の組み立て不可能</span>
             <Switch
               checked={impossibleValue}
               onCheckedChange={onImpossibleToggle}
@@ -209,7 +209,7 @@ export function TriangleLogicDisplay({
 
         {/* Step 3: 表示のみ（操作不可） */}
         {currentStep >= 3 && (
-          <div className="mt-16 w-full px-4 border-t pt-6">
+          <div className="w-full px-4 border-t pt-6">
             <div className="flex flex-col items-center gap-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-xl">
                 {/* 推論形式 */}
