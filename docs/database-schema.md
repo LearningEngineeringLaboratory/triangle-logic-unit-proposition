@@ -9,7 +9,7 @@
 | テーブル名 | 用途 | 主要フィールド |
 |-----------|------|---------------|
 | `users` | ユーザー情報管理 | user_id, name, email |
-| `problems` | 問題データ管理 | problem_id, title, argument, total_steps, steps |
+| `problems` | 問題データ管理 | problem_id, title, argument, options, total_steps, steps |
 | `sessions` | セッション管理 | session_id, user_id, created_at, last_activity |
 | `attempts` | 試行記録管理 | attempt_id, session_id, user_id, problem_id, status |
 | `events` | 操作ログ管理 | event_id, session_id, user_id, attempt_id, kind, payload |
@@ -41,6 +41,7 @@
 | problem_id | TEXT | PRIMARY KEY | 問題ID（例: TLU-A-v1.0.0） |
 | title | TEXT | NOT NULL | 問題タイトル |
 | argument | TEXT | NOT NULL | 論証文 |
+| options | JSONB |  | 単位命題の共通選択肢（全ステップ共通） |
 | total_steps | INTEGER | NOT NULL | 問題内のステップ数（可変対応） |
 | steps | JSONB | NOT NULL | ステップ情報の配列（JSONB形式） |
 | version | TEXT | NOT NULL | 問題バージョン |
@@ -48,6 +49,11 @@
 | updated_at | TIMESTAMP WITH TIME ZONE | DEFAULT NOW() | 更新日時 |
 
 **JSONBフィールドの詳細**:
+
+- `options`: 単位命題の共通選択肢
+  ```json
+  ["Pである", "Qである", "Rである", "Sである"]
+  ```
 
 - `steps`: ステップ情報の配列
   ```json
@@ -59,7 +65,6 @@
           "consequent": "Rである"
         }
       },
-      "options": ["Pである", "Qである", "Rである"]
     },
     "step2": {
       "rubric": {
@@ -72,12 +77,11 @@
           }
         }
       },
-      "options": ["Pである", "Qである", "Rである"]
     },
     "step3": {
       "rubric": {
         "correct_answer": {
-          "inference_type": "演繹",
+          "inference_type": "演繹推論",
           "validity": true
         }
       }
@@ -195,7 +199,7 @@
     "is_passed": false
   },
   "step3": {
-    "inference_type": "演繹",
+    "inference_type": "演繹推論",
     "validity": true,
     "is_passed": false
   }
@@ -215,7 +219,7 @@
     "is_passed": true
   },
   "step3": {
-    "inference_type": "非形式",
+    "inference_type": "非形式推論",
     "validity": false,
     "is_passed": false
   }

@@ -276,7 +276,7 @@ INSERT INTO problems (problem_id, title, argument, options, total_steps, steps, 
     "step3": {
       "rubric": {
         "correct_answer": {
-          "inference_type": "非形式",
+          "inference_type": "非形式推論",
           "validity": false
         }
       }
