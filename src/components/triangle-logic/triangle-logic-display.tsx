@@ -6,6 +6,7 @@ import { RefreshCw } from 'lucide-react'
 import { Arrow } from './Arrow'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
+import { Switch } from '@/components/ui/switch'
 
 interface TriangleLogicDisplayProps {
   options: string[]
@@ -23,6 +24,8 @@ interface TriangleLogicDisplayProps {
   onValidityChange?: (value: string) => void
   inferenceTypeValue?: string
   validityValue?: string
+  onImpossibleToggle?: (value: boolean) => void
+  impossibleValue?: boolean
 }
 
 export function TriangleLogicDisplay({
@@ -40,7 +43,9 @@ export function TriangleLogicDisplay({
   onInferenceTypeChange,
   onValidityChange,
   inferenceTypeValue = '',
-  validityValue = ''
+  validityValue = '',
+  onImpossibleToggle,
+  impossibleValue = false
 }: TriangleLogicDisplayProps) {
   return (
     <div className="w-full max-w-2xl mx-auto">
@@ -112,7 +117,7 @@ export function TriangleLogicDisplay({
           )}
 
           {/* Step 2: 3ノード構成（Step1 + 中央下頂点） */}
-          {currentStep >= 2 && (
+          {currentStep >= 2 && !impossibleValue && (
             <>
               {/* 中央下頂点 - 所与命題 */}
               <div className="absolute top-60 left-1/2 transform -translate-x-1/2">
@@ -188,9 +193,21 @@ export function TriangleLogicDisplay({
             </>
           )}
         </div>
+
+        {/* Step 2以上: 組み立て不可能トグル */}
+        {currentStep >= 2 && (
+          <div className="absolute bottom-0 left-20 flex items-center gap-3">
+            <span className="text-sm font-medium">組み立て不可能</span>
+            <Switch
+              checked={impossibleValue}
+              onCheckedChange={onImpossibleToggle}
+            />
+          </div>
+        )}
+
         {/* Step 3: 表示のみ（操作不可） */}
         {currentStep >= 3 && (
-          <div className="absolute bottom-[-40px] left-1/2 transform -translate-x-1/2 w-full px-4  border-t-1">
+          <div className="absolute bottom-[-80px] left-1/2 transform -translate-x-1/2 w-full px-4  border-t-1">
             <div className="flex flex-col items-center gap-4 mt-6">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-xl">
                 {/* 推論形式 */}

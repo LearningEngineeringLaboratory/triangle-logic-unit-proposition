@@ -28,7 +28,8 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
     antecedentLinkDirection: true,
     consequentLinkDirection: true,
     inferenceType: '',
-    validity: ''
+    validity: '',
+    impossible: false
   })
 
   useEffect(() => {
@@ -161,6 +162,8 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
                   antecedentLinkDirection={answers.antecedentLinkDirection}
                   consequentLinkDirection={answers.consequentLinkDirection}
                   currentStep={currentStep}
+                  impossibleValue={answers.impossible}
+                  onImpossibleToggle={(value) => setAnswers(prev => ({ ...prev, impossible: value }))}
                 />
               </CardContent>
             </Card>
@@ -227,6 +230,8 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
                 antecedentLinkDirection={answers.antecedentLinkDirection}
                 consequentLinkDirection={answers.consequentLinkDirection}
                 currentStep={currentStep}
+                impossibleValue={answers.impossible}
+                onImpossibleToggle={(value) => setAnswers(prev => ({ ...prev, impossible: value }))}
               />
             </CardContent>
           </Card>
