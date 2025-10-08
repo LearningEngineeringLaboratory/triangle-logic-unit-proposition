@@ -104,35 +104,30 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
       <div className="container mx-auto px-4 py-8">
         {/* PC画面: 左右分割レイアウト */}
         <div className="hidden lg:grid lg:grid-cols-2 lg:gap-8 lg:h-[calc(100vh-200px)]">
-          {/* 左側パネル */}
-
-          {/* ステップ問題文（カルーセル形式） */}
-          <Card className="flex-1">
-            <CardHeader>
-              <CardTitle>{problem.title}</CardTitle>
-              <CardDescription>
-                以下のステップに従って、単位命題三角ロジックを構成してください
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-col space-y-4">
-                {/* 論証文表示 */}
-                <Card className="flex-1">
-                  <CardHeader>
-                    <CardTitle>論証文</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-lg leading-relaxed">{problem.argument}</p>
-                  </CardContent>
-                </Card>
-                <ProblemStepDisplay
-                  problem={problem}
-                  currentStep={currentStep}
-                  onStepChange={setCurrentStep}
-                />
-              </div>
-            </CardContent>
-          </Card>
+                    {/* 左側パネル */}
+                    <div className="flex flex-col space-y-6">
+                        {/* ステップ問題文（カード形式を廃止） */}
+                        <section className="flex-1">
+                            <h3 className="text-xl font-semibold tracking-tight mb-1">{problem.title}</h3>
+                            <p className="text-sm text-muted-foreground mb-4">
+                                以下のステップに従って、単位命題三角ロジックを構成してください
+                            </p>
+                            {/* 論証文カード（タイトル・説明とステップの間に挿入） */}
+                            <Card className="mb-4">
+                                <CardHeader>
+                                    <CardTitle>論証文</CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <p className="text-lg leading-relaxed">{problem.argument}</p>
+                                </CardContent>
+                            </Card>
+                            <ProblemStepDisplay
+                                problem={problem}
+                                currentStep={currentStep}
+                                onStepChange={setCurrentStep}
+                            />
+                        </section>
+                    </div>
 
           {/* 右側パネル */}
           <div className="flex flex-col space-y-4">
@@ -167,13 +162,6 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
                 />
               </CardContent>
             </Card>
-
-            {/* 答え合わせボタン */}
-            <div className="flex justify-center">
-              <Button size="lg" className="w-full">
-                答え合わせ
-              </Button>
-            </div>
           </div>
         </div>
 

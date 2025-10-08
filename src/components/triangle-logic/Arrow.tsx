@@ -24,7 +24,7 @@ export const Arrow: React.FC<ArrowProps> = ({
   strokeWidth = 6,
   dashed = false,
   showStartDot = true,
-  startDotRadius = 7,
+  startDotRadius = 6,
   centerOverlay,
 }) => {
   // ローカルSVG座標（常に右向きベースで描画）
@@ -39,7 +39,7 @@ export const Arrow: React.FC<ArrowProps> = ({
   // 先端三角形（右向き基準）
   const tipX = x2
   const tipY = localCenterY
-  const tipPoints = `${tipX - 20},${tipY - 8} ${tipX},${tipY} ${tipX - 20},${tipY + 8}`
+  const tipPoints = `${tipX - 20},${tipY - 8} ${tipX + 4},${tipY} ${tipX - 20},${tipY + 8}`
 
   const dashProps = dashed ? { strokeDasharray: '8 6' } : {}
 

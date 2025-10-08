@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { RefreshCw } from 'lucide-react'
 import { Arrow } from './Arrow'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Badge } from '@/components/ui/badge'
 
 interface TriangleLogicDisplayProps {
   options: string[]
@@ -91,7 +92,9 @@ export function TriangleLogicDisplay({
                 strokeWidth={6}
                 dashed={false}
                 showStartDot
-                startDotRadius={6}
+                centerOverlay={
+                  <Badge variant="secondary" className="border-2 border-muted-foreground">ならば</Badge>
+                }
               />
             </>
           )}
@@ -125,17 +128,18 @@ export function TriangleLogicDisplay({
                 strokeWidth={6}
                 dashed={true}
                 showStartDot
-                startDotRadius={6}
                 centerOverlay={
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => onLinkDirectionToggle('antecedent')}
-                    className="h-8 w-8 rounded-full p-0 border-2 hover:shadow-sm hover:bg-secondary hover:opacity-100"
-                    aria-label="方向切替"
-                  >
-                    <RefreshCw className="h-4 w-4" />
-                  </Button>
+                  currentStep == 2 ? (
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => onLinkDirectionToggle('antecedent')}
+                      className="h-8 w-8 rounded-full p-0 border-2 hover:shadow-sm hover:bg-secondary hover:opacity-100"
+                      aria-label="方向切替"
+                    >
+                      <RefreshCw className="h-4 w-4" />
+                    </Button>
+                  ) : <Badge variant="secondary" className={`border-2 ${antecedentLinkDirection ? "border-muted-foreground" : "border-orange-500"} `}>ならば</Badge>
                 }
               />
 
@@ -149,17 +153,18 @@ export function TriangleLogicDisplay({
                 strokeWidth={6}
                 dashed={true}
                 showStartDot
-                startDotRadius={6}
                 centerOverlay={
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => onLinkDirectionToggle('consequent')}
-                    className="h-8 w-8 rounded-full p-0 border-2 hover:shadow-sm hover:bg-secondary hover:opacity-100"
-                    aria-label="方向切替"
-                  >
-                    <RefreshCw className="h-4 w-4" />
-                  </Button>
+                  currentStep == 2 ? (
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => onLinkDirectionToggle('consequent')}
+                      className="h-8 w-8 rounded-full p-0 border-2 hover:shadow-sm hover:bg-secondary hover:opacity-100"
+                      aria-label="方向切替"
+                    >
+                      <RefreshCw className="h-4 w-4" />
+                    </Button>
+                  ) : <Badge variant="secondary" className={`border-2 ${consequentLinkDirection ? "border-muted-foreground" : "border-orange-500"} `}>ならば</Badge>
                 }
               />
             </>
