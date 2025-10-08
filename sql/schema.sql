@@ -213,10 +213,11 @@ CREATE TRIGGER update_responses_updated_at
 -- ==============================================
 
 -- 問題1: 通常の三段論法問題
-INSERT INTO problems (problem_id, title, argument, total_steps, steps, version) VALUES (
+INSERT INTO problems (problem_id, title, argument, options, total_steps, steps, version) VALUES (
   'TLU-A-v1.0.0',
   '問題1',
   'PであるならばQである。また，QであるならばRである。したがって，PであるならばRである。',
+  '["Pである", "Qである", "Rである"]',
   3,
   '{
     "step1": {
@@ -226,7 +227,6 @@ INSERT INTO problems (problem_id, title, argument, total_steps, steps, version) 
           "consequent": "Rである"
         }
       },
-      "options": ["Pである", "Qである", "Rである"]
     },
     "step2": {
       "rubric": {
@@ -239,12 +239,11 @@ INSERT INTO problems (problem_id, title, argument, total_steps, steps, version) 
           }
         }
       },
-      "options": ["Pである", "Qである", "Rである"]
     },
     "step3": {
       "rubric": {
         "correct_answer": {
-          "inference_type": "演繹",
+          "inference_type": "演繹推論",
           "validity": true
         }
       }
@@ -254,10 +253,11 @@ INSERT INTO problems (problem_id, title, argument, total_steps, steps, version) 
 );
 
 -- 問題2: 組立不可が正解となる問題
-INSERT INTO problems (problem_id, title, argument, total_steps, steps, version) VALUES (
+INSERT INTO problems (problem_id, title, argument, options, total_steps, steps, version) VALUES (
   'TLU-B-v1.0.0',
   '問題2（組立不可問題の例）',
   'PであるならばQである。また，QであるならばRである。したがって，RであるならばSである。',
+  '["Pである", "Qである", "Rである", "Sである"]',
   3,
   '{
     "step1": {
@@ -266,14 +266,12 @@ INSERT INTO problems (problem_id, title, argument, total_steps, steps, version) 
           "antecedent": "Rである",
           "consequent": "Sである"
         }
-      },
-      "options": ["Pである", "Qである", "Rである", "Sである"]
+      }
     },
     "step2": {
       "rubric": {
         "answer_type": "impossible"
-      },
-      "options": ["Pである", "Qである", "Rである", "Sである"]
+      }
     },
     "step3": {
       "rubric": {
