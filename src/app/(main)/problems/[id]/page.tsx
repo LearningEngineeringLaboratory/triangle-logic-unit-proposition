@@ -80,31 +80,11 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
         </div>
       </div>
 
-      {/* 問題進捗インジケーター */}
-      <div className="border-b bg-muted/50">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-center gap-2">
-            {Array.from({ length: 5 }, (_, i) => i + 1).map((num) => (
-              <div key={num} className="flex items-center">
-                <Badge
-                  variant={num <= 1 ? "default" : "outline"}
-                  className="w-8 h-8 rounded-full flex items-center justify-center"
-                >
-                  {num}
-                </Badge>
-                {num < 5 && (
-                  <div className="w-8 h-0.5 bg-border mx-2" />
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
 
       {/* メインコンテンツ */}
       <div className="container mx-auto px-4 py-8">
         {/* PC画面: 左右分割レイアウト（右パネルは縦線で区切り、カード廃止） */}
-        <div className="hidden lg:grid lg:grid-cols-2 lg:gap-8 lg:h-[calc(100vh-200px)]">
+        <div className="hidden lg:grid lg:grid-cols-2 lg:gap-8 lg:h-[calc(100vh-120px)]">
           {/* 左側パネル */}
           <div className="flex flex-col space-y-6 h-full">
             {/* ステップ問題文（カード形式を廃止） */}
@@ -124,6 +104,10 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
                   problem={problem}
                   currentStep={currentStep}
                   onStepChange={setCurrentStep}
+                  inferenceTypeValue={answers.inferenceType}
+                  validityValue={answers.validity}
+                  onInferenceTypeChange={(value) => setAnswers(prev => ({ ...prev, inferenceType: value }))}
+                  onValidityChange={(value) => setAnswers(prev => ({ ...prev, validity: value }))}
                 />
               </div>
             </section>

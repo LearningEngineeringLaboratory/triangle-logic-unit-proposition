@@ -196,51 +196,14 @@ export function TriangleLogicDisplay({
 
         {/* Step 2以上: 組み立て不可能トグル（Step3ではONのときのみ表示） */}
         {currentStep >= 2 && (currentStep < 3 || impossibleValue) && (
-          <div className="absolute left-10 bottom-8 flex items-center gap-3">
-            <span className="text-md font-medium">前提の組み立て不可能</span>
+          <div className="absolute left-10 bottom-6 flex items-center gap-3">
+            <span className="text-lg font-medium">前提の組み立て不可能</span>
             <Switch
               checked={impossibleValue}
               onCheckedChange={onImpossibleToggle}
               disabled={currentStep > 2}
               aria-readonly={currentStep > 2}
             />
-          </div>
-        )}
-
-        {/* Step 3: 表示のみ（操作不可） */}
-        {currentStep >= 3 && (
-          <div className="w-full px-4 border-t pt-6">
-            <div className="flex flex-col items-center gap-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-xl">
-                {/* 推論形式 */}
-                <div className="flex flex-col gap-2">
-                  <span className="text-sm text-muted-foreground">推論形式</span>
-                  <Select value={inferenceTypeValue} onValueChange={onInferenceTypeChange ?? (() => { })}>
-                    <SelectTrigger className="w-full h-10">
-                      <SelectValue placeholder="選択してください" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="演繹推論">演繹推論</SelectItem>
-                      <SelectItem value="仮説推論">仮説推論</SelectItem>
-                      <SelectItem value="非形式推論">非形式推論</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                {/* 妥当性 */}
-                <div className="flex flex-col gap-2">
-                  <span className="text-sm text-muted-foreground">妥当性</span>
-                  <Select value={validityValue} onValueChange={onValidityChange ?? (() => { })}>
-                    <SelectTrigger className="w-full h-10">
-                      <SelectValue placeholder="選択してください" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="妥当">妥当</SelectItem>
-                      <SelectItem value="非妥当">非妥当</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </div>
           </div>
         )}
       </div>
