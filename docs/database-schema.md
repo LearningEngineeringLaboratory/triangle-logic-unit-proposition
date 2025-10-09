@@ -64,19 +64,19 @@
           "antecedent": "Pである",
           "consequent": "Rである"
         }
-      },
+      }
     },
     "step2": {
       "rubric": {
-        "answer_type": "selectable",
         "correct_answer": {
           "premise": "Qである",
           "link_directions": {
             "antecedent-link": true,
             "consequent-link": true
-          }
+          },
+          "impossible": false
         }
-      },
+      }
     },
     "step3": {
       "rubric": {
@@ -88,7 +88,7 @@
     }
   }
   ```
-  - **回答タイプ**: `step2`に関しては`rubric`の`answer_type`で決定
+  - **組立不可**: `step2.rubric.correct_answer.impossible` がtrueの場合は組み立て不可能
 
 **Step3の推論形式選択肢**:
 - **演繹推論**: 形式推論であり、妥当な推論
@@ -190,12 +190,12 @@
     "is_passed": true
   },
   "step2": {
-    "answer_type": "selectable",
     "premise": "Qである",
     "link_directions": {
       "antecedent-link": true,
       "consequent-link": true
     },
+    "impossible": false,
     "is_passed": false
   },
   "step3": {
@@ -215,7 +215,7 @@
     "is_passed": true
   },
   "step2": {
-    "answer_type": "impossible",
+    "impossible": true,
     "is_passed": true
   },
   "step3": {

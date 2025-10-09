@@ -23,6 +23,7 @@ CREATE TABLE problems (
   problem_id TEXT PRIMARY KEY,  -- 問題ID（例: TLU-A-v1.0.0）
   title TEXT NOT NULL,          -- 問題タイトル
   argument TEXT NOT NULL,       -- 論証文
+  options JSONB,                -- 単位命題の共通選択肢（JSONB形式）
   total_steps INTEGER NOT NULL, -- 問題内のステップ数（可変対応）
   steps JSONB NOT NULL,         -- ステップ情報の配列（JSONB形式）
   version TEXT NOT NULL,        -- 問題バージョン
@@ -230,15 +231,15 @@ INSERT INTO problems (problem_id, title, argument, options, total_steps, steps, 
     },
     "step2": {
       "rubric": {
-        "answer_type": "selectable",
         "correct_answer": {
           "premise": "Qである",
           "link_directions": {
             "antecedent-link": true,
             "consequent-link": true
-          }
+          },
+          "impossible": false
         }
-      },
+      }
     },
     "step3": {
       "rubric": {
@@ -270,7 +271,9 @@ INSERT INTO problems (problem_id, title, argument, options, total_steps, steps, 
     },
     "step2": {
       "rubric": {
-        "answer_type": "impossible"
+        "correct_answer": {
+          "impossible": true
+        }
       }
     },
     "step3": {
