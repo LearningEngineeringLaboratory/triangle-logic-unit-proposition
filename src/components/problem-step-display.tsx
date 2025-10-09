@@ -13,6 +13,7 @@ interface ProblemStepDisplayProps {
     validityValue?: string
     onInferenceTypeChange?: (value: string) => void
     onValidityChange?: (value: string) => void
+    onRequestNext?: () => void | Promise<void>
 }
 
 export function ProblemStepDisplay({
@@ -22,7 +23,8 @@ export function ProblemStepDisplay({
     inferenceTypeValue = '',
     validityValue = '',
     onInferenceTypeChange,
-    onValidityChange
+    onValidityChange,
+    onRequestNext
 }: ProblemStepDisplayProps) {
     const steps = [
         {
@@ -143,7 +145,13 @@ export function ProblemStepDisplay({
                 </div>
 
                 <Button
-                    onClick={() => onStepChange(Math.min(steps.length, currentStep + 1))}
+                    onClick={() => {
+                        if (onRequestNext) {
+                            onRequestNext()
+                        } else {
+                            onStepChange(Math.min(steps.length, currentStep + 1))
+                        }
+                    }}
                     disabled={currentStep >= steps.length}
                     className="min-w-[120px]"
                 >
