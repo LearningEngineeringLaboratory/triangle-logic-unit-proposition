@@ -3,6 +3,7 @@ import { Problem } from '@/lib/types'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
+import Link from 'next/link'
 
 export default async function ProblemsPage() {
   const problems = await getProblems()
@@ -43,27 +44,29 @@ function ProblemCard({ problem }: ProblemCardProps) {
     : 0
 
   return (
-    <Card className="hover:shadow-md transition-shadow">
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-lg">{problem.title}</CardTitle>
-          <Badge variant={progress === 100 ? "default" : "secondary"}>
-            {problem.completed_steps || 0}/{problem.total_steps}
-          </Badge>
-        </div>
-        <CardDescription className="line-clamp-3">
-          {problem.argument}
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-2">
-          <div className="flex justify-between text-sm text-muted-foreground">
-            <span>進捗</span>
-            <span>{Math.round(progress)}%</span>
+    <Link href={`/problems/${problem.problem_id}`} className="block">
+      <Card className="hover:shadow-md transition-shadow hover:ring-1 hover:ring-primary cursor-pointer">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-lg">{problem.title}</CardTitle>
+            <Badge variant={progress === 100 ? "default" : "secondary"}>
+              {problem.completed_steps || 0}/{problem.total_steps}
+            </Badge>
           </div>
-          <Progress value={progress} className="h-2" />
-        </div>
-      </CardContent>
-    </Card>
+          <CardDescription className="line-clamp-3">
+            {problem.argument}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-2">
+            <div className="flex justify-between text-sm text-muted-foreground">
+              <span>進捗</span>
+              <span>{Math.round(progress)}%</span>
+            </div>
+            <Progress value={progress} className="h-2" />
+          </div>
+        </CardContent>
+      </Card>
+    </Link>
   )
 }
