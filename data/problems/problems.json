@@ -1,0 +1,75 @@
+[
+  {
+    "problem_id": "TLU-A-v1.0.0",
+    "title": "問題1",
+    "argument": "PであるならばQである。また，QであるならばRである。したがって，PであるならばRである。",
+    "options": ["Pである", "Qである", "Rである"],
+    "total_steps": 3,
+    "steps": {
+      "step1": {
+        "rubric": {
+          "correct_answer": {
+            "antecedent": "Pである",
+            "consequent": "Rである"
+          }
+        }
+      },
+      "step2": {
+        "rubric": {
+          "correct_answer": {
+            "premise": "Qである",
+            "link_directions": {
+              "antecedent-link": true,
+              "consequent-link": true
+            },
+            "impossible": false
+          }
+        }
+      },
+      "step3": {
+        "rubric": {
+          "correct_answer": {
+            "inference_type": "演繹推論",
+            "validity": true
+          }
+        }
+      }
+    },
+    "version": "1.0.0"
+  },
+  {
+    "problem_id": "TLU-B-v1.0.0",
+    "title": "問題2（組立不可問題の例）",
+    "argument": "PであるならばQである。また，QであるならばRである。したがって，RであるならばSである。",
+    "options": ["Pである", "Qである", "Rである", "Sである"],
+    "total_steps": 3,
+    "steps": {
+      "step1": {
+        "rubric": {
+          "correct_answer": {
+            "antecedent": "Rである",
+            "consequent": "Sである"
+          }
+        }
+      },
+      "step2": {
+        "rubric": {
+          "correct_answer": {
+            "impossible": true
+          }
+        }
+      },
+      "step3": {
+        "rubric": {
+          "correct_answer": {
+            "inference_type": "非形式推論",
+            "validity": false
+          }
+        }
+      }
+    },
+    "version": "1.0.0"
+  }
+]
+
+

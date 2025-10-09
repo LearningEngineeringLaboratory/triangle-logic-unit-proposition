@@ -53,18 +53,9 @@ function ProblemCard({ problem }: ProblemCardProps) {
               {problem.completed_steps || 0}/{problem.total_steps}
             </Badge>
           </div>
-          <CardDescription className="line-clamp-3">
-            {problem.argument}
-          </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm text-muted-foreground">
-              <span>進捗</span>
-              <span>{Math.round(progress)}%</span>
-            </div>
-            <Progress value={progress} className="h-2" />
-          </div>
+        {problem.argument}
         </CardContent>
       </Card>
     </Link>
