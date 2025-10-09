@@ -10,6 +10,7 @@ import Link from 'next/link'
 import { ProblemStepDisplay } from '@/components/problem-step-display'
 import { TriangleLogicDisplay } from '@/components/triangle-logic/triangle-logic-display'
 import { useEffect, useState } from 'react'
+import { mapUiToDbState } from '@/lib/utils'
 
 interface ProblemDetailPageProps {
   params: Promise<{
@@ -21,15 +22,26 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
   const [problem, setProblem] = useState<ProblemDetail | null>(null)
   const [loading, setLoading] = useState(true)
   const [currentStep, setCurrentStep] = useState(1)
-  const [answers, setAnswers] = useState({
-    antecedent: '',
-    consequent: '',
-    premise: '',
-    antecedentLinkDirection: true,
-    consequentLinkDirection: true,
-    inferenceType: '',
-    validity: '',
-    impossible: false
+  const [steps, setSteps] = useState({
+    step1: {
+      antecedent: '',
+      consequent: '',
+      isPassed: false,
+    },
+    step2: {
+      impossible: false,
+      premise: '',
+      linkDirections: {
+        antecedentLink: true,
+        consequentLink: true,
+      },
+      isPassed: false,
+    },
+    step3: {
+      inferenceType: '',
+      validity: null as null | boolean,
+      isPassed: false,
+    },
   })
 
   useEffect(() => {
@@ -80,31 +92,11 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
         </div>
       </div>
 
-      {/* 問題進捗インジケーター */}
-      <div className="border-b bg-muted/50">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-center gap-2">
-            {Array.from({ length: 5 }, (_, i) => i + 1).map((num) => (
-              <div key={num} className="flex items-center">
-                <Badge
-                  variant={num <= 1 ? "default" : "outline"}
-                  className="w-8 h-8 rounded-full flex items-center justify-center"
-                >
-                  {num}
-                </Badge>
-                {num < 5 && (
-                  <div className="w-8 h-0.5 bg-border mx-2" />
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
 
       {/* メインコンテンツ */}
       <div className="container mx-auto px-4 py-8">
         {/* PC画面: 左右分割レイアウト（右パネルは縦線で区切り、カード廃止） */}
-        <div className="hidden lg:grid lg:grid-cols-2 lg:gap-8 lg:h-[calc(100vh-200px)]">
+        <div className="hidden lg:grid lg:grid-cols-2 lg:gap-8 lg:h-[calc(100vh-120px)]">
           {/* 左側パネル */}
           <div className="flex flex-col space-y-6 h-full">
             {/* ステップ問題文（カード形式を廃止） */}
@@ -124,6 +116,41 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
                   problem={problem}
                   currentStep={currentStep}
                   onStepChange={setCurrentStep}
+                  inferenceTypeValue={steps.step3.inferenceType}
+                  validityValue={steps.step3.validity === null ? '' : (steps.step3.validity ? '妥当' : '非妥当')}
+                  onInferenceTypeChange={(value) => setSteps(prev => ({
+                    ...prev,
+                    step3: { ...prev.step3, inferenceType: value },
+                  }))}
+                  onValidityChange={(value) => setSteps(prev => ({
+                    ...prev,
+                    step3: { ...prev.step3, validity: value === '妥当' },
+                  }))}
+                  onRequestNext={async () => {
+                    if (!problem) return
+                    const stepNumber = currentStep as 1|2|3
+                    const uiFragment = stepNumber === 1 ? steps.step1 : stepNumber === 2 ? steps.step2 : steps.step3
+                    const dbFragment = mapUiToDbState({ step1: steps.step1, step2: steps.step2, step3: steps.step3 })[`step${stepNumber}` as 'step1'|'step2'|'step3']
+                    const res = await fetch('/api/check-step', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ problemId: problem.problem_id, stepNumber, state: dbFragment })
+                    })
+                    const json = await res.json()
+                    console.log(`[check-step] step=${stepNumber} isCorrect=${json?.isCorrect ? 'correct' : 'incorrect'}`)
+                    if (json?.isCorrect) {
+                      setSteps(prev => ({
+                        ...prev,
+                        [`step${stepNumber}`]: { ...uiFragment, isPassed: true } as any,
+                      }))
+                      // Step1,2のみ次へ進める / Step3は判定のみ
+                      if (stepNumber < 3) {
+                        setCurrentStep(Math.min(3, currentStep + 1))
+                      }
+                    } else {
+                      // ここで将来的にエラーフィードバックを表示
+                    }
+                  }}
                 />
               </div>
             </section>
@@ -132,29 +159,51 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
           {/* 右側パネル（カードなし・左側に縦罫線） */}
             <div className="flex-1 flex items-center justify-center border-l pl-8">
               <TriangleLogicDisplay
-                options={['Pである', 'Qである', 'Rである']}
-                onAntecedentChange={(value) => setAnswers(prev => ({ ...prev, antecedent: value }))}
-                onConsequentChange={(value) => setAnswers(prev => ({ ...prev, consequent: value }))}
-                onPremiseChange={(value) => setAnswers(prev => ({ ...prev, premise: value }))}
-                onLinkDirectionToggle={(linkType) => {
-                  if (linkType === 'antecedent') {
-                    setAnswers(prev => ({ ...prev, antecedentLinkDirection: !prev.antecedentLinkDirection }))
-                  } else {
-                    setAnswers(prev => ({ ...prev, consequentLinkDirection: !prev.consequentLinkDirection }))
+                options={problem.options ?? ['選択肢が設定されていません']}
+                onAntecedentChange={(value) => setSteps(prev => ({
+                  ...prev,
+                  step1: { ...prev.step1, antecedent: value },
+                }))}
+                onConsequentChange={(value) => setSteps(prev => ({
+                  ...prev,
+                  step1: { ...prev.step1, consequent: value },
+                }))}
+                onPremiseChange={(value) => setSteps(prev => ({
+                  ...prev,
+                  step2: { ...prev.step2, premise: value },
+                }))}
+                onLinkDirectionToggle={(linkType) => setSteps(prev => ({
+                  ...prev,
+                  step2: {
+                    ...prev.step2,
+                    linkDirections: {
+                      ...prev.step2.linkDirections,
+                      antecedentLink: linkType === 'antecedent' ? !prev.step2.linkDirections.antecedentLink : prev.step2.linkDirections.antecedentLink,
+                      consequentLink: linkType === 'consequent' ? !prev.step2.linkDirections.consequentLink : prev.step2.linkDirections.consequentLink,
+                    }
                   }
-                }}
-                onInferenceTypeChange={(value) => setAnswers(prev => ({ ...prev, inferenceType: value }))}
-                onValidityChange={(value) => setAnswers(prev => ({ ...prev, validity: value }))}
-                inferenceTypeValue={answers.inferenceType}
-                validityValue={answers.validity}
-                antecedentValue={answers.antecedent}
-                consequentValue={answers.consequent}
-                premiseValue={answers.premise}
-                antecedentLinkDirection={answers.antecedentLinkDirection}
-                consequentLinkDirection={answers.consequentLinkDirection}
+                }))}
+                onInferenceTypeChange={(value) => setSteps(prev => ({
+                  ...prev,
+                  step3: { ...prev.step3, inferenceType: value },
+                }))}
+                onValidityChange={(value) => setSteps(prev => ({
+                  ...prev,
+                  step3: { ...prev.step3, validity: value === '妥当' },
+                }))}
+                inferenceTypeValue={steps.step3.inferenceType}
+                validityValue={steps.step3.validity === null ? '' : (steps.step3.validity ? '妥当' : '非妥当')}
+                antecedentValue={steps.step1.antecedent}
+                consequentValue={steps.step1.consequent}
+                premiseValue={steps.step2.premise}
+                antecedentLinkDirection={steps.step2.linkDirections.antecedentLink}
+                consequentLinkDirection={steps.step2.linkDirections.consequentLink}
                 currentStep={currentStep}
-                impossibleValue={answers.impossible}
-                onImpossibleToggle={(value) => setAnswers(prev => ({ ...prev, impossible: value }))}
+                impossibleValue={steps.step2.impossible}
+                onImpossibleToggle={(value) => setSteps(prev => ({
+                  ...prev,
+                  step2: { ...prev.step2, impossible: value },
+                }))}
               />
           </div>
         </div>
@@ -192,29 +241,33 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
             </CardHeader>
             <CardContent>
               <TriangleLogicDisplay
-                options={['Pである', 'Qである', 'Rである']}
-                onAntecedentChange={(value) => setAnswers(prev => ({ ...prev, antecedent: value }))}
-                onConsequentChange={(value) => setAnswers(prev => ({ ...prev, consequent: value }))}
-                onPremiseChange={(value) => setAnswers(prev => ({ ...prev, premise: value }))}
-                onLinkDirectionToggle={(linkType) => {
-                  if (linkType === 'antecedent') {
-                    setAnswers(prev => ({ ...prev, antecedentLinkDirection: !prev.antecedentLinkDirection }))
-                  } else {
-                    setAnswers(prev => ({ ...prev, consequentLinkDirection: !prev.consequentLinkDirection }))
+                options={problem.options ?? ['Pである', 'Qである', 'Rである']}
+                onAntecedentChange={(value) => setSteps(prev => ({ ...prev, step1: { ...prev.step1, antecedent: value } }))}
+                onConsequentChange={(value) => setSteps(prev => ({ ...prev, step1: { ...prev.step1, consequent: value } }))}
+                onPremiseChange={(value) => setSteps(prev => ({ ...prev, step2: { ...prev.step2, premise: value } }))}
+                onLinkDirectionToggle={(linkType) => setSteps(prev => ({
+                  ...prev,
+                  step2: {
+                    ...prev.step2,
+                    linkDirections: {
+                      ...prev.step2.linkDirections,
+                      antecedentLink: linkType === 'antecedent' ? !prev.step2.linkDirections.antecedentLink : prev.step2.linkDirections.antecedentLink,
+                      consequentLink: linkType === 'consequent' ? !prev.step2.linkDirections.consequentLink : prev.step2.linkDirections.consequentLink,
+                    }
                   }
-                }}
-                onInferenceTypeChange={(value) => setAnswers(prev => ({ ...prev, inferenceType: value }))}
-                onValidityChange={(value) => setAnswers(prev => ({ ...prev, validity: value }))}
-                inferenceTypeValue={answers.inferenceType}
-                validityValue={answers.validity}
-                antecedentValue={answers.antecedent}
-                consequentValue={answers.consequent}
-                premiseValue={answers.premise}
-                antecedentLinkDirection={answers.antecedentLinkDirection}
-                consequentLinkDirection={answers.consequentLinkDirection}
+                }))}
+                onInferenceTypeChange={(value) => setSteps(prev => ({ ...prev, step3: { ...prev.step3, inferenceType: value } }))}
+                onValidityChange={(value) => setSteps(prev => ({ ...prev, step3: { ...prev.step3, validity: value === '妥当' } }))}
+                inferenceTypeValue={steps.step3.inferenceType}
+                validityValue={steps.step3.validity === null ? '' : (steps.step3.validity ? '妥当' : '非妥当')}
+                antecedentValue={steps.step1.antecedent}
+                consequentValue={steps.step1.consequent}
+                premiseValue={steps.step2.premise}
+                antecedentLinkDirection={steps.step2.linkDirections.antecedentLink}
+                consequentLinkDirection={steps.step2.linkDirections.consequentLink}
                 currentStep={currentStep}
-                impossibleValue={answers.impossible}
-                onImpossibleToggle={(value) => setAnswers(prev => ({ ...prev, impossible: value }))}
+                impossibleValue={steps.step2.impossible}
+                onImpossibleToggle={(value) => setSteps(prev => ({ ...prev, step2: { ...prev.step2, impossible: value } }))}
               />
             </CardContent>
           </Card>

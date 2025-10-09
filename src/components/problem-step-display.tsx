@@ -3,17 +3,28 @@
 import { ProblemDetail } from '@/lib/problems'
 import { Button } from '@/components/ui/button'
 import { ChevronLeft, ChevronRight, AlertCircle } from 'lucide-react'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 interface ProblemStepDisplayProps {
     problem: ProblemDetail
     currentStep: number
     onStepChange: (step: number) => void
+    inferenceTypeValue?: string
+    validityValue?: string
+    onInferenceTypeChange?: (value: string) => void
+    onValidityChange?: (value: string) => void
+    onRequestNext?: () => void | Promise<void>
 }
 
 export function ProblemStepDisplay({
     problem,
     currentStep,
-    onStepChange
+    onStepChange,
+    inferenceTypeValue = '',
+    validityValue = '',
+    onInferenceTypeChange,
+    onValidityChange,
+    onRequestNext
 }: ProblemStepDisplayProps) {
     const steps = [
         {
@@ -66,6 +77,38 @@ export function ProblemStepDisplay({
                                             <p className="mt-2 text-sm leading-relaxed text-foreground whitespace-pre-line">{step.hint}</p>
                                         </div>
                                     )}
+
+                                    {step.number === 3 && (
+                                        <div className="mt-12">
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-xl">
+                                                <div className="flex flex-col gap-2">
+                                                    <span className="text-sm text-foreground">推論形式</span>
+                                                    <Select value={inferenceTypeValue} onValueChange={onInferenceTypeChange ?? (() => {})}>
+                                                        <SelectTrigger className="w-full h-10">
+                                                            <SelectValue placeholder="選択してください" />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            <SelectItem value="演繹推論">演繹推論</SelectItem>
+                                                            <SelectItem value="仮説推論">仮説推論</SelectItem>
+                                                            <SelectItem value="非形式推論">非形式推論</SelectItem>
+                                                        </SelectContent>
+                                                    </Select>
+                                                </div>
+                                                <div className="flex flex-col gap-2">
+                                                    <span className="text-sm text-foreground">妥当性</span>
+                                                    <Select value={validityValue} onValueChange={onValidityChange ?? (() => {})}>
+                                                        <SelectTrigger className="w-full h-10">
+                                                            <SelectValue placeholder="選択してください" />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            <SelectItem value="妥当">妥当</SelectItem>
+                                                            <SelectItem value="非妥当">非妥当</SelectItem>
+                                                        </SelectContent>
+                                                    </Select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         ))}
@@ -102,8 +145,14 @@ export function ProblemStepDisplay({
                 </div>
 
                 <Button
-                    onClick={() => onStepChange(Math.min(steps.length, currentStep + 1))}
-                    disabled={currentStep >= steps.length}
+                    onClick={() => {
+                        if (onRequestNext) {
+                            onRequestNext()
+                        } else {
+                            onStepChange(Math.min(steps.length, currentStep + 1))
+                        }
+                    }}
+                    disabled={false}
                     className="min-w-[120px]"
                 >
                     次のステップ

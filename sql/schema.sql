@@ -23,6 +23,7 @@ CREATE TABLE problems (
   problem_id TEXT PRIMARY KEY,  -- 問題ID（例: TLU-A-v1.0.0）
   title TEXT NOT NULL,          -- 問題タイトル
   argument TEXT NOT NULL,       -- 論証文
+  options JSONB,                -- 単位命題の共通選択肢（JSONB形式）
   total_steps INTEGER NOT NULL, -- 問題内のステップ数（可変対応）
   steps JSONB NOT NULL,         -- ステップ情報の配列（JSONB形式）
   version TEXT NOT NULL,        -- 問題バージョン
@@ -213,10 +214,11 @@ CREATE TRIGGER update_responses_updated_at
 -- ==============================================
 
 -- 問題1: 通常の三段論法問題
-INSERT INTO problems (problem_id, title, argument, total_steps, steps, version) VALUES (
+INSERT INTO problems (problem_id, title, argument, options, total_steps, steps, version) VALUES (
   'TLU-A-v1.0.0',
   '問題1',
   'PであるならばQである。また，QであるならばRである。したがって，PであるならばRである。',
+  '["Pである", "Qである", "Rである"]',
   3,
   '{
     "step1": {
@@ -226,25 +228,23 @@ INSERT INTO problems (problem_id, title, argument, total_steps, steps, version) 
           "consequent": "Rである"
         }
       },
-      "options": ["Pである", "Qである", "Rである"]
     },
     "step2": {
       "rubric": {
-        "answer_type": "selectable",
         "correct_answer": {
           "premise": "Qである",
           "link_directions": {
             "antecedent-link": true,
             "consequent-link": true
-          }
+          },
+          "impossible": false
         }
-      },
-      "options": ["Pである", "Qである", "Rである"]
+      }
     },
     "step3": {
       "rubric": {
         "correct_answer": {
-          "inference_type": "演繹",
+          "inference_type": "演繹推論",
           "validity": true
         }
       }
@@ -254,10 +254,11 @@ INSERT INTO problems (problem_id, title, argument, total_steps, steps, version) 
 );
 
 -- 問題2: 組立不可が正解となる問題
-INSERT INTO problems (problem_id, title, argument, total_steps, steps, version) VALUES (
+INSERT INTO problems (problem_id, title, argument, options, total_steps, steps, version) VALUES (
   'TLU-B-v1.0.0',
   '問題2（組立不可問題の例）',
   'PであるならばQである。また，QであるならばRである。したがって，RであるならばSである。',
+  '["Pである", "Qである", "Rである", "Sである"]',
   3,
   '{
     "step1": {
@@ -266,19 +267,19 @@ INSERT INTO problems (problem_id, title, argument, total_steps, steps, version) 
           "antecedent": "Rである",
           "consequent": "Sである"
         }
-      },
-      "options": ["Pである", "Qである", "Rである", "Sである"]
+      }
     },
     "step2": {
       "rubric": {
-        "answer_type": "impossible"
-      },
-      "options": ["Pである", "Qである", "Rである", "Sである"]
+        "correct_answer": {
+          "impossible": true
+        }
+      }
     },
     "step3": {
       "rubric": {
         "correct_answer": {
-          "inference_type": "非形式",
+          "inference_type": "非形式推論",
           "validity": false
         }
       }
