@@ -39,7 +39,7 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
     },
     step3: {
       inferenceType: '',
-      validity: false,
+      validity: null as null | boolean,
       isPassed: false,
     },
   })
@@ -117,7 +117,7 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
                   currentStep={currentStep}
                   onStepChange={setCurrentStep}
                   inferenceTypeValue={steps.step3.inferenceType}
-                  validityValue={steps.step3.validity ? '妥当' : '非妥当'}
+                  validityValue={steps.step3.validity === null ? '' : (steps.step3.validity ? '妥当' : '非妥当')}
                   onInferenceTypeChange={(value) => setSteps(prev => ({
                     ...prev,
                     step3: { ...prev.step3, inferenceType: value },
@@ -143,7 +143,10 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
                         ...prev,
                         [`step${stepNumber}`]: { ...uiFragment, isPassed: true } as any,
                       }))
-                      setCurrentStep(Math.min(3, currentStep + 1))
+                      // Step1,2のみ次へ進める / Step3は判定のみ
+                      if (stepNumber < 3) {
+                        setCurrentStep(Math.min(3, currentStep + 1))
+                      }
                     } else {
                       // ここで将来的にエラーフィードバックを表示
                     }
@@ -189,7 +192,7 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
                   step3: { ...prev.step3, validity: value === '妥当' },
                 }))}
                 inferenceTypeValue={steps.step3.inferenceType}
-                validityValue={steps.step3.validity ? '妥当' : '非妥当'}
+                validityValue={steps.step3.validity === null ? '' : (steps.step3.validity ? '妥当' : '非妥当')}
                 antecedentValue={steps.step1.antecedent}
                 consequentValue={steps.step1.consequent}
                 premiseValue={steps.step2.premise}
@@ -256,7 +259,7 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
                 onInferenceTypeChange={(value) => setSteps(prev => ({ ...prev, step3: { ...prev.step3, inferenceType: value } }))}
                 onValidityChange={(value) => setSteps(prev => ({ ...prev, step3: { ...prev.step3, validity: value === '妥当' } }))}
                 inferenceTypeValue={steps.step3.inferenceType}
-                validityValue={steps.step3.validity ? '妥当' : '非妥当'}
+                validityValue={steps.step3.validity === null ? '' : (steps.step3.validity ? '妥当' : '非妥当')}
                 antecedentValue={steps.step1.antecedent}
                 consequentValue={steps.step1.consequent}
                 premiseValue={steps.step2.premise}

@@ -15,7 +15,7 @@ interface UiStepsState {
     linkDirections?: { antecedentLink: boolean; consequentLink: boolean }
     isPassed: boolean
   }
-  step3: { inferenceType: string; validity: boolean; isPassed: boolean }
+  step3: { inferenceType: string; validity: boolean | null; isPassed: boolean }
 }
 
 export function mapUiToDbState(ui: UiStepsState) {
@@ -71,7 +71,7 @@ export function mapDbToUiState(db: any): UiStepsState {
     },
     step3: {
       inferenceType: db?.step3?.inference_type ?? '',
-      validity: !!db?.step3?.validity,
+      validity: db?.step3?.validity ?? null,
       isPassed: !!db?.step3?.is_passed,
     },
   }

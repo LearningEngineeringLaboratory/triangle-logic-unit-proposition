@@ -71,10 +71,16 @@ export async function POST(req: NextRequest) {
         )
       }
     } else if (stepNumber === 3) {
-      isCorrect = Boolean(
-        incoming?.inference_type === correct?.inference_type &&
-          normalizeValidity(incoming?.validity) === normalizeValidity(correct?.validity)
-      )
+      const left = {
+        inference_type: incoming?.inference_type,
+        validity: normalizeValidity(incoming?.validity),
+      }
+      const right = {
+        inference_type: correct?.inference_type,
+        validity: normalizeValidity(correct?.validity),
+      }
+      console.log('[check-step][step3] compare', { incoming: left, correct: right })
+      isCorrect = Boolean(left.inference_type === right.inference_type && left.validity === right.validity)
     }
 
     return NextResponse.json({ isCorrect })
@@ -119,6 +125,10 @@ function normalizeStateFragment(stepNumber: 1 | 2 | 3, incoming: any) {
     return incoming
   }
   if (stepNumber === 3) {
+    // 既にDB形式ならそのまま返す
+    if ('inference_type' in incoming || (typeof incoming?.validity === 'boolean' && !('inferenceType' in incoming))) {
+      return incoming
+    }
     // UI形式: { inferenceType, validity }
     if ('inferenceType' in incoming || 'validity' in incoming) {
       return {

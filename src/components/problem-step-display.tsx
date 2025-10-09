@@ -152,7 +152,7 @@ export function ProblemStepDisplay({
                             onStepChange(Math.min(steps.length, currentStep + 1))
                         }
                     }}
-                    disabled={currentStep >= steps.length}
+                    disabled={false}
                     className="min-w-[120px]"
                 >
                     次のステップ
