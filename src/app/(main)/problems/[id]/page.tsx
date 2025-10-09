@@ -10,7 +10,7 @@ import Link from 'next/link'
 import { ProblemStepDisplay } from '@/components/problem-step-display'
 import { TriangleLogicDisplay } from '@/components/triangle-logic/triangle-logic-display'
 import { useEffect, useState } from 'react'
-import { mapUiToDbState } from '@/lib/utils'
+import { mapUiToDbState, isStepCorrect } from '@/lib/utils'
 
 interface ProblemDetailPageProps {
   params: Promise<{
@@ -130,25 +130,20 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
                     if (!problem) return
                     const stepNumber = currentStep as 1|2|3
                     const uiFragment = stepNumber === 1 ? steps.step1 : stepNumber === 2 ? steps.step2 : steps.step3
-                    const dbFragment = mapUiToDbState({ step1: steps.step1, step2: steps.step2, step3: steps.step3 })[`step${stepNumber}` as 'step1'|'step2'|'step3']
-                    const res = await fetch('/api/check-step', {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ problemId: problem.problem_id, stepNumber, state: dbFragment })
-                    })
-                    const json = await res.json()
-                    console.log(`[check-step] step=${stepNumber} isCorrect=${json?.isCorrect ? 'correct' : 'incorrect'}`)
-                    if (json?.isCorrect) {
+                    const dbState = mapUiToDbState({ step1: steps.step1, step2: steps.step2, step3: steps.step3 })
+                    const dbFragment = dbState[`step${stepNumber}` as 'step1'|'step2'|'step3']
+                    const isCorrect = isStepCorrect(problem.steps, stepNumber, dbFragment)
+                    console.log(`[check-step][client] step=${stepNumber} isCorrect=${isCorrect ? 'correct' : 'incorrect'}`)
+                    if (isCorrect) {
                       setSteps(prev => ({
                         ...prev,
                         [`step${stepNumber}`]: { ...uiFragment, isPassed: true } as any,
                       }))
-                      // Step1,2のみ次へ進める / Step3は判定のみ
                       if (stepNumber < 3) {
                         setCurrentStep(Math.min(3, currentStep + 1))
                       }
                     } else {
-                      // ここで将来的にエラーフィードバックを表示
+                      // 将来的にエラーフィードバック
                     }
                   }}
                 />

@@ -76,3 +76,95 @@ export function mapDbToUiState(db: any): UiStepsState {
     },
   }
 }
+
+// ---- クライアント側答え合わせユーティリティ ----
+
+export function normalizeValidity(v: unknown): boolean | null {
+  if (typeof v === 'boolean') return v
+  if (v === '妥当') return true
+  if (v === '非妥当') return false
+  return null
+}
+
+export function normalizeStateFragment(stepNumber: 1 | 2 | 3, incoming: any) {
+  if (!incoming) return {}
+  if (stepNumber === 1) {
+    if ('antecedent' in incoming && 'consequent' in incoming) return incoming
+    return incoming
+  }
+  if (stepNumber === 2) {
+    if ('link_directions' in incoming || ('premise' in incoming && !('linkDirections' in incoming))) {
+      return incoming
+    }
+    if ('linkDirections' in incoming || 'impossible' in incoming) {
+      const links = incoming.linkDirections
+      return {
+        impossible: !!incoming.impossible,
+        premise: incoming.premise,
+        link_directions: links
+          ? {
+              'antecedent-link': !!links.antecedentLink,
+              'consequent-link': !!links.consequentLink,
+            }
+          : undefined,
+      }
+    }
+    return incoming
+  }
+  if (stepNumber === 3) {
+    if ('inference_type' in incoming || (typeof incoming?.validity === 'boolean' && !('inferenceType' in incoming))) {
+      return incoming
+    }
+    if ('inferenceType' in incoming || 'validity' in incoming) {
+      return {
+        inference_type: incoming.inferenceType,
+        validity: normalizeValidity(incoming.validity),
+      }
+    }
+    return incoming
+  }
+}
+
+export function isStepCorrect(steps: any, stepNumber: 1 | 2 | 3, state: any): boolean {
+  const rubric = steps?.[`step${stepNumber}`]?.rubric
+  if (!rubric) return false
+  const correct = rubric.correct_answer
+  const incoming = normalizeStateFragment(stepNumber, state)
+
+  if (stepNumber === 1) {
+    return Boolean(
+      incoming?.antecedent === correct?.antecedent &&
+      incoming?.consequent === correct?.consequent
+    )
+  }
+
+  if (stepNumber === 2) {
+    const impossible = Boolean(incoming?.impossible)
+    const correctImpossible = Boolean(correct?.impossible)
+    if (impossible) {
+      return correctImpossible === true
+    }
+    const incLinks = incoming?.link_directions || {}
+    const corLinks = correct?.link_directions || {}
+    return Boolean(
+      correctImpossible === false &&
+      incoming?.premise === correct?.premise &&
+      incLinks['antecedent-link'] === corLinks['antecedent-link'] &&
+      incLinks['consequent-link'] === corLinks['consequent-link']
+    )
+  }
+
+  if (stepNumber === 3) {
+    const left = {
+      inference_type: incoming?.inference_type,
+      validity: normalizeValidity(incoming?.validity),
+    }
+    const right = {
+      inference_type: correct?.inference_type,
+      validity: normalizeValidity(correct?.validity),
+    }
+    return Boolean(left.inference_type === right.inference_type && left.validity === right.validity)
+  }
+
+  return false
+}
