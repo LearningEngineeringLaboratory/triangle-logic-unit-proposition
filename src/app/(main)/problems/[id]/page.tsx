@@ -10,7 +10,7 @@ import Link from 'next/link'
 import { ProblemStepDisplay } from '@/components/problem-step-display'
 import { TriangleLogicDisplay } from '@/components/triangle-logic/triangle-logic-display'
 import { useEffect, useState } from 'react'
-import { mapUiToDbState, isStepCorrect } from '@/lib/utils'
+import { mapUiToDbState, isStepCorrect, logClientCheck } from '@/lib/utils'
 
 interface ProblemDetailPageProps {
   params: Promise<{
@@ -134,6 +134,14 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
                     const dbFragment = dbState[`step${stepNumber}` as 'step1'|'step2'|'step3']
                     const isCorrect = isStepCorrect(problem.steps, stepNumber, dbFragment)
                     console.log(`[check-step][client] step=${stepNumber} isCorrect=${isCorrect ? 'correct' : 'incorrect'}`)
+                    // ログ送信（研究用）
+                    logClientCheck({
+                      problemId: problem.problem_id,
+                      step: stepNumber,
+                      isCorrect,
+                      payload: dbFragment,
+                    })
+
                     if (isCorrect) {
                       setSteps(prev => ({
                         ...prev,

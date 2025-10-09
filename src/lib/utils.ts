@@ -168,3 +168,31 @@ export function isStepCorrect(steps: any, stepNumber: 1 | 2 | 3, state: any): bo
 
   return false
 }
+
+export async function logClientCheck(params: {
+  sessionId?: string
+  userId?: string
+  problemId?: string
+  step: 1 | 2 | 3
+  isCorrect: boolean
+  payload?: unknown
+}) {
+  try {
+    await fetch('/api/log', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        session_id: params.sessionId,
+        user_id: params.userId,
+        problem_id: params.problemId,
+        step: params.step,
+        is_correct: params.isCorrect,
+        kind: 'check_step_client',
+        payload: params.payload ?? null,
+        client_ts: new Date().toISOString(),
+      }),
+    })
+  } catch (_) {
+    // 研究用途のため、失敗時は黙殺
+  }
+}
