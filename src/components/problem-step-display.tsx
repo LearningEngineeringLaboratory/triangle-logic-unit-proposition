@@ -4,7 +4,7 @@ import { ProblemDetail } from '@/lib/problems'
 import { Button } from '@/components/ui/button'
 import { ChevronLeft, ChevronRight, AlertCircle } from 'lucide-react'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 interface ProblemStepDisplayProps {
     problem: ProblemDetail
@@ -31,10 +31,13 @@ export function ProblemStepDisplay({
 }: ProblemStepDisplayProps) {
     const [shouldShakeNext, setShouldShakeNext] = useState(false)
 
-    // 外部からのトリガーでshakeを発火（トークンの変更を検知）
+    // 外部からのトリガーでshakeを発火（初回は発火させない）
+    const prevShakeTokenRef = useRef(shakeNext)
     useEffect(() => {
-        if (shakeNext !== undefined) {
+        const prev = prevShakeTokenRef.current
+        if (prev !== shakeNext) {
             setShouldShakeNext(true)
+            prevShakeTokenRef.current = shakeNext
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [shakeNext])
