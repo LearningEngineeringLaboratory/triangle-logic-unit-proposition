@@ -51,7 +51,7 @@ export const Arrow: React.FC<ArrowProps> = ({
       <svg
         width={svgWidth}
         height={svgHeight}
-        className="pointer-events-none"
+        className="pointer-events-none transition-transform duration-300 ease-in-out"
         style={{ transform: `rotate(${angleDeg}deg)`, transformOrigin: 'center' }}
       >
         {/* 線 */}
