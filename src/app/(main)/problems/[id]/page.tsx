@@ -11,6 +11,7 @@ import { ProblemStepDisplay } from '@/components/problem-step-display'
 import { TriangleLogicDisplay } from '@/components/triangle-logic/triangle-logic-display'
 import { useEffect, useState } from 'react'
 import { mapUiToDbState, isStepCorrect, logClientCheck } from '@/lib/utils'
+import { toast } from 'sonner'
 
 interface ProblemDetailPageProps {
   params: Promise<{
@@ -143,6 +144,7 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
                     })
 
                     if (isCorrect) {
+                      toast.success('正解です！')
                       setSteps(prev => ({
                         ...prev,
                         [`step${stepNumber}`]: { ...uiFragment, isPassed: true } as any,
@@ -151,7 +153,7 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
                         setCurrentStep(Math.min(3, currentStep + 1))
                       }
                     } else {
-                      // 将来的にエラーフィードバック
+                      toast.error('不正解...')
                     }
                   }}
                 />
