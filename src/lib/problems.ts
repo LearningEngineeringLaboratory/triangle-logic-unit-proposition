@@ -2,7 +2,7 @@ import { supabase } from '@/lib/supabase'
 import { Problem } from '@/lib/types'
 
 export interface ProblemDetail extends Problem {
-  steps: any // JSONB形式のステップデータ
+  correct_answers: any // JSONB形式の正解データ
   options?: string[]
 }
 
@@ -11,7 +11,7 @@ export async function getProblems(): Promise<Problem[]> {
     // problemsテーブルから基本情報を取得
     const { data: problems, error: problemsError } = await supabase
       .from('problems')
-      .select('problem_id, title, argument, total_steps')
+      .select('problem_id, title, argument, correct_answers')
       .order('problem_id')
 
     if (problemsError) {
@@ -41,7 +41,7 @@ export async function getProblem(problemId: string): Promise<ProblemDetail | nul
   try {
     const { data: problem, error } = await supabase
       .from('problems')
-      .select('problem_id, title, argument, total_steps, steps, options')
+      .select('problem_id, title, argument, correct_answers, options')
       .eq('problem_id', problemId)
       .single()
 

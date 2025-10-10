@@ -41,7 +41,7 @@ export interface Problem {
   problem_id: string
   title: string
   argument: string
-  total_steps: number
+  correct_answers?: any
   completed_steps?: number
 }
 

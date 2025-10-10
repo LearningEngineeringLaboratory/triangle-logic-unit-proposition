@@ -132,7 +132,7 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
                     const uiFragment = stepNumber === 1 ? steps.step1 : stepNumber === 2 ? steps.step2 : steps.step3
                     const dbState = mapUiToDbState({ step1: steps.step1, step2: steps.step2, step3: steps.step3 })
                     const dbFragment = dbState[`step${stepNumber}` as 'step1'|'step2'|'step3']
-                    const isCorrect = isStepCorrect(problem.steps, stepNumber, dbFragment)
+                    const isCorrect = isStepCorrect((problem as any).correct_answers, stepNumber, dbFragment)
                     console.log(`[check-step][client] step=${stepNumber} isCorrect=${isCorrect ? 'correct' : 'incorrect'}`)
                     // ログ送信（研究用）
                     logClientCheck({

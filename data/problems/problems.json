@@ -4,8 +4,7 @@
     "title": "問題1",
     "argument": "PであるならばQである。また，QであるならばRである。したがって，PであるならばRである。",
     "options": ["Pである", "Qである", "Rである"],
-    "total_steps": 3,
-    "steps": {
+    "correct_answers": {
       "step1": {
         "antecedent": "Pである",
         "consequent": "Rである"
@@ -30,8 +29,7 @@
     "title": "問題2",
     "argument": "PであるならばQである。また，QであるならばRである。したがって，RであるならばSである。",
     "options": ["Pである", "Qである", "Rである", "Sである"],
-    "total_steps": 3,
-    "steps": {
+    "correct_answers": {
       "step1": {
         "antecedent": "Rである",
         "consequent": "Sである"
@@ -51,8 +49,7 @@
     "title": "問題1-1",
     "argument": "犬は哺乳類であり，哺乳類は肺呼吸である．とすると，犬は肺呼吸である．",
     "options": ["犬である", "哺乳類である", "肺呼吸である"],
-    "total_steps": 3,
-    "steps": {
+    "correct_answers": {
       "step1": {
         "antecedent": "犬である",
         "consequent": "肺呼吸である"
@@ -77,8 +74,7 @@
     "title": "問題1-2",
     "argument": "カラスは卵を産む生き物であり，鳥は卵を産む生き物である．とすると，カラスは鳥である．",
     "options": ["カラスである", "鳥である", "卵を産む生き物である"],
-    "total_steps": 3,
-    "steps": {
+    "correct_answers": {
       "step1": {
         "antecedent": "カラスである",
         "consequent": "鳥である"
@@ -103,8 +99,7 @@
     "title": "問題1-3",
     "argument": "サルは哺乳類であり，サルは恒温動物である．とすると，哺乳類は恒温動物である．",
     "options": ["サルである", "哺乳類である", "恒温動物である"],
-    "total_steps": 3,
-    "steps": {
+    "correct_answers": {
       "step1": {
         "antecedent": "哺乳類である",
         "consequent": "恒温動物である"
@@ -129,8 +124,7 @@
     "title": "問題1-10",
     "argument": "サルは肺呼吸であり，霊長類は哺乳類である．とすると，人間は二足歩行である．",
     "options": ["サルである", "肺呼吸である", "霊長類である", "哺乳類である", "人間である", "二足歩行である"],
-    "total_steps": 3,
-    "steps": {
+    "correct_answers": {
       "step1": {
         "antecedent": "人間である",
         "consequent": "二足歩行である"
@@ -150,8 +144,7 @@
     "title": "問題1-11",
     "argument": "鳥は空を飛び，空を飛ぶなら羽がある．とすると，羽があるなら鳥である．",
     "options": ["鳥である", "空を飛ぶ", "羽がある"],
-    "total_steps": 3,
-    "steps": {
+    "correct_answers": {
       "step1": {
         "antecedent": "羽がある",
         "consequent": "鳥である"

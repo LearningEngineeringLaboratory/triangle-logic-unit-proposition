@@ -39,9 +39,9 @@ interface ProblemCardProps {
 }
 
 function ProblemCard({ problem }: ProblemCardProps) {
-  const progress = problem.completed_steps 
-    ? (problem.completed_steps / problem.total_steps) * 100 
-    : 0
+  const totalSteps = problem.correct_answers ? Object.keys(problem.correct_answers).length : 0
+  const done = problem.completed_steps || 0
+  const progress = totalSteps > 0 ? (done / totalSteps) * 100 : 0
 
   return (
     <Link href={`/problems/${problem.problem_id}`} className="block">
@@ -50,7 +50,7 @@ function ProblemCard({ problem }: ProblemCardProps) {
           <div className="flex items-center justify-between">
             <CardTitle className="text-lg">{problem.title}</CardTitle>
             <Badge variant={progress === 100 ? "default" : "secondary"}>
-              {problem.completed_steps || 0}/{problem.total_steps}
+              {done}/{totalSteps}
             </Badge>
           </div>
         </CardHeader>

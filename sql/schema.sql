@@ -305,7 +305,7 @@ INSERT INTO
         argument,
         options,
         total_steps,
-        steps,
+        correct_answers,
         version
     )
 VALUES (

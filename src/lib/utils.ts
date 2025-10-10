@@ -125,9 +125,9 @@ export function normalizeStateFragment(stepNumber: 1 | 2 | 3, incoming: any) {
   }
 }
 
-export function isStepCorrect(steps: any, stepNumber: 1 | 2 | 3, state: any): boolean {
-  // 新仕様: steps.stepN に正解データをフラットに格納（旧仕様の rubric.correct_answer は廃止）
-  const correct = steps?.[`step${stepNumber}`]
+export function isStepCorrect(correctAnswers: any, stepNumber: 1 | 2 | 3, state: any): boolean {
+  // 新仕様: correct_answers.stepN に正解データをフラットに格納
+  const correct = correctAnswers?.[`step${stepNumber}`]
   const incoming = normalizeStateFragment(stepNumber, state)
 
   if (stepNumber === 1) {
