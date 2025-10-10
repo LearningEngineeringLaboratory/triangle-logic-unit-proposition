@@ -138,7 +138,7 @@
 
 @keyframes glow-pulse {
   0%, 100% { box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.45) }
-  50% { box-shadow: 0 0 0 8px rgba(251, 191, 36, 0.25) }
+  50% { box-shadow: 0 0 0 4px rgba(251, 191, 36, 0.25) }
 }
 
 @utility animate-glow-pulse {

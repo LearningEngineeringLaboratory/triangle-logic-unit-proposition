@@ -148,7 +148,7 @@ export function TriangleLogicDisplay({
                 length={160}
                 angleDeg={antecedentLinkDirection ? 45 : 225}
                 colorClassName={antecedentLinkDirection ? "text-muted-foreground" : "text-orange-500"}
-                strokeWidth={6}
+                strokeWidth={4}
                 dashed={true}
                 showStartDot
                 centerOverlay={
@@ -157,7 +157,7 @@ export function TriangleLogicDisplay({
                       variant="secondary"
                       size="sm"
                       onClick={() => onLinkDirectionToggle('antecedent')}
-                      className="h-8 w-8 rounded-full p-0 border-2 hover:shadow-sm hover:bg-secondary hover:opacity-100"
+                      className="h-8 w-8 rounded-full p-0 border-2 hover:shadow-sm hover:bg-secondary hover:opacity-100 animate-glow-pulse"
                       aria-label="方向切替"
                     >
                       <RefreshCw className="h-4 w-4" />
@@ -173,7 +173,7 @@ export function TriangleLogicDisplay({
                 length={160}
                 angleDeg={consequentLinkDirection ? -45 : 135}
                 colorClassName={consequentLinkDirection ? "text-muted-foreground" : "text-orange-500"}
-                strokeWidth={6}
+                strokeWidth={4}
                 dashed={true}
                 showStartDot
                 centerOverlay={
@@ -182,7 +182,7 @@ export function TriangleLogicDisplay({
                       variant="secondary"
                       size="sm"
                       onClick={() => onLinkDirectionToggle('consequent')}
-                      className="h-8 w-8 rounded-full p-0 border-2 hover:shadow-sm hover:bg-secondary hover:opacity-100"
+                      className="h-8 w-8 rounded-full p-0 border-2 hover:shadow-sm hover:bg-secondary hover:opacity-100 animate-glow-pulse"
                       aria-label="方向切替"
                     >
                       <RefreshCw className="h-4 w-4" />
