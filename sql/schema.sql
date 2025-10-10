@@ -279,8 +279,7 @@ INSERT INTO
         title,
         argument,
         options,
-        total_steps,
-        steps,
+        correct_answers,
         version
     )
 VALUES (
@@ -288,7 +287,6 @@ VALUES (
         '問題1',
         'PであるならばQである。また，QであるならばRである。したがって，PであるならばRである。',
         '["Pである", "Qである", "Rである"]',
-        3,
         '{
           "step1": {"antecedent": "Pである", "consequent": "Rである"},
           "step2": {"premise": "Qである", "link_directions": {"antecedent-link": true, "consequent-link": true}, "impossible": false},
@@ -304,8 +302,7 @@ INSERT INTO
         title,
         argument,
         options,
-        total_steps,
-        correct_answers,
+        correct_answers
         version
     )
 VALUES (
@@ -313,7 +310,6 @@ VALUES (
         '問題2（組立不可問題の例）',
         'PであるならばQである。また，QであるならばRである。したがって，RであるならばSである。',
         '["Pである", "Qである", "Rである", "Sである"]',
-        3,
         '{
           "step1": {"antecedent": "Rである", "consequent": "Sである"},
           "step2": {"impossible": true},
