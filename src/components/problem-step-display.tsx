@@ -99,7 +99,7 @@ export function ProblemStepDisplay({
                                                 <div className="flex flex-col gap-2">
                                                     <span className="text-sm text-foreground">推論形式</span>
                                                     <Select value={inferenceTypeValue} onValueChange={onInferenceTypeChange ?? (() => {})}>
-                                                        <SelectTrigger className="w-full h-10">
+                                                        <SelectTrigger className={`w-full h-10 ${inferenceTypeValue ? '' : 'animate-glow-pulse rounded-md'}`}>
                                                             <SelectValue placeholder="選択してください" />
                                                         </SelectTrigger>
                                                         <SelectContent>
@@ -112,7 +112,7 @@ export function ProblemStepDisplay({
                                                 <div className="flex flex-col gap-2">
                                                     <span className="text-sm text-foreground">妥当性</span>
                                                     <Select value={validityValue} onValueChange={onValidityChange ?? (() => {})}>
-                                                        <SelectTrigger className="w-full h-10">
+                                                        <SelectTrigger className={`w-full h-10 ${validityValue ? '' : 'animate-glow-pulse rounded-md'}`}>
                                                             <SelectValue placeholder="選択してください" />
                                                         </SelectTrigger>
                                                         <SelectContent>

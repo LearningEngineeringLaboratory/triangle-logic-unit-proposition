@@ -59,7 +59,7 @@ export function TriangleLogicDisplay({
               <div className="absolute top-8 left-0">
                 {currentStep === 1 ? (
                   <Select value={antecedentValue} onValueChange={onAntecedentChange}>
-                    <SelectTrigger className="w-48 text-lg px-4 py-6 min-h-[70px]">
+                    <SelectTrigger className={`w-48 text-lg px-4 py-6 min-h-[70px] ${antecedentValue ? '' : 'animate-glow-pulse rounded-md'}`}>
                       <SelectValue placeholder="選択" />
                     </SelectTrigger>
                     <SelectContent>
@@ -81,7 +81,7 @@ export function TriangleLogicDisplay({
               <div className="absolute top-8 right-0">
                 {currentStep === 1 ? (
                   <Select value={consequentValue} onValueChange={onConsequentChange}>
-                    <SelectTrigger className="w-48 text-lg px-4 py-6 min-h-[70px]">
+                    <SelectTrigger className={`w-48 text-lg px-4 py-6 min-h-[70px] ${consequentValue ? '' : 'animate-glow-pulse rounded-md'}`}>
                       <SelectValue placeholder="選択" />
                     </SelectTrigger>
                     <SelectContent>
@@ -123,7 +123,7 @@ export function TriangleLogicDisplay({
               <div className="absolute top-60 left-1/2 transform -translate-x-1/2">
                 {currentStep === 2 ? (
                   <Select value={premiseValue} onValueChange={onPremiseChange}>
-                    <SelectTrigger className="w-48 text-lg px-4 py-6 min-h-[70px]">
+                    <SelectTrigger className={`w-48 text-lg px-4 py-6 min-h-[70px] ${premiseValue ? '' : 'animate-glow-pulse rounded-md'}`}>
                       <SelectValue placeholder="選択" />
                     </SelectTrigger>
                     <SelectContent>

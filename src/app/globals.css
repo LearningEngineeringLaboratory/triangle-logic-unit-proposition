@@ -135,3 +135,16 @@
 @media (prefers-reduced-motion: reduce) {
   .animate-shake-x { animation: none }
 }
+
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.45) }
+  50% { box-shadow: 0 0 0 8px rgba(251, 191, 36, 0.25) }
+}
+
+@utility animate-glow-pulse {
+  animation: glow-pulse 1.6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-glow-pulse { animation: none }
+}
