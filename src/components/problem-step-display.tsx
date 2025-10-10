@@ -4,6 +4,7 @@ import { ProblemDetail } from '@/lib/problems'
 import { Button } from '@/components/ui/button'
 import { ChevronLeft, ChevronRight, AlertCircle } from 'lucide-react'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { useEffect, useRef, useState } from 'react'
 
 interface ProblemStepDisplayProps {
     problem: ProblemDetail
@@ -14,6 +15,7 @@ interface ProblemStepDisplayProps {
     onInferenceTypeChange?: (value: string) => void
     onValidityChange?: (value: string) => void
     onRequestNext?: () => void | Promise<void>
+    shakeNext?: unknown
 }
 
 export function ProblemStepDisplay({
@@ -24,8 +26,21 @@ export function ProblemStepDisplay({
     validityValue = '',
     onInferenceTypeChange,
     onValidityChange,
-    onRequestNext
+    onRequestNext,
+    shakeNext
 }: ProblemStepDisplayProps) {
+    const [shouldShakeNext, setShouldShakeNext] = useState(false)
+
+    // 外部からのトリガーでshakeを発火（初回は発火させない）
+    const prevShakeTokenRef = useRef(shakeNext)
+    useEffect(() => {
+        const prev = prevShakeTokenRef.current
+        if (prev !== shakeNext) {
+            setShouldShakeNext(true)
+            prevShakeTokenRef.current = shakeNext
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [shakeNext])
     const steps = [
         {
             number: 1,
@@ -84,7 +99,7 @@ export function ProblemStepDisplay({
                                                 <div className="flex flex-col gap-2">
                                                     <span className="text-sm text-foreground">推論形式</span>
                                                     <Select value={inferenceTypeValue} onValueChange={onInferenceTypeChange ?? (() => {})}>
-                                                        <SelectTrigger className="w-full h-10">
+                                                        <SelectTrigger className={`w-full h-10 ${inferenceTypeValue ? '' : 'animate-glow-pulse rounded-md'}`}>
                                                             <SelectValue placeholder="選択してください" />
                                                         </SelectTrigger>
                                                         <SelectContent>
@@ -97,7 +112,7 @@ export function ProblemStepDisplay({
                                                 <div className="flex flex-col gap-2">
                                                     <span className="text-sm text-foreground">妥当性</span>
                                                     <Select value={validityValue} onValueChange={onValidityChange ?? (() => {})}>
-                                                        <SelectTrigger className="w-full h-10">
+                                                        <SelectTrigger className={`w-full h-10 ${validityValue ? '' : 'animate-glow-pulse rounded-md'}`}>
                                                             <SelectValue placeholder="選択してください" />
                                                         </SelectTrigger>
                                                         <SelectContent>
@@ -147,13 +162,17 @@ export function ProblemStepDisplay({
                 <Button
                     onClick={() => {
                         if (onRequestNext) {
-                            onRequestNext()
+                            const maybePromise = onRequestNext()
+                            if (maybePromise instanceof Promise) {
+                                maybePromise.catch(() => {})
+                            }
                         } else {
                             onStepChange(Math.min(steps.length, currentStep + 1))
                         }
                     }}
+                    onAnimationEnd={() => setShouldShakeNext(false)}
                     disabled={false}
-                    className="min-w-[120px]"
+                    className={`min-w-[120px] ${shouldShakeNext ? 'animate-shake-x' : ''}`}
                 >
                     次のステップ
                     <ChevronRight className="w-4 h-4 ml-2" />

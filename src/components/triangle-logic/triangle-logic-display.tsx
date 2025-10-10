@@ -59,7 +59,7 @@ export function TriangleLogicDisplay({
               <div className="absolute top-8 left-0">
                 {currentStep === 1 ? (
                   <Select value={antecedentValue} onValueChange={onAntecedentChange}>
-                    <SelectTrigger className="w-48 text-lg px-4 py-6 min-h-[70px]">
+                    <SelectTrigger className={`w-48 text-lg px-4 py-6 min-h-[70px] ${antecedentValue ? '' : 'animate-glow-pulse rounded-md'}`}>
                       <SelectValue placeholder="選択" />
                     </SelectTrigger>
                     <SelectContent>
@@ -81,7 +81,7 @@ export function TriangleLogicDisplay({
               <div className="absolute top-8 right-0">
                 {currentStep === 1 ? (
                   <Select value={consequentValue} onValueChange={onConsequentChange}>
-                    <SelectTrigger className="w-48 text-lg px-4 py-6 min-h-[70px]">
+                    <SelectTrigger className={`w-48 text-lg px-4 py-6 min-h-[70px] ${consequentValue ? '' : 'animate-glow-pulse rounded-md'}`}>
                       <SelectValue placeholder="選択" />
                     </SelectTrigger>
                     <SelectContent>
@@ -123,7 +123,7 @@ export function TriangleLogicDisplay({
               <div className="absolute top-60 left-1/2 transform -translate-x-1/2">
                 {currentStep === 2 ? (
                   <Select value={premiseValue} onValueChange={onPremiseChange}>
-                    <SelectTrigger className="w-48 text-lg px-4 py-6 min-h-[70px]">
+                    <SelectTrigger className={`w-48 text-lg px-4 py-6 min-h-[70px] ${premiseValue ? '' : 'animate-glow-pulse rounded-md'}`}>
                       <SelectValue placeholder="選択" />
                     </SelectTrigger>
                     <SelectContent>
@@ -148,7 +148,7 @@ export function TriangleLogicDisplay({
                 length={160}
                 angleDeg={antecedentLinkDirection ? 45 : 225}
                 colorClassName={antecedentLinkDirection ? "text-muted-foreground" : "text-orange-500"}
-                strokeWidth={6}
+                strokeWidth={4}
                 dashed={true}
                 showStartDot
                 centerOverlay={
@@ -157,7 +157,7 @@ export function TriangleLogicDisplay({
                       variant="secondary"
                       size="sm"
                       onClick={() => onLinkDirectionToggle('antecedent')}
-                      className="h-8 w-8 rounded-full p-0 border-2 hover:shadow-sm hover:bg-secondary hover:opacity-100"
+                      className="h-8 w-8 rounded-full p-0 border-2 hover:shadow-sm hover:bg-secondary hover:opacity-100 animate-glow-pulse"
                       aria-label="方向切替"
                     >
                       <RefreshCw className="h-4 w-4" />
@@ -173,7 +173,7 @@ export function TriangleLogicDisplay({
                 length={160}
                 angleDeg={consequentLinkDirection ? -45 : 135}
                 colorClassName={consequentLinkDirection ? "text-muted-foreground" : "text-orange-500"}
-                strokeWidth={6}
+                strokeWidth={4}
                 dashed={true}
                 showStartDot
                 centerOverlay={
@@ -182,7 +182,7 @@ export function TriangleLogicDisplay({
                       variant="secondary"
                       size="sm"
                       onClick={() => onLinkDirectionToggle('consequent')}
-                      className="h-8 w-8 rounded-full p-0 border-2 hover:shadow-sm hover:bg-secondary hover:opacity-100"
+                      className="h-8 w-8 rounded-full p-0 border-2 hover:shadow-sm hover:bg-secondary hover:opacity-100 animate-glow-pulse"
                       aria-label="方向切替"
                     >
                       <RefreshCw className="h-4 w-4" />

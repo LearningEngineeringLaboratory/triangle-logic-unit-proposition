@@ -23,6 +23,7 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
   const [problem, setProblem] = useState<ProblemDetail | null>(null)
   const [loading, setLoading] = useState(true)
   const [currentStep, setCurrentStep] = useState(1)
+  const [shakeToken, setShakeToken] = useState(0)
   const [steps, setSteps] = useState({
     step1: {
       antecedent: '',
@@ -117,6 +118,7 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
                   problem={problem}
                   currentStep={currentStep}
                   onStepChange={setCurrentStep}
+                  shakeNext={shakeToken}
                   inferenceTypeValue={steps.step3.inferenceType}
                   validityValue={steps.step3.validity === null ? '' : (steps.step3.validity ? '妥当' : '非妥当')}
                   onInferenceTypeChange={(value) => setSteps(prev => ({
@@ -154,6 +156,7 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
                       }
                     } else {
                       toast.error('不正解...')
+                      setShakeToken((t) => t + 1)
                     }
                   }}
                 />
