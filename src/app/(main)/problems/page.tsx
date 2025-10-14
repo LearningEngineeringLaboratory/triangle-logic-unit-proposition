@@ -71,7 +71,7 @@ interface ProblemsListWithSetSelectorProps {
 }
 
 function ProblemsListWithSetSelector({ initialProblems, problemSets }: ProblemsListWithSetSelectorProps) {
-  const [problems, setProblems] = useState<Problem[]>(initialProblems)
+  const [problems, setProblems] = useState<Problem[]>([])
   const [selectedSetId, setSelectedSetId] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
 
@@ -84,7 +84,8 @@ function ProblemsListWithSetSelector({ initialProblems, problemSets }: ProblemsL
         const problemsFromSet = await getProblemsBySet(setId)
         setProblems(problemsFromSet)
       } else {
-        setProblems(initialProblems)
+        // セットが選択されていない場合は空の配列を表示
+        setProblems([])
       }
     } catch (error) {
       console.error('Error loading problems:', error)
@@ -106,7 +107,7 @@ function ProblemsListWithSetSelector({ initialProblems, problemSets }: ProblemsL
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
             <p className="text-muted-foreground text-lg">
-              {isLoading ? '読み込み中...' : '問題が見つかりませんでした'}
+              {isLoading ? '読み込み中...' : selectedSetId ? 'このセットに問題が見つかりませんでした' : '問題セットを選択してください'}
             </p>
           </CardContent>
         </Card>

@@ -21,21 +21,17 @@ export function ProblemSetSelector({
     <Card className="mb-6">
       <CardHeader>
         <CardTitle>問題セット選択</CardTitle>
-        <CardDescription>
-          学習したい問題セットを選択してください
-        </CardDescription>
       </CardHeader>
       <CardContent>
         <Select 
-          value={selectedSetId || 'all'} 
-          onValueChange={(value) => onSetChange(value === 'all' ? null : value)}
+          value={selectedSetId || undefined} 
+          onValueChange={(value) => onSetChange(value)}
           disabled={isLoading}
         >
           <SelectTrigger className="w-full">
             <SelectValue placeholder="問題セットを選択してください" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">すべての問題</SelectItem>
             {problemSets.map((set) => (
               <SelectItem key={set.set_id} value={set.set_id}>
                 {set.name}
