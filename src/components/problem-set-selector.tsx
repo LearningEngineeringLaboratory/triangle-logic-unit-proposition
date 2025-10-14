@@ -27,15 +27,15 @@ export function ProblemSetSelector({
       </CardHeader>
       <CardContent>
         <Select 
-          value={selectedSetId || ''} 
-          onValueChange={(value) => onSetChange(value || null)}
+          value={selectedSetId || 'all'} 
+          onValueChange={(value) => onSetChange(value === 'all' ? null : value)}
           disabled={isLoading}
         >
           <SelectTrigger className="w-full">
             <SelectValue placeholder="問題セットを選択してください" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">すべての問題</SelectItem>
+            <SelectItem value="all">すべての問題</SelectItem>
             {problemSets.map((set) => (
               <SelectItem key={set.set_id} value={set.set_id}>
                 {set.name}
