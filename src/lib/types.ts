@@ -39,10 +39,10 @@ export interface RestoreSessionResponse {
 
 export interface Problem {
   problem_id: string
-  title: string
   argument: string
   correct_answers?: any
   completed_steps?: number
+  order_index?: number // 問題セット内での順番
 }
 
 export interface ProblemSet {

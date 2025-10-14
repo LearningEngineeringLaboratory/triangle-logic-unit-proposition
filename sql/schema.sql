@@ -24,11 +24,9 @@ CREATE INDEX idx_users_created_at ON users (created_at);
 -- ==============================================
 CREATE TABLE problems (
     problem_id TEXT PRIMARY KEY, -- 問題ID（例: TLU-A-v1.0.0）
-    title TEXT NOT NULL, -- 問題タイトル
     argument TEXT NOT NULL, -- 論証文
     options JSONB, -- 単位命題の共通選択肢（JSONB形式）
-    total_steps INTEGER NOT NULL, -- 問題内のステップ数（可変対応）
-    steps JSONB NOT NULL, -- ステップ情報の配列（JSONB形式）
+    correct_answers JSONB NOT NULL, -- 正解データ（JSONB形式）
     version TEXT NOT NULL, -- 問題バージョン
     created_at TIMESTAMP
     WITH
@@ -322,7 +320,6 @@ CREATE POLICY "Anyone can read problem set items" ON problem_set_items
 INSERT INTO
     problems (
         problem_id,
-        title,
         argument,
         options,
         correct_answers,
@@ -330,7 +327,6 @@ INSERT INTO
     )
 VALUES (
         'TLU-A-v1.0.0',
-        '問題1',
         'PであるならばQである。また，QであるならばRである。したがって，PであるならばRである。',
         '["Pである", "Qである", "Rである"]',
         '{
@@ -345,15 +341,13 @@ VALUES (
 INSERT INTO
     problems (
         problem_id,
-        title,
         argument,
         options,
-        correct_answers
+        correct_answers,
         version
     )
 VALUES (
         'TLU-B-v1.0.0',
-        '問題2（組立不可問題の例）',
         'PであるならばQである。また，QであるならばRである。したがって，RであるならばSである。',
         '["Pである", "Qである", "Rである", "Sである"]',
         '{

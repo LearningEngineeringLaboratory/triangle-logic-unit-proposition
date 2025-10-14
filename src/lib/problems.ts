@@ -11,7 +11,7 @@ export async function getProblems(): Promise<Problem[]> {
     // problemsテーブルから基本情報を取得
     const { data: problems, error: problemsError } = await supabase
       .from('problems')
-      .select('problem_id, title, argument, correct_answers')
+      .select('problem_id, argument, correct_answers')
       .order('problem_id')
 
     if (problemsError) {
@@ -41,7 +41,7 @@ export async function getProblem(problemId: string): Promise<ProblemDetail | nul
   try {
     const { data: problem, error } = await supabase
       .from('problems')
-      .select('problem_id, title, argument, correct_answers, options')
+      .select('problem_id, argument, correct_answers, options')
       .eq('problem_id', problemId)
       .single()
 
@@ -91,7 +91,6 @@ export async function getProblemsBySet(setId: string): Promise<Problem[]> {
         order_index,
         problems!inner(
           problem_id,
-          title,
           argument,
           correct_answers,
           options
@@ -107,10 +106,10 @@ export async function getProblemsBySet(setId: string): Promise<Problem[]> {
 
     return problems?.map((item: any) => ({
       problem_id: item.problems.problem_id,
-      title: item.problems.title,
       argument: item.problems.argument,
       correct_answers: item.problems.correct_answers,
       options: item.problems.options,
+      order_index: item.order_index,
       completed_steps: 0 // 仮の値
     })) || []
   } catch (error) {

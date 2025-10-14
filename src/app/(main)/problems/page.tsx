@@ -130,13 +130,14 @@ function ProblemCard({ problem }: ProblemCardProps) {
   const totalSteps = problem.correct_answers ? Object.keys(problem.correct_answers).length : 0
   const done = problem.completed_steps || 0
   const progress = totalSteps > 0 ? (done / totalSteps) * 100 : 0
+  const problemNumber = problem.order_index || 1
 
   return (
     <Link href={`/problems/${problem.problem_id}`} className="block">
       <Card className="hover:shadow-md transition-shadow hover:ring-1 hover:ring-primary cursor-pointer">
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle className="text-lg">{problem.title}</CardTitle>
+            <CardTitle className="text-lg">問題{problemNumber}</CardTitle>
             <Badge variant={progress === 100 ? "default" : "secondary"}>
               {done}/{totalSteps}
             </Badge>
