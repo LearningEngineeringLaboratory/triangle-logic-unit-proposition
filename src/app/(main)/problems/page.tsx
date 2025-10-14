@@ -74,10 +74,18 @@ function ProblemsListWithSetSelector({ initialProblems, problemSets }: ProblemsL
   const [problems, setProblems] = useState<Problem[]>([])
   const [selectedSetId, setSelectedSetId] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+  const [isInitialized, setIsInitialized] = useState(false)
 
   const handleSetChange = async (setId: string | null) => {
     setSelectedSetId(setId)
     setIsLoading(true)
+    
+    // localStorageに選択状態を保存
+    if (setId) {
+      localStorage.setItem('selectedProblemSetId', setId)
+    } else {
+      localStorage.removeItem('selectedProblemSetId')
+    }
     
     try {
       if (setId) {
@@ -93,6 +101,18 @@ function ProblemsListWithSetSelector({ initialProblems, problemSets }: ProblemsL
       setIsLoading(false)
     }
   }
+
+  // 初期化時にlocalStorageから選択状態を復元
+  useEffect(() => {
+    if (!isInitialized && problemSets.length > 0) {
+      const savedSetId = localStorage.getItem('selectedProblemSetId')
+      if (savedSetId && problemSets.some(set => set.set_id === savedSetId)) {
+        // 保存されたセットIDが有効な場合、自動選択
+        handleSetChange(savedSetId)
+      }
+      setIsInitialized(true)
+    }
+  }, [problemSets, isInitialized])
 
   return (
     <>
