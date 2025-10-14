@@ -310,13 +310,13 @@ CREATE INDEX idx_problem_set_items_order ON problem_set_items(set_id, order_inde
 ALTER TABLE problem_sets ENABLE ROW LEVEL SECURITY;
 ALTER TABLE problem_set_items ENABLE ROW LEVEL SECURITY;
 
--- 問題セットのRLSポリシー（全ユーザーが読み取り可能）
-CREATE POLICY "Authenticated users can read problem sets" ON problem_sets
-  FOR SELECT USING (auth.role() = 'authenticated');
+-- 問題セットのRLSポリシー（認証なしでも読み取り可能）
+CREATE POLICY "Anyone can read problem sets" ON problem_sets
+  FOR SELECT USING (true);
 
--- 問題セットアイテムのRLSポリシー（全ユーザーが読み取り可能）
-CREATE POLICY "Authenticated users can read problem set items" ON problem_set_items
-  FOR SELECT USING (auth.role() = 'authenticated');
+-- 問題セットアイテムのRLSポリシー（認証なしでも読み取り可能）
+CREATE POLICY "Anyone can read problem set items" ON problem_set_items
+  FOR SELECT USING (true);
 
 -- 問題1: 通常の三段論法問題
 INSERT INTO
