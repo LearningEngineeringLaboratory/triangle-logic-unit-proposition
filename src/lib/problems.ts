@@ -65,6 +65,7 @@ export async function getProblem(problemId: string): Promise<ProblemDetail | nul
 
 export async function getProblemSets(): Promise<ProblemSet[]> {
   try {
+    console.log('Fetching problem sets...')
     const { data: problemSets, error } = await supabase
       .from('problem_sets')
       .select('set_id, name, description, version, is_active, created_at')
@@ -76,6 +77,7 @@ export async function getProblemSets(): Promise<ProblemSet[]> {
       return []
     }
 
+    console.log('Problem sets fetched:', problemSets)
     return problemSets || []
   } catch (error) {
     console.error('Unexpected error in getProblemSets:', error)

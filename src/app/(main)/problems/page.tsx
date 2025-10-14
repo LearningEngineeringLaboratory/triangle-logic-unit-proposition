@@ -17,10 +17,13 @@ export default function ProblemsPage() {
   useEffect(() => {
     const loadData = async () => {
       try {
+        console.log('Loading problems and problem sets...')
         const [problemsData, problemSetsData] = await Promise.all([
           getProblems(),
           getProblemSets()
         ])
+        console.log('Problems loaded:', problemsData)
+        console.log('Problem sets loaded:', problemSetsData)
         setProblems(problemsData)
         setProblemSets(problemSetsData)
       } catch (error) {
