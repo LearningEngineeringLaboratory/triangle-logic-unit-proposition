@@ -1,12 +1,17 @@
-import { getProblems } from '@/lib/problems'
-import { Problem } from '@/lib/types'
+import { getProblems, getProblemSets, getProblemsBySet } from '@/lib/problems'
+import { Problem, ProblemSet } from '@/lib/types'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
+import { ProblemSetSelector } from '@/components/problem-set-selector'
 import Link from 'next/link'
+import { Suspense, useState, useEffect } from 'react'
 
 export default async function ProblemsPage() {
-  const problems = await getProblems()
+  const [problems, problemSets] = await Promise.all([
+    getProblems(),
+    getProblemSets()
+  ])
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -17,10 +22,59 @@ export default async function ProblemsPage() {
         </p>
       </div>
 
+      <Suspense fallback={<div>読み込み中...</div>}>
+        <ProblemsListWithSetSelector 
+          initialProblems={problems} 
+          problemSets={problemSets} 
+        />
+      </Suspense>
+    </div>
+  )
+}
+
+interface ProblemsListWithSetSelectorProps {
+  initialProblems: Problem[]
+  problemSets: ProblemSet[]
+}
+
+function ProblemsListWithSetSelector({ initialProblems, problemSets }: ProblemsListWithSetSelectorProps) {
+  const [problems, setProblems] = useState<Problem[]>(initialProblems)
+  const [selectedSetId, setSelectedSetId] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(false)
+
+  const handleSetChange = async (setId: string | null) => {
+    setSelectedSetId(setId)
+    setIsLoading(true)
+    
+    try {
+      if (setId) {
+        const problemsFromSet = await getProblemsBySet(setId)
+        setProblems(problemsFromSet)
+      } else {
+        setProblems(initialProblems)
+      }
+    } catch (error) {
+      console.error('Error loading problems:', error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  return (
+    <>
+      <ProblemSetSelector
+        problemSets={problemSets}
+        selectedSetId={selectedSetId}
+        onSetChange={handleSetChange}
+        isLoading={isLoading}
+      />
+
       {problems.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
-            <p className="text-muted-foreground text-lg">問題が見つかりませんでした</p>
+            <p className="text-muted-foreground text-lg">
+              {isLoading ? '読み込み中...' : '問題が見つかりませんでした'}
+            </p>
           </CardContent>
         </Card>
       ) : (
@@ -30,7 +84,7 @@ export default async function ProblemsPage() {
           ))}
         </div>
       )}
-    </div>
+    </>
   )
 }
 
