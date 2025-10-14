@@ -45,3 +45,19 @@ export interface Problem {
   completed_steps?: number
 }
 
+export interface ProblemSet {
+  set_id: string
+  name: string
+  description?: string
+  version: string
+  is_active: boolean
+  created_at: string
+}
+
+export interface ProblemSetItem {
+  set_id: string
+  problem_id: string
+  order_index: number
+  created_at: string
+}
+

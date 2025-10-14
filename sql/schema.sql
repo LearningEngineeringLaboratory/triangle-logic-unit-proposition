@@ -272,6 +272,52 @@ CREATE TRIGGER update_responses_updated_at
 -- 9. テストデータ用のサンプル問題
 -- ==============================================
 
+-- ==============================================
+-- 10. 問題セット管理テーブル
+-- ==============================================
+
+-- 問題セット管理
+CREATE TABLE problem_sets (
+  set_id TEXT PRIMARY KEY,           -- 問題セットID（例: "basic-v1", "advanced-v1"）
+  name TEXT NOT NULL,                -- セット名（例: "基礎問題セット"）
+  description TEXT,                  -- セットの説明
+  version TEXT NOT NULL,             -- セットバージョン
+  is_active BOOLEAN DEFAULT true,    -- 有効/無効
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() -- 作成日時
+);
+
+-- インデックス
+CREATE INDEX idx_problem_sets_is_active ON problem_sets(is_active);
+CREATE INDEX idx_problem_sets_created_at ON problem_sets(created_at);
+
+-- 問題とセットの関連（多対多）
+CREATE TABLE problem_set_items (
+  set_id TEXT NOT NULL,              -- 問題セットID（外部キー）
+  problem_id TEXT NOT NULL,          -- 問題ID（外部キー）
+  order_index INTEGER NOT NULL,      -- セット内での順序
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(), -- 作成日時
+  PRIMARY KEY (set_id, problem_id),
+  FOREIGN KEY (set_id) REFERENCES problem_sets(set_id) ON DELETE CASCADE,
+  FOREIGN KEY (problem_id) REFERENCES problems(problem_id) ON DELETE CASCADE
+);
+
+-- インデックス
+CREATE INDEX idx_problem_set_items_set_id ON problem_set_items(set_id);
+CREATE INDEX idx_problem_set_items_problem_id ON problem_set_items(problem_id);
+CREATE INDEX idx_problem_set_items_order ON problem_set_items(set_id, order_index);
+
+-- RLS設定
+ALTER TABLE problem_sets ENABLE ROW LEVEL SECURITY;
+ALTER TABLE problem_set_items ENABLE ROW LEVEL SECURITY;
+
+-- 問題セットのRLSポリシー（全ユーザーが読み取り可能）
+CREATE POLICY "Authenticated users can read problem sets" ON problem_sets
+  FOR SELECT USING (auth.role() = 'authenticated');
+
+-- 問題セットアイテムのRLSポリシー（全ユーザーが読み取り可能）
+CREATE POLICY "Authenticated users can read problem set items" ON problem_set_items
+  FOR SELECT USING (auth.role() = 'authenticated');
+
 -- 問題1: 通常の三段論法問題
 INSERT INTO
     problems (
