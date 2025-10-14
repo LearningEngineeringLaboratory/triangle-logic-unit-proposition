@@ -174,7 +174,7 @@ export function ProblemStepDisplay({
                     disabled={false}
                     className={`min-w-[120px] ${shouldShakeNext ? 'animate-shake-x' : ''}`}
                 >
-                    次のステップ
+                    答え合わせ　
                     <ChevronRight className="w-4 h-4 ml-2" />
                 </Button>
             </div>

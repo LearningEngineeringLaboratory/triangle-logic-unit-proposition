@@ -12,6 +12,7 @@ import { TriangleLogicDisplay } from '@/components/triangle-logic/triangle-logic
 import { useEffect, useState } from 'react'
 import { mapUiToDbState, isStepCorrect, logClientCheck } from '@/lib/utils'
 import { toast } from 'sonner'
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 
 interface ProblemDetailPageProps {
   params: Promise<{
@@ -45,6 +46,7 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
       isPassed: false,
     },
   })
+  const [isClearOpen, setIsClearOpen] = useState(false)
 
   useEffect(() => {
     async function fetchProblem() {
@@ -114,6 +116,19 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
                 </CardContent>
               </Card>
               <div className="flex-1 flex flex-col">
+                {/* クリアダイアログ */}
+                <Dialog open={isClearOpen} onOpenChange={setIsClearOpen}>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>問題クリア</DialogTitle>
+                    </DialogHeader>
+                    <DialogFooter>
+                      <Link href="/problems">
+                        <Button>問題選択画面に戻る</Button>
+                      </Link>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
                 <ProblemStepDisplay
                   problem={problem}
                   currentStep={currentStep}
@@ -153,6 +168,8 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
                       }))
                       if (stepNumber < 3) {
                         setCurrentStep(Math.min(3, currentStep + 1))
+                      } else {
+                        setIsClearOpen(true)
                       }
                     } else {
                       toast.error('不正解...')
@@ -238,6 +255,49 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
                 problem={problem}
                 currentStep={currentStep}
                 onStepChange={setCurrentStep}
+                shakeNext={shakeToken}
+                inferenceTypeValue={steps.step3.inferenceType}
+                validityValue={steps.step3.validity === null ? '' : (steps.step3.validity ? '妥当' : '非妥当')}
+                onInferenceTypeChange={(value) => setSteps(prev => ({
+                  ...prev,
+                  step3: { ...prev.step3, inferenceType: value },
+                }))}
+                onValidityChange={(value) => setSteps(prev => ({
+                  ...prev,
+                  step3: { ...prev.step3, validity: value === '妥当' },
+                }))}
+                onRequestNext={async () => {
+                  if (!problem) return
+                  const stepNumber = currentStep as 1|2|3
+                  const uiFragment = stepNumber === 1 ? steps.step1 : stepNumber === 2 ? steps.step2 : steps.step3
+                  const dbState = mapUiToDbState({ step1: steps.step1, step2: steps.step2, step3: steps.step3 })
+                  const dbFragment = dbState[`step${stepNumber}` as 'step1'|'step2'|'step3']
+                  const isCorrect = isStepCorrect((problem as any).correct_answers, stepNumber, dbFragment)
+                  console.log(`[check-step][client] step=${stepNumber} isCorrect=${isCorrect ? 'correct' : 'incorrect'}`)
+                  // ログ送信（研究用）
+                  logClientCheck({
+                    problemId: problem.problem_id,
+                    step: stepNumber,
+                    isCorrect,
+                    payload: dbFragment,
+                  })
+
+                  if (isCorrect) {
+                    toast.success('正解です！')
+                    setSteps(prev => ({
+                      ...prev,
+                      [`step${stepNumber}`]: { ...uiFragment, isPassed: true } as any,
+                    }))
+                    if (stepNumber < 3) {
+                      setCurrentStep(Math.min(3, currentStep + 1))
+                    } else {
+                      setIsClearOpen(true)
+                    }
+                  } else {
+                    toast.error('不正解...')
+                    setShakeToken((t) => t + 1)
+                  }
+                }}
               />
             </CardContent>
           </Card>
