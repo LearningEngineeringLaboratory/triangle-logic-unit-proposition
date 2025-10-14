@@ -1,3 +1,5 @@
+'use client'
+
 import { getProblems, getProblemSets, getProblemsBySet } from '@/lib/problems'
 import { Problem, ProblemSet } from '@/lib/types'
 import { Badge } from '@/components/ui/badge'
@@ -7,11 +9,44 @@ import { ProblemSetSelector } from '@/components/problem-set-selector'
 import Link from 'next/link'
 import { Suspense, useState, useEffect } from 'react'
 
-export default async function ProblemsPage() {
-  const [problems, problemSets] = await Promise.all([
-    getProblems(),
-    getProblemSets()
-  ])
+export default function ProblemsPage() {
+  const [problems, setProblems] = useState<Problem[]>([])
+  const [problemSets, setProblemSets] = useState<ProblemSet[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const [problemsData, problemSetsData] = await Promise.all([
+          getProblems(),
+          getProblemSets()
+        ])
+        setProblems(problemsData)
+        setProblemSets(problemSetsData)
+      } catch (error) {
+        console.error('Error loading data:', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    loadData()
+  }, [])
+
+  if (isLoading) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold tracking-tight">問題一覧</h1>
+          <p className="text-muted-foreground mt-2">
+            単位命題三角ロジック演習システム
+          </p>
+        </div>
+        <div className="flex justify-center py-12">
+          <p className="text-muted-foreground">読み込み中...</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -22,12 +57,10 @@ export default async function ProblemsPage() {
         </p>
       </div>
 
-      <Suspense fallback={<div>読み込み中...</div>}>
-        <ProblemsListWithSetSelector 
-          initialProblems={problems} 
-          problemSets={problemSets} 
-        />
-      </Suspense>
+      <ProblemsListWithSetSelector 
+        initialProblems={problems} 
+        problemSets={problemSets} 
+      />
     </div>
   )
 }
