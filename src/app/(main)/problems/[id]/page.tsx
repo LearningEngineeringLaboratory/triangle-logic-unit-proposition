@@ -1,6 +1,7 @@
 'use client'
 
-import { getProblem, ProblemDetail } from '@/lib/problems'
+import { getProblem, getProblemSets, ProblemDetail } from '@/lib/problems'
+import { ProblemSet } from '@/lib/types'
 import { notFound } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -22,6 +23,8 @@ interface ProblemDetailPageProps {
 
 export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
   const [problem, setProblem] = useState<ProblemDetail | null>(null)
+  const [problemSets, setProblemSets] = useState<ProblemSet[]>([])
+  const [problemNumber, setProblemNumber] = useState(1)
   const [loading, setLoading] = useState(true)
   const [currentStep, setCurrentStep] = useState(1)
   const [shakeToken, setShakeToken] = useState(0)
@@ -49,23 +52,34 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
   const [isClearOpen, setIsClearOpen] = useState(false)
 
   useEffect(() => {
-    async function fetchProblem() {
+    async function fetchData() {
       try {
         const resolvedParams = await params
-        const data = await getProblem(resolvedParams.id)
-        if (!data) {
+        const [problemData, problemSetsData] = await Promise.all([
+          getProblem(resolvedParams.id),
+          getProblemSets()
+        ])
+        
+        if (!problemData) {
           notFound()
         }
-        setProblem(data)
+        
+        setProblem(problemData)
+        setProblemSets(problemSetsData)
+        
+        // 問題セット内での順番を取得（簡易実装）
+        const match = resolvedParams.id.match(/TLU-(\d+)-/)
+        const order = match ? parseInt(match[1]) : 1
+        setProblemNumber(order)
       } catch (error) {
-        console.error('Error fetching problem:', error)
+        console.error('Error fetching data:', error)
         notFound()
       } finally {
         setLoading(false)
       }
     }
 
-    fetchProblem()
+    fetchData()
   }, [params])
 
   if (loading) {
@@ -105,7 +119,7 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
           <div className="flex flex-col space-y-6 h-full">
             {/* ステップ問題文（カード形式を廃止） */}
             <section className="flex-1 flex flex-col">
-              <h3 className="text-xl font-semibold tracking-tight mb-4">{problem.title}</h3>
+              <h3 className="text-xl font-semibold tracking-tight mb-4">問題{problemNumber}</h3>
               {/* 論証文カード（タイトル・説明とステップの間に挿入） */}
               <Card className="mb-4">
                 <CardHeader>
@@ -239,7 +253,7 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
           {/* ステップ問題文（カルーセル形式） */}
           <Card>
             <CardHeader>
-            <h3 className="text-xl font-semibold tracking-tight mb-1">{problem.title}</h3>
+            <h3 className="text-xl font-semibold tracking-tight mb-1">問題{problemNumber}</h3>
             </CardHeader>
             <CardContent>
               {/* 論証文表示 */}
