@@ -45,19 +45,19 @@ export function ProblemStepDisplay({
         {
             number: 1,
             title: '導出命題を構成',
-            content: 'この論証が導いている命題（導出命題）を構成しましょう。論証が表す意味と同じになるように、２つのドロップダウンを選択してください。',
-            hint: '「したがって」や「よって」などの接続詞がある命題に着目しましょう。'
+            content: 'この論証が導いている命題（導出命題）を構成しましょう。\n ２つのドロップダウンを選択してください。\n\n できたら、「答え合わせ」ボタンを押して、次のステップに進みましょう。',
+            hint: '「したがって」や「よって」、「とすると」などの接続詞がある命題に着目しましょう。'
         },
         {
             number: 2,
             title: '三角ロジックの構成',
-            content: 'この論証の前提となる命題（所与命題）を構成しましょう。論証が表す意味と同じになるように、ドロップダウンで単位命題を選択し、リンクの向きを正しく設定してください。もし、三角ロジックを構成できない場合は、「組み立て不可能」のトグルをONにしてください。',
+            content: 'この論証の前提となる命題（所与命題）を構成しましょう。\n\n 1. 前提のみで使用されている単位命題を選択\n 2. 論証が表す意味と同じになるように、リンクの向きを修正\n 3. 論証と同じ意味の三角ロジックを構成できない場合は「組み立て不可能」のトグルをONにする',
             hint: '🔄ボタンをクリックすると、リンクの向きを反転させることができます。'
         },
         {
             number: 3,
             title: '推論形式と妥当性の判別',
-            content: '構成した三角ロジックをもとに、この論証の推論形式（演繹推論・仮説推論・非形式推論）と妥当性（妥当・非妥当）を判別してください。',
+            content: '構成した三角ロジックをもとに、この論証の推論形式と妥当性を答えましょう。',
             hint: 'リンクの向きの変更がない場合は演繹推論、リンクの向きの変更が1箇所の場合は仮説推論、リンクの向きの変更が2箇所の場合、もしくは三角ロジックを構成できない場合は非形式推論です。'
         }
     ]
@@ -80,11 +80,11 @@ export function ProblemStepDisplay({
                                     <h3 className="text-lg font-semibold text-foreground">
                                         Step {step.number}: {step.title}
                                     </h3>
-                                    <p className="text-md leading-relaxed text-foreground">
+                                    <p className="text-md leading-relaxed text-foreground whitespace-pre-line">
                                         {step.content}
                                     </p>
                                     {step.hint && (
-                                        <div className="mt-3 rounded-md border border-border bg-muted/40 p-3">
+                                        <div className="mt-6 rounded-md border border-border bg-muted/40 p-3">
                                             <div className="flex items-center gap-2">
                                                 <AlertCircle className="h-5 w-5 text-amber-600" aria-hidden="true" />
                                                 <span className="text-sm font-medium text-amber-700">ヒント</span>
@@ -174,7 +174,7 @@ export function ProblemStepDisplay({
                     disabled={false}
                     className={`min-w-[120px] ${shouldShakeNext ? 'animate-shake-x' : ''}`}
                 >
-                    答え合わせ　
+                    答え合わせ
                     <ChevronRight className="w-4 h-4 ml-2" />
                 </Button>
             </div>

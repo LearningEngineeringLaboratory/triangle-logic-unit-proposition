@@ -158,9 +158,9 @@ function ProblemCard({ problem }: ProblemCardProps) {
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="text-lg">問題{problemNumber}</CardTitle>
-            <Badge variant={progress === 100 ? "default" : "secondary"}>
+            {/* <Badge variant={progress === 100 ? "default" : "secondary"}>
               {done}/{totalSteps}
-            </Badge>
+            </Badge> */}
           </div>
         </CardHeader>
         <CardContent>

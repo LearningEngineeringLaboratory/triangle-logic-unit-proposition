@@ -1,6 +1,6 @@
 'use client'
 
-import { getProblem, getProblemSets, ProblemDetail } from '@/lib/problems'
+import { getProblem, getProblemSets, getNextProblemInSet, getCurrentProblemOrder, ProblemDetail } from '@/lib/problems'
 import { ProblemSet } from '@/lib/types'
 import { notFound } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -11,6 +11,7 @@ import Link from 'next/link'
 import { ProblemStepDisplay } from '@/components/problem-step-display'
 import { TriangleLogicDisplay } from '@/components/triangle-logic/triangle-logic-display'
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { mapUiToDbState, isStepCorrect, logClientCheck } from '@/lib/utils'
 import { toast } from 'sonner'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -22,10 +23,15 @@ interface ProblemDetailPageProps {
 }
 
 export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
+  const router = useRouter()
   const [problem, setProblem] = useState<ProblemDetail | null>(null)
   const [problemSets, setProblemSets] = useState<ProblemSet[]>([])
   const [problemNumber, setProblemNumber] = useState(1)
   const [loading, setLoading] = useState(true)
+  const [selectedProblemSetId, setSelectedProblemSetId] = useState<string | null>(null)
+  const [nextProblem, setNextProblem] = useState<any>(null)
+  const [isLastProblem, setIsLastProblem] = useState(false)
+  const [isClearOpen, setIsClearOpen] = useState(false)
   const [currentStep, setCurrentStep] = useState(1)
   const [shakeToken, setShakeToken] = useState(0)
   const [steps, setSteps] = useState({
@@ -49,7 +55,6 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
       isPassed: false,
     },
   })
-  const [isClearOpen, setIsClearOpen] = useState(false)
 
   useEffect(() => {
     async function fetchData() {
@@ -59,18 +64,39 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
           getProblem(resolvedParams.id),
           getProblemSets()
         ])
-        
+
         if (!problemData) {
           notFound()
         }
-        
+
         setProblem(problemData)
         setProblemSets(problemSetsData)
-        
-        // 問題セット内での順番を取得（簡易実装）
-        const match = resolvedParams.id.match(/TLU-(\d+)-/)
-        const order = match ? parseInt(match[1]) : 1
-        setProblemNumber(order)
+
+        // 選択された問題セットを取得
+        const savedSetId = localStorage.getItem('selectedProblemSetId')
+        if (savedSetId) {
+          setSelectedProblemSetId(savedSetId)
+
+          // 現在の問題の順番を取得
+          const currentOrder = await getCurrentProblemOrder(savedSetId, resolvedParams.id)
+          if (currentOrder !== null) {
+            setProblemNumber(currentOrder)
+          }
+
+          // 次の問題を取得
+          const nextProblemData = await getNextProblemInSet(savedSetId, resolvedParams.id)
+          if (nextProblemData) {
+            setNextProblem(nextProblemData)
+            setIsLastProblem(false)
+          } else {
+            setIsLastProblem(true)
+          }
+        } else {
+          // 問題セットが選択されていない場合は、問題IDから推測
+          const match = resolvedParams.id.match(/TLU-(\d+)-/)
+          const order = match ? parseInt(match[1]) : 1
+          setProblemNumber(order)
+        }
       } catch (error) {
         console.error('Error fetching data:', error)
         notFound()
@@ -81,6 +107,18 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
 
     fetchData()
   }, [params])
+
+  // 次の問題への遷移
+  const handleNextProblem = () => {
+    if (nextProblem) {
+      router.push(`/problems/${nextProblem.problem_id}`)
+    }
+  }
+
+  // 問題一覧に戻る
+  const handleBackToProblems = () => {
+    router.push('/problems')
+  }
 
   if (loading) {
     return (
@@ -123,7 +161,7 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
               {/* 論証文カード（タイトル・説明とステップの間に挿入） */}
               <Card className="mb-4">
                 <CardHeader>
-                  <CardTitle>論証文</CardTitle>
+                  <CardTitle>論証</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p className="text-lg leading-relaxed">{problem.argument}</p>
@@ -134,12 +172,17 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
                 <Dialog open={isClearOpen} onOpenChange={setIsClearOpen}>
                   <DialogContent>
                     <DialogHeader>
-                      <DialogTitle>問題クリア</DialogTitle>
+                      <DialogTitle>{isLastProblem ? 'すべての問題をクリアしました！' : '問題クリア！'}</DialogTitle>
                     </DialogHeader>
-                    <DialogFooter>
-                      <Link href="/problems">
-                        <Button>問題選択画面に戻る</Button>
-                      </Link>
+                    <DialogFooter className="flex gap-2">
+                      <Button variant="outline" onClick={handleBackToProblems} className="flex-1">
+                        問題一覧に戻る
+                      </Button>
+                      {!isLastProblem && nextProblem && (
+                        <Button onClick={handleNextProblem} className="flex-1">
+                          次の問題に進む
+                        </Button>
+                      )}
                     </DialogFooter>
                   </DialogContent>
                 </Dialog>
@@ -160,10 +203,10 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
                   }))}
                   onRequestNext={async () => {
                     if (!problem) return
-                    const stepNumber = currentStep as 1|2|3
+                    const stepNumber = currentStep as 1 | 2 | 3
                     const uiFragment = stepNumber === 1 ? steps.step1 : stepNumber === 2 ? steps.step2 : steps.step3
                     const dbState = mapUiToDbState({ step1: steps.step1, step2: steps.step2, step3: steps.step3 })
-                    const dbFragment = dbState[`step${stepNumber}` as 'step1'|'step2'|'step3']
+                    const dbFragment = dbState[`step${stepNumber}` as 'step1' | 'step2' | 'step3']
                     const isCorrect = isStepCorrect((problem as any).correct_answers, stepNumber, dbFragment)
                     console.log(`[check-step][client] step=${stepNumber} isCorrect=${isCorrect ? 'correct' : 'incorrect'}`)
                     // ログ送信（研究用）
@@ -196,54 +239,54 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
           </div>
 
           {/* 右側パネル（カードなし・左側に縦罫線） */}
-            <div className="flex-1 flex items-center justify-center border-l pl-8">
-              <TriangleLogicDisplay
-                options={problem.options ?? ['選択肢が設定されていません']}
-                onAntecedentChange={(value) => setSteps(prev => ({
-                  ...prev,
-                  step1: { ...prev.step1, antecedent: value },
-                }))}
-                onConsequentChange={(value) => setSteps(prev => ({
-                  ...prev,
-                  step1: { ...prev.step1, consequent: value },
-                }))}
-                onPremiseChange={(value) => setSteps(prev => ({
-                  ...prev,
-                  step2: { ...prev.step2, premise: value },
-                }))}
-                onLinkDirectionToggle={(linkType) => setSteps(prev => ({
-                  ...prev,
-                  step2: {
-                    ...prev.step2,
-                    linkDirections: {
-                      ...prev.step2.linkDirections,
-                      antecedentLink: linkType === 'antecedent' ? !prev.step2.linkDirections.antecedentLink : prev.step2.linkDirections.antecedentLink,
-                      consequentLink: linkType === 'consequent' ? !prev.step2.linkDirections.consequentLink : prev.step2.linkDirections.consequentLink,
-                    }
+          <div className="flex-1 flex items-center justify-center border-l pl-8">
+            <TriangleLogicDisplay
+              options={problem.options ?? ['選択肢が設定されていません']}
+              onAntecedentChange={(value) => setSteps(prev => ({
+                ...prev,
+                step1: { ...prev.step1, antecedent: value },
+              }))}
+              onConsequentChange={(value) => setSteps(prev => ({
+                ...prev,
+                step1: { ...prev.step1, consequent: value },
+              }))}
+              onPremiseChange={(value) => setSteps(prev => ({
+                ...prev,
+                step2: { ...prev.step2, premise: value },
+              }))}
+              onLinkDirectionToggle={(linkType) => setSteps(prev => ({
+                ...prev,
+                step2: {
+                  ...prev.step2,
+                  linkDirections: {
+                    ...prev.step2.linkDirections,
+                    antecedentLink: linkType === 'antecedent' ? !prev.step2.linkDirections.antecedentLink : prev.step2.linkDirections.antecedentLink,
+                    consequentLink: linkType === 'consequent' ? !prev.step2.linkDirections.consequentLink : prev.step2.linkDirections.consequentLink,
                   }
-                }))}
-                onInferenceTypeChange={(value) => setSteps(prev => ({
-                  ...prev,
-                  step3: { ...prev.step3, inferenceType: value },
-                }))}
-                onValidityChange={(value) => setSteps(prev => ({
-                  ...prev,
-                  step3: { ...prev.step3, validity: value === '妥当' },
-                }))}
-                inferenceTypeValue={steps.step3.inferenceType}
-                validityValue={steps.step3.validity === null ? '' : (steps.step3.validity ? '妥当' : '非妥当')}
-                antecedentValue={steps.step1.antecedent}
-                consequentValue={steps.step1.consequent}
-                premiseValue={steps.step2.premise}
-                antecedentLinkDirection={steps.step2.linkDirections.antecedentLink}
-                consequentLinkDirection={steps.step2.linkDirections.consequentLink}
-                currentStep={currentStep}
-                impossibleValue={steps.step2.impossible}
-                onImpossibleToggle={(value) => setSteps(prev => ({
-                  ...prev,
-                  step2: { ...prev.step2, impossible: value },
-                }))}
-              />
+                }
+              }))}
+              onInferenceTypeChange={(value) => setSteps(prev => ({
+                ...prev,
+                step3: { ...prev.step3, inferenceType: value },
+              }))}
+              onValidityChange={(value) => setSteps(prev => ({
+                ...prev,
+                step3: { ...prev.step3, validity: value === '妥当' },
+              }))}
+              inferenceTypeValue={steps.step3.inferenceType}
+              validityValue={steps.step3.validity === null ? '' : (steps.step3.validity ? '妥当' : '非妥当')}
+              antecedentValue={steps.step1.antecedent}
+              consequentValue={steps.step1.consequent}
+              premiseValue={steps.step2.premise}
+              antecedentLinkDirection={steps.step2.linkDirections.antecedentLink}
+              consequentLinkDirection={steps.step2.linkDirections.consequentLink}
+              currentStep={currentStep}
+              impossibleValue={steps.step2.impossible}
+              onImpossibleToggle={(value) => setSteps(prev => ({
+                ...prev,
+                step2: { ...prev.step2, impossible: value },
+              }))}
+            />
           </div>
         </div>
 
@@ -253,7 +296,7 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
           {/* ステップ問題文（カルーセル形式） */}
           <Card>
             <CardHeader>
-            <h3 className="text-xl font-semibold tracking-tight mb-1">問題{problemNumber}</h3>
+              <h3 className="text-xl font-semibold tracking-tight mb-1">問題{problemNumber}</h3>
             </CardHeader>
             <CardContent>
               {/* 論証文表示 */}
@@ -265,6 +308,24 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
                   <p className="text-lg leading-relaxed">{problem.argument}</p>
                 </CardContent>
               </Card>
+              {/* クリアダイアログ（モバイル版） */}
+              <Dialog open={isClearOpen} onOpenChange={setIsClearOpen}>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>{isLastProblem ? 'すべての問題をクリアしました！' : '問題クリア！'}</DialogTitle>
+                  </DialogHeader>
+                  <DialogFooter className="flex gap-2">
+                    <Button variant="outline" onClick={handleBackToProblems} className="flex-1">
+                      問題一覧に戻る
+                    </Button>
+                    {!isLastProblem && nextProblem && (
+                      <Button onClick={handleNextProblem} className="flex-1">
+                        次の問題に進む
+                      </Button>
+                    )}
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
               <ProblemStepDisplay
                 problem={problem}
                 currentStep={currentStep}
@@ -282,10 +343,10 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
                 }))}
                 onRequestNext={async () => {
                   if (!problem) return
-                  const stepNumber = currentStep as 1|2|3
+                  const stepNumber = currentStep as 1 | 2 | 3
                   const uiFragment = stepNumber === 1 ? steps.step1 : stepNumber === 2 ? steps.step2 : steps.step3
                   const dbState = mapUiToDbState({ step1: steps.step1, step2: steps.step2, step3: steps.step3 })
-                  const dbFragment = dbState[`step${stepNumber}` as 'step1'|'step2'|'step3']
+                  const dbFragment = dbState[`step${stepNumber}` as 'step1' | 'step2' | 'step3']
                   const isCorrect = isStepCorrect((problem as any).correct_answers, stepNumber, dbFragment)
                   console.log(`[check-step][client] step=${stepNumber} isCorrect=${isCorrect ? 'correct' : 'incorrect'}`)
                   // ログ送信（研究用）

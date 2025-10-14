@@ -117,3 +117,71 @@ export async function getProblemsBySet(setId: string): Promise<Problem[]> {
     return []
   }
 }
+
+// 問題セット内の次の問題を取得
+export async function getNextProblemInSet(setId: string, currentProblemId: string): Promise<Problem | null> {
+  try {
+    const { data: problems, error } = await supabase
+      .from('problem_set_items')
+      .select(`
+        order_index,
+        problems!inner(
+          problem_id,
+          argument,
+          correct_answers,
+          options
+        )
+      `)
+      .eq('set_id', setId)
+      .order('order_index')
+
+    if (error) {
+      console.error('Error fetching problems by set:', error)
+      return null
+    }
+
+    const problemsList = problems?.map((item: any) => ({
+      problem_id: item.problems.problem_id,
+      argument: item.problems.argument,
+      correct_answers: item.problems.correct_answers,
+      options: item.problems.options,
+      order_index: item.order_index,
+      completed_steps: 0
+    })) || []
+
+    // 現在の問題のインデックスを取得
+    const currentIndex = problemsList.findIndex(p => p.problem_id === currentProblemId)
+    
+    // 次の問題を取得
+    if (currentIndex !== -1 && currentIndex < problemsList.length - 1) {
+      return problemsList[currentIndex + 1]
+    }
+
+    return null // 最後の問題の場合
+  } catch (error) {
+    console.error('Unexpected error in getNextProblemInSet:', error)
+    return null
+  }
+}
+
+// 問題セット内の現在の問題の順番を取得
+export async function getCurrentProblemOrder(setId: string, problemId: string): Promise<number | null> {
+  try {
+    const { data: problem, error } = await supabase
+      .from('problem_set_items')
+      .select('order_index')
+      .eq('set_id', setId)
+      .eq('problem_id', problemId)
+      .single()
+
+    if (error) {
+      console.error('Error fetching current problem order:', error)
+      return null
+    }
+
+    return problem?.order_index || null
+  } catch (error) {
+    console.error('Unexpected error in getCurrentProblemOrder:', error)
+    return null
+  }
+}
