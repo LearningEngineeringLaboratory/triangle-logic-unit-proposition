@@ -35,6 +35,7 @@ export function ProblemStepDisplay({
 
     // 外部からのトリガーでshakeを発火（初回は発火させない）
     const prevShakeTokenRef = useRef(shakeNext)
+    const currentStepRef = useRef<HTMLDivElement | null>(null)
     useEffect(() => {
         const prev = prevShakeTokenRef.current
         if (prev !== shakeNext) {
@@ -43,6 +44,13 @@ export function ProblemStepDisplay({
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [shakeNext])
+    // アクティブステップへ自動スクロール（親のスクロール領域を利用）
+    useEffect(() => {
+        const el = document.getElementById(`current-step-${currentStep}`)
+        if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+        }
+    }, [currentStep])
     // ステップ定義を動的に生成（可変ステップ数対応）
     const generateSteps = (totalSteps: number) => {
         const steps = []
@@ -106,9 +114,9 @@ export function ProblemStepDisplay({
 
     return (
         <div className="flex flex-col h-full">
-            {/* 段階的ステップ表示 */}
-            <div className="flex-1 overflow-y-auto">
-                <div className="space-y-4 p-4">
+            {/* 段階的ステップ表示（親から与えられたスクロール領域内で自動スクロール）*/}
+            <div className="flex-1">
+                <div className="space-y-4 p-2">
                     {/* 過去のステップ（モノクロ基調、完了バッジのみ緑） */}
                     {visibleSteps.map((step) => {
                         const status = getStepStatus(step.number)
@@ -148,7 +156,7 @@ export function ProblemStepDisplay({
                     })}
                     
                     {/* 現在のステップ（既定カラー） */}
-                    <div className="p-4 rounded-lg border border-border bg-background">
+                    <div className="p-4 rounded-lg border border-border bg-background" id={`current-step-${currentStepData.number}`}>
                         <div className="flex items-center gap-2 mb-2">
                             <h3 className="text-lg font-semibold text-foreground">
                                 Step {currentStepData.number}: {currentStepData.title}

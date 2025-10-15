@@ -172,68 +172,74 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
       </div>
 
       {/* メインコンテンツ */}
-      <ProblemDetailLayout problem={problem} problemNumber={problemNumber}>
-        {{
-          leftPanel: (
-            <>
-              <ProblemDisplay problem={problem} />
-              <div className="flex-1 flex flex-col">
-                <ClearDialog
-                  isOpen={isClearOpen}
-                  onOpenChange={setIsClearOpen}
-                  isLastProblem={isLastProblem}
-                  onBackToProblems={handleBackToProblems}
-                  onNextProblem={handleNextProblem}
-                  nextProblem={nextProblem}
-                />
-                <ProblemStepDisplay
-                  problem={problem}
-                  currentStep={currentStep}
-                  onStepChange={goToStep}
-                  shakeNext={shakeToken}
-                  inferenceTypeValue={steps.step3?.inferenceType || ''}
-                  validityValue={steps.step3?.validity === null ? '' : (steps.step3?.validity ? '妥当' : '非妥当')}
-                  onInferenceTypeChange={(value) => updateStep(3, { ...steps.step3, inferenceType: value })}
-                  onValidityChange={(value) => updateStep(3, { ...steps.step3, validity: value === '妥当' })}
-                  onRequestNext={handleAnswerCheck}
-                  stepsState={steps}
-                />
-              </div>
-            </>
-          ),
-          rightPanel: (
-            <TriangleLogicDisplay
-              options={problem.options ?? ['選択肢が設定されていません']}
-              onAntecedentChange={(value) => updateStep(1, { ...steps.step1, antecedent: value })}
-              onConsequentChange={(value) => updateStep(1, { ...steps.step1, consequent: value })}
-              onPremiseChange={(value) => updateStep(2, { ...steps.step2, premise: value })}
-              onLinkDirectionToggle={(linkType) => {
-                const currentDirections = steps.step2?.linkDirections || { antecedentLink: true, consequentLink: true }
-                updateStep(2, {
-                  ...steps.step2,
-                  linkDirections: {
-                    ...currentDirections,
-                    [linkType === 'antecedent' ? 'antecedentLink' : 'consequentLink']: 
-                      !currentDirections[linkType === 'antecedent' ? 'antecedentLink' : 'consequentLink']
-                  }
-                })
+      <ProblemDetailLayout problem={problem} problemNumber={problemNumber} slots={{
+        header: (
+          <>
+            <h3 className="text-xl font-semibold tracking-tight mb-3">問題{problemNumber}</h3>
+            <ProblemDisplay problem={problem} />
+          </>
+        ),
+        leftPanel: (
+          <ProblemStepDisplay
+            problem={problem}
+            currentStep={currentStep}
+            onStepChange={goToStep}
+            shakeNext={shakeToken}
+            inferenceTypeValue={steps.step3?.inferenceType || ''}
+            validityValue={steps.step3?.validity === null ? '' : (steps.step3?.validity ? '妥当' : '非妥当')}
+            onInferenceTypeChange={(value) => updateStep(3, { ...steps.step3, inferenceType: value })}
+            onValidityChange={(value) => updateStep(3, { ...steps.step3, validity: value === '妥当' })}
+            onRequestNext={handleAnswerCheck}
+            stepsState={steps}
+          />
+        ),
+        rightPanel: (
+          <TriangleLogicDisplay
+            options={problem.options ?? ['選択肢が設定されていません']}
+            onAntecedentChange={(value) => updateStep(1, { ...steps.step1, antecedent: value })}
+            onConsequentChange={(value) => updateStep(1, { ...steps.step1, consequent: value })}
+            onPremiseChange={(value) => updateStep(2, { ...steps.step2, premise: value })}
+            onLinkDirectionToggle={(linkType) => {
+              const currentDirections = steps.step2?.linkDirections || { antecedentLink: true, consequentLink: true }
+              updateStep(2, {
+                ...steps.step2,
+                linkDirections: {
+                  ...currentDirections,
+                  [linkType === 'antecedent' ? 'antecedentLink' : 'consequentLink']: 
+                    !currentDirections[linkType === 'antecedent' ? 'antecedentLink' : 'consequentLink']
+                }
+              })
+            }}
+            onInferenceTypeChange={(value) => updateStep(3, { ...steps.step3, inferenceType: value })}
+            onValidityChange={(value) => updateStep(3, { ...steps.step3, validity: value === '妥当' })}
+            inferenceTypeValue={steps.step3?.inferenceType || ''}
+            validityValue={steps.step3?.validity === null ? '' : (steps.step3?.validity ? '妥当' : '非妥当')}
+            antecedentValue={steps.step1?.antecedent || ''}
+            consequentValue={steps.step1?.consequent || ''}
+            premiseValue={steps.step2?.premise || ''}
+            antecedentLinkDirection={steps.step2?.linkDirections?.antecedentLink ?? true}
+            consequentLinkDirection={steps.step2?.linkDirections?.consequentLink ?? true}
+            currentStep={currentStep}
+            impossibleValue={steps.step2?.impossible || false}
+            onImpossibleToggle={(value) => updateStep(2, { ...steps.step2, impossible: value })}
+          />
+        ),
+        footer: (
+          <div className="flex items-center justify-between gap-4 py-2">
+            <div className="text-sm text-muted-foreground">Step {currentStep} / {problem.total_steps}</div>
+            <div className="flex-1" />
+            <Button
+              onClick={() => {
+                const maybePromise = handleAnswerCheck()
+                if (maybePromise instanceof Promise) maybePromise.catch(() => {})
               }}
-              onInferenceTypeChange={(value) => updateStep(3, { ...steps.step3, inferenceType: value })}
-              onValidityChange={(value) => updateStep(3, { ...steps.step3, validity: value === '妥当' })}
-              inferenceTypeValue={steps.step3?.inferenceType || ''}
-              validityValue={steps.step3?.validity === null ? '' : (steps.step3?.validity ? '妥当' : '非妥当')}
-              antecedentValue={steps.step1?.antecedent || ''}
-              consequentValue={steps.step1?.consequent || ''}
-              premiseValue={steps.step2?.premise || ''}
-              antecedentLinkDirection={steps.step2?.linkDirections?.antecedentLink ?? true}
-              consequentLinkDirection={steps.step2?.linkDirections?.consequentLink ?? true}
-              currentStep={currentStep}
-              impossibleValue={steps.step2?.impossible || false}
-              onImpossibleToggle={(value) => updateStep(2, { ...steps.step2, impossible: value })}
-            />
-          )
-        }}
-      </ProblemDetailLayout>
+              className="min-w-[160px]"
+            >
+              答え合わせ
+            </Button>
+          </div>
+        )
+      }} />
     </div>
   )
 }
