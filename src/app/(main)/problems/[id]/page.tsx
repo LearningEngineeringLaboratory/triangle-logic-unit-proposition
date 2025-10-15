@@ -156,7 +156,7 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="h-screen overflow-hidden bg-background">
       {/* メインコンテンツ */}
       <ProblemDetailLayout problem={problem} problemNumber={problemNumber} slots={{
         header: (

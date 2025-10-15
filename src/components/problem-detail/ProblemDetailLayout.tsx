@@ -16,7 +16,7 @@ interface ProblemDetailLayoutProps {
 
 export function ProblemDetailLayout({ problem, problemNumber, slots }: ProblemDetailLayoutProps) {
   return (
-    <div className="min-h-screen bg-background overflow-hidden">
+    <div className="h-full bg-background overflow-hidden">
       {/* コンテンツ全体を3行グリッド（ヘッダー/中央/フッター）にして中央のみスクロール許容 */}
       <div className="container mx-auto px-4 py-6 h-full grid grid-rows-[auto_1fr_auto] gap-6">
         {/* ヘッダー直下 全幅（固定行） */}
