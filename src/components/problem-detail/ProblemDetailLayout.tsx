@@ -37,7 +37,7 @@ export function ProblemDetailLayout({ problem, problemNumber, slots }: ProblemDe
         </div>
 
         {/* 下段 全幅: アクション（固定行） */}
-        <div className="rounded-md border border-border bg-background/70 shadow-sm">
+        <div className="border-t border-border">
           {slots.footer}
         </div>
       </div>
