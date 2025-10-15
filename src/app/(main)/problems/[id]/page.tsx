@@ -157,25 +157,19 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* ヘッダー */}
-      <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center gap-4">
-            <Link href="/problems">
-              <Button variant="outline" size="sm">
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                問題一覧に戻る
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </div>
-
       {/* メインコンテンツ */}
       <ProblemDetailLayout problem={problem} problemNumber={problemNumber} slots={{
         header: (
           <>
-            <h3 className="text-xl font-semibold tracking-tight mb-3">問題{problemNumber}</h3>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-xl font-semibold tracking-tight">問題{problemNumber}</h3>
+              <Link href="/problems">
+                <Button variant="outline" size="sm">
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  問題一覧に戻る
+                </Button>
+              </Link>
+            </div>
             <ProblemDisplay problem={problem} />
           </>
         ),
