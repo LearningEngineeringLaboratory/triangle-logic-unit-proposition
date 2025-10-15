@@ -5,76 +5,95 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-// UI <-> DB マッピングユーティリティ
+// UI <-> DB マッピングユーティリティ（可変ステップ数対応）
+
+import { StepsState, StepState } from './types'
 
 interface UiStepsState {
-  step1: { antecedent: string; consequent: string; isPassed: boolean }
-  step2: {
-    impossible: boolean
-    premise?: string
-    linkDirections?: { antecedentLink: boolean; consequentLink: boolean }
-    isPassed: boolean
-  }
-  step3: { inferenceType: string; validity: boolean | null; isPassed: boolean }
+  [stepKey: string]: StepState
 }
 
 export function mapUiToDbState(ui: UiStepsState) {
-  const db: any = {
-    step1: {
-      antecedent: ui.step1.antecedent,
-      consequent: ui.step1.consequent,
-      is_passed: ui.step1.isPassed,
-    },
-    step2: {
-      is_passed: ui.step2.isPassed,
-    },
-    step3: {
-      inference_type: ui.step3.inferenceType,
-      validity: ui.step3.validity,
-      is_passed: ui.step3.isPassed,
-    },
-  }
-
-  if (ui.step2.impossible) {
-    db.step2.impossible = true
-  } else {
-    db.step2.impossible = false
-    if (ui.step2.premise) db.step2.premise = ui.step2.premise
-    if (ui.step2.linkDirections) {
-      db.step2.link_directions = {
-        "antecedent-link": ui.step2.linkDirections.antecedentLink,
-        "consequent-link": ui.step2.linkDirections.consequentLink,
-      }
+  const db: any = {}
+  
+  // 各ステップを動的に処理
+  Object.keys(ui).forEach(stepKey => {
+    const step = ui[stepKey]
+    const stepNumber = stepKey.replace('step', '')
+    
+    db[stepKey] = {
+      is_passed: step.isPassed,
     }
-  }
+    
+    // ステップ固有のフィールドをマッピング
+    if (stepNumber === '1') {
+      db[stepKey].antecedent = step.antecedent
+      db[stepKey].consequent = step.consequent
+    } else if (stepNumber === '2') {
+      if (step.impossible) {
+        db[stepKey].impossible = true
+      } else {
+        db[stepKey].impossible = false
+        if (step.premise) db[stepKey].premise = step.premise
+        if (step.linkDirections) {
+          db[stepKey].link_directions = {
+            "antecedent-link": step.linkDirections.antecedentLink,
+            "consequent-link": step.linkDirections.consequentLink,
+          }
+        }
+      }
+    } else if (stepNumber === '3') {
+      db[stepKey].inference_type = step.inferenceType
+      db[stepKey].validity = step.validity
+    }
+    // 将来的に4ステップ以上に対応する場合はここに追加
+  })
 
   return db
 }
 
 export function mapDbToUiState(db: any): UiStepsState {
-  return {
-    step1: {
-      antecedent: db?.step1?.antecedent ?? '',
-      consequent: db?.step1?.consequent ?? '',
-      isPassed: !!db?.step1?.is_passed,
-    },
-    step2: {
-      impossible: !!db?.step2?.impossible,
-      premise: db?.step2?.premise ?? '',
-      linkDirections: db?.step2?.link_directions
-        ? {
-            antecedentLink: !!db.step2.link_directions["antecedent-link"],
-            consequentLink: !!db.step2.link_directions["consequent-link"],
-          }
-        : { antecedentLink: true, consequentLink: true },
-      isPassed: !!db?.step2?.is_passed,
-    },
-    step3: {
-      inferenceType: db?.step3?.inference_type ?? '',
-      validity: db?.step3?.validity ?? null,
-      isPassed: !!db?.step3?.is_passed,
-    },
-  }
+  const ui: UiStepsState = {}
+  
+  // 各ステップを動的に処理
+  Object.keys(db).forEach(stepKey => {
+    const stepData = db[stepKey]
+    const stepNumber = stepKey.replace('step', '')
+    
+    ui[stepKey] = {
+      isPassed: !!stepData?.is_passed,
+    }
+    
+    // ステップ固有のフィールドをマッピング
+    if (stepNumber === '1') {
+      ui[stepKey] = {
+        ...ui[stepKey],
+        antecedent: stepData?.antecedent ?? '',
+        consequent: stepData?.consequent ?? '',
+      }
+    } else if (stepNumber === '2') {
+      ui[stepKey] = {
+        ...ui[stepKey],
+        impossible: !!stepData?.impossible,
+        premise: stepData?.premise ?? '',
+        linkDirections: stepData?.link_directions
+          ? {
+              antecedentLink: !!stepData.link_directions["antecedent-link"],
+              consequentLink: !!stepData.link_directions["consequent-link"],
+            }
+          : { antecedentLink: true, consequentLink: true },
+      }
+    } else if (stepNumber === '3') {
+      ui[stepKey] = {
+        ...ui[stepKey],
+        inferenceType: stepData?.inference_type ?? '',
+        validity: stepData?.validity ?? null,
+      }
+    }
+    // 将来的に4ステップ以上に対応する場合はここに追加
+  })
+
+  return ui
 }
 
 // ---- クライアント側答え合わせユーティリティ ----

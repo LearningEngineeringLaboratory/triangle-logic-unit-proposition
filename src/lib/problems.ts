@@ -1,17 +1,12 @@
 import { supabase } from '@/lib/supabase'
-import { Problem, ProblemSet, ProblemSetItem } from '@/lib/types'
-
-export interface ProblemDetail extends Problem {
-  correct_answers: any // JSONB形式の正解データ
-  options?: string[]
-}
+import { Problem, ProblemSet, ProblemSetItem, ProblemDetail } from '@/lib/types'
 
 export async function getProblems(): Promise<Problem[]> {
   try {
     // problemsテーブルから基本情報を取得
     const { data: problems, error: problemsError } = await supabase
       .from('problems')
-      .select('problem_id, argument, correct_answers')
+      .select('problem_id, argument, correct_answers, options')
       .order('problem_id')
 
     if (problemsError) {
@@ -25,10 +20,14 @@ export async function getProblems(): Promise<Problem[]> {
 
     // 進捗情報を取得（現在はセッション情報がないため、プレースホルダー）
     // TODO: セッション情報に基づいて実際の進捗を取得
-    const problemsWithProgress = problems.map(problem => ({
-      ...problem,
-      completed_steps: 0 // 仮の値
-    }))
+    const problemsWithProgress = problems.map(problem => {
+      const totalSteps = problem.correct_answers ? Object.keys(problem.correct_answers).length : 3
+      return {
+        ...problem,
+        total_steps: totalSteps,
+        completed_steps: 0 // 仮の値
+      }
+    })
 
     return problemsWithProgress
   } catch (error) {
@@ -54,7 +53,13 @@ export async function getProblem(problemId: string): Promise<ProblemDetail | nul
       return null
     }
 
-    return problem as ProblemDetail
+    // correct_answersからステップ数を動的に計算
+    const totalSteps = problem.correct_answers ? Object.keys(problem.correct_answers).length : 3
+    
+    return {
+      ...problem,
+      total_steps: totalSteps,
+    } as ProblemDetail
   } catch (error) {
     console.error('Unexpected error in getProblem:', error)
     return null
@@ -104,14 +109,18 @@ export async function getProblemsBySet(setId: string): Promise<Problem[]> {
       return []
     }
 
-    return problems?.map((item: any) => ({
-      problem_id: item.problems.problem_id,
-      argument: item.problems.argument,
-      correct_answers: item.problems.correct_answers,
-      options: item.problems.options,
-      order_index: item.order_index,
-      completed_steps: 0 // 仮の値
-    })) || []
+    return problems?.map((item: any) => {
+      const totalSteps = item.problems.correct_answers ? Object.keys(item.problems.correct_answers).length : 3
+      return {
+        problem_id: item.problems.problem_id,
+        argument: item.problems.argument,
+        correct_answers: item.problems.correct_answers,
+        options: item.problems.options,
+        order_index: item.order_index,
+        total_steps: totalSteps,
+        completed_steps: 0 // 仮の値
+      }
+    }) || []
   } catch (error) {
     console.error('Unexpected error in getProblemsBySet:', error)
     return []
@@ -140,14 +149,18 @@ export async function getNextProblemInSet(setId: string, currentProblemId: strin
       return null
     }
 
-    const problemsList = problems?.map((item: any) => ({
-      problem_id: item.problems.problem_id,
-      argument: item.problems.argument,
-      correct_answers: item.problems.correct_answers,
-      options: item.problems.options,
-      order_index: item.order_index,
-      completed_steps: 0
-    })) || []
+    const problemsList = problems?.map((item: any) => {
+      const totalSteps = item.problems.correct_answers ? Object.keys(item.problems.correct_answers).length : 3
+      return {
+        problem_id: item.problems.problem_id,
+        argument: item.problems.argument,
+        correct_answers: item.problems.correct_answers,
+        options: item.problems.options,
+        order_index: item.order_index,
+        total_steps: totalSteps,
+        completed_steps: 0
+      }
+    }) || []
 
     // 現在の問題のインデックスを取得
     const currentIndex = problemsList.findIndex(p => p.problem_id === currentProblemId)

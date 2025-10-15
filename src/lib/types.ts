@@ -37,12 +37,24 @@ export interface RestoreSessionResponse {
   isReturningUser: boolean
 }
 
+// ステップ関連の型定義（可変ステップ数対応）
+export interface StepState {
+  isPassed: boolean
+  [key: string]: any // 各ステップの固有フィールド
+}
+
+export interface StepsState {
+  [stepKey: string]: StepState // step1, step2, step3, ... の形式
+}
+
+// 問題の型定義（可変ステップ数対応）
 export interface Problem {
   problem_id: string
   argument: string
-  correct_answers?: any
+  correct_answers?: StepsState
   completed_steps?: number
   order_index?: number // 問題セット内での順番
+  total_steps?: number // 総ステップ数（correct_answersから動的に計算）
 }
 
 export interface ProblemSet {
@@ -59,5 +71,11 @@ export interface ProblemSetItem {
   problem_id: string
   order_index: number
   created_at: string
+}
+
+// 問題詳細の型定義
+export interface ProblemDetail extends Problem {
+  correct_answers: StepsState
+  options?: string[]
 }
 
