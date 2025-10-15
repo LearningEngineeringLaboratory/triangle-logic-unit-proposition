@@ -16,27 +16,27 @@ interface ProblemDetailLayoutProps {
 
 export function ProblemDetailLayout({ problem, problemNumber, slots }: ProblemDetailLayoutProps) {
   return (
-    <div className="min-h-screen bg-background">
-      {/* メインコンテンツ */}
-      <div className="container mx-auto px-4 py-6 space-y-6">
-        {/* ヘッダー直下 全幅 */}
+    <div className="min-h-screen bg-background overflow-hidden">
+      {/* コンテンツ全体を3行グリッド（ヘッダー/中央/フッター）にして中央のみスクロール許容 */}
+      <div className="container mx-auto px-4 py-6 h-full grid grid-rows-[auto_1fr_auto] gap-6">
+        {/* ヘッダー直下 全幅（固定行） */}
         <div>
           {slots.header}
         </div>
 
-        {/* 2カラム領域 */}
-        <div className="grid lg:grid-cols-[1fr_minmax(0,_560px)] gap-8">
+        {/* 中央行（1fr）: 2カラム。中央行自体はoverflow-hiddenにして、左だけスクロール */}
+        <div className="min-h-0 grid lg:grid-cols-[1fr_minmax(0,_560px)] gap-8 overflow-hidden">
           {/* 左: ステップ（縦スクロール） */}
-          <div className="min-h-[50vh] max-h-[calc(100vh-280px)] overflow-y-auto pr-2">
+          <div className="h-full overflow-y-auto pr-2">
             {slots.leftPanel}
           </div>
-          {/* 右: 三角ロジック（現状維持） */}
-          <div className="flex items-center justify-center">
+          {/* 右: 三角ロジック（高さは親に合わせる） */}
+          <div className="h-full overflow-hidden flex items-center justify-center">
             {slots.rightPanel}
           </div>
         </div>
 
-        {/* 下段 全幅: アクション */}
+        {/* 下段 全幅: アクション（固定行） */}
         <div>
           {slots.footer}
         </div>

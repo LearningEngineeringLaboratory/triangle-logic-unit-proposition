@@ -34,7 +34,7 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
   const [isLastProblem, setIsLastProblem] = useState(false)
   const [isClearOpen, setIsClearOpen] = useState(false)
   const [shakeToken, setShakeToken] = useState(0)
-  
+
   // カスタムフックを使用してステップ管理を簡素化
   const {
     steps,
@@ -124,15 +124,15 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
   // 答え合わせ処理
   const handleAnswerCheck = async () => {
     if (!problem) return
-    
+
     const stepNumber = currentStep as 1 | 2 | 3
     const uiFragment = steps[`step${stepNumber}` as keyof typeof steps]
     const dbState = mapUiToDbState(steps as any)
     const dbFragment = dbState[`step${stepNumber}` as 'step1' | 'step2' | 'step3']
     const isCorrect = isStepCorrect(problem.correct_answers, stepNumber, dbFragment)
-    
+
     console.log(`[check-step][client] step=${stepNumber} isCorrect=${isCorrect ? 'correct' : 'incorrect'}`)
-    
+
     // ログ送信（研究用）
     logClientCheck({
       problemId: problem.problem_id,
@@ -205,7 +205,7 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
                 ...steps.step2,
                 linkDirections: {
                   ...currentDirections,
-                  [linkType === 'antecedent' ? 'antecedentLink' : 'consequentLink']: 
+                  [linkType === 'antecedent' ? 'antecedentLink' : 'consequentLink']:
                     !currentDirections[linkType === 'antecedent' ? 'antecedentLink' : 'consequentLink']
                 }
               })
@@ -226,12 +226,11 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
         ),
         footer: (
           <div className="flex items-center justify-between gap-4 py-2">
-            <div className="text-sm text-muted-foreground">Step {currentStep} / {problem.total_steps}</div>
             <div className="flex-1" />
             <Button
               onClick={() => {
                 const maybePromise = handleAnswerCheck()
-                if (maybePromise instanceof Promise) maybePromise.catch(() => {})
+                if (maybePromise instanceof Promise) maybePromise.catch(() => { })
               }}
               className="min-w-[160px]"
             >
