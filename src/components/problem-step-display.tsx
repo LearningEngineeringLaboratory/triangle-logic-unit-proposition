@@ -100,8 +100,8 @@ export function ProblemStepDisplay({
         }
     }
 
-    // 表示するステップをフィルタリング（現在のステップまで）
-    const visibleSteps = steps.filter((_, index) => index < currentStep)
+    // 表示するステップをフィルタリング（現在のひとつ前まで）
+    const visibleSteps = steps.filter((_, index) => index < (currentStep - 1))
     const currentStepData = steps[currentStep - 1]
 
     return (
