@@ -134,7 +134,7 @@ export function ProblemStepDisplay({
                                 <p className="text-md leading-relaxed whitespace-pre-line">
                                     {step.content}
                                 </p>
-                                {step.hint && (
+                                {step.hint && !isCompleted && (
                                     <div className="mt-4 rounded-md border border-border bg-muted/30 p-3">
                                         <div className="flex items-center gap-2">
                                             <AlertCircle className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
