@@ -196,6 +196,7 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
                   onInferenceTypeChange={(value) => updateStep(3, { ...steps.step3, inferenceType: value })}
                   onValidityChange={(value) => updateStep(3, { ...steps.step3, validity: value === '妥当' })}
                   onRequestNext={handleAnswerCheck}
+                  stepsState={steps}
                 />
               </div>
             </>
