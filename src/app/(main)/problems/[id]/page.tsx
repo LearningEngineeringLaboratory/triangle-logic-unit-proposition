@@ -161,15 +161,7 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
       <ProblemDetailLayout problem={problem} problemNumber={problemNumber} slots={{
         header: (
           <>
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-xl font-semibold tracking-tight">問題{problemNumber}</h3>
-              <Link href="/problems">
-                <Button variant="outline" size="sm">
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  問題一覧に戻る
-                </Button>
-              </Link>
-            </div>
+            <h3 className="text-xl font-semibold tracking-tight mb-3">問題{problemNumber}</h3>
             <ProblemDisplay problem={problem} />
           </>
         ),
@@ -219,8 +211,13 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
           />
         ),
         footer: (
-          <div className="flex items-center justify-between gap-4 py-2">
-            <div className="flex-1" />
+          <div className="w-full flex items-center justify-between">
+            <Link href="/problems">
+              <Button variant="outline" size="sm">
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                問題一覧に戻る
+              </Button>
+            </Link>
             <Button
               onClick={() => {
                 const maybePromise = handleAnswerCheck()

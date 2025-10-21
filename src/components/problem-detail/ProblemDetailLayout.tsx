@@ -18,9 +18,9 @@ export function ProblemDetailLayout({ problem, problemNumber, slots }: ProblemDe
   return (
     <div className="h-full bg-background overflow-hidden">
       {/* コンテンツ全体を3行グリッド（ヘッダー/中央/フッター）にして中央のみスクロール許容 */}
-      <div className="container mx-auto px-4 py-6 h-full grid grid-rows-[auto_1fr_auto] gap-6">
+      <div className="container mx-auto px-4 h-full grid grid-rows-[auto_1fr_auto] gap-6">
         {/* ヘッダー直下 全幅（固定行） */}
-        <div>
+        <div className="pt-6">
           {slots.header}
         </div>
 
@@ -37,7 +37,7 @@ export function ProblemDetailLayout({ problem, problemNumber, slots }: ProblemDe
         </div>
 
         {/* 下段 全幅: アクション（固定行） */}
-        <div className="border-t border-border">
+        <div className="border-t-2 border-border flex items-center py-4">
           {slots.footer}
         </div>
       </div>
