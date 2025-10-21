@@ -47,7 +47,7 @@ function TriangleStep1({
   onConsequentChange
 }: TriangleStep1Props) {
   return (
-    <div className="relative w-[600px] h-96 mx-auto">
+    <div className="relative w-[600px] h-96 mx-auto scale-[0.6] sm:scale-75 md:scale-90 lg:scale-100 origin-top">
       {/* 左上頂点 - 前件 */}
       <div className="absolute top-12 left-0">
         <Select value={antecedentValue} onValueChange={onAntecedentChange}>
@@ -135,7 +135,7 @@ function TriangleStep2({
   impossibleValue
 }: TriangleStep2Props) {
   return (
-    <div className="relative w-[520px] h-96 mx-auto">
+    <div className="relative w-[600px] h-96 mx-auto scale-[0.6] sm:scale-75 md:scale-90 lg:scale-100 origin-top">
       {/* 左上頂点 - 前件（読み取り専用） */}
       <div className="absolute top-8 left-0">
         <div className="w-48 h-16 text-lg px-4 py-6 min-h-[70px] border border-input bg-background rounded-md flex items-center justify-center">
@@ -258,7 +258,7 @@ function TriangleStep3({
   impossibleValue
 }: TriangleStep3Props) {
   return (
-    <div className="relative w-[520px] h-96 mx-auto">
+    <div className="relative w-[600px] h-96 mx-auto scale-[0.6] sm:scale-75 md:scale-90 lg:scale-100 origin-top">
       {/* 左上頂点 - 前件（読み取り専用） */}
       <div className="absolute top-8 left-0">
         <div className="w-48 h-16 text-lg px-4 py-6 min-h-[70px] border border-input bg-background rounded-md flex items-center justify-center">
