@@ -47,11 +47,11 @@ function TriangleStep1({
   onConsequentChange
 }: TriangleStep1Props) {
   return (
-    <div className="relative w-[600px] h-[400px] mx-auto">
+    <div className="relative w-[600px] h-96 mx-auto">
       {/* 左上頂点 - 前件 */}
-      <div className="absolute top-[50px] left-0">
+      <div className="absolute top-12 left-0">
         <Select value={antecedentValue} onValueChange={onAntecedentChange}>
-          <SelectTrigger className={`w-[200px] h-14 rounded-xl border-2 text-base px-4 transition-all ${
+          <SelectTrigger className={`w-52 h-14 rounded-xl border-2 text-base px-4 transition-all ${
             antecedentValue 
               ? 'bg-primary/5 border-primary shadow-sm' 
               : 'bg-muted/30 border-muted-foreground/30 animate-glow-pulse'
@@ -69,9 +69,9 @@ function TriangleStep1({
       </div>
 
       {/* 右上頂点 - 後件 */}
-      <div className="absolute top-[50px] right-0">
+      <div className="absolute top-12 right-0">
         <Select value={consequentValue} onValueChange={onConsequentChange}>
-          <SelectTrigger className={`w-[200px] h-14 rounded-xl border-2 text-base px-4 transition-all ${
+          <SelectTrigger className={`w-52 h-14 rounded-xl border-2 text-base px-4 transition-all ${
             consequentValue 
               ? 'bg-primary/5 border-primary shadow-sm' 
               : 'bg-muted/30 border-muted-foreground/30 animate-glow-pulse'
@@ -91,7 +91,7 @@ function TriangleStep1({
       {/* 導出命題の矢印 */}
       <Arrow
         centerX={300}
-        centerY={80}
+        centerY={75}
         length={150}
         angleDeg={0}
         colorClassName="text-primary"
