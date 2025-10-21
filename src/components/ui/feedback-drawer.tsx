@@ -1,6 +1,11 @@
 import * as React from "react"
 import { CheckCircle2, XCircle } from "lucide-react"
-import { Drawer, DrawerContent } from "@/components/ui/drawer"
+import { 
+  Drawer, 
+  DrawerContent, 
+  DrawerTitle, 
+  DrawerDescription 
+} from "@/components/ui/drawer"
 import { cn } from "@/lib/utils"
 
 interface FeedbackDrawerProps {
@@ -42,19 +47,19 @@ export function FeedbackDrawer({
               )}
             </div>
 
-            {/* タイトル */}
-            <h3 className={cn(
+            {/* タイトル（アクセシビリティ対応） */}
+            <DrawerTitle className={cn(
               "text-3xl font-bold",
               isSuccess ? "text-success" : "text-destructive"
             )}>
               {title}
-            </h3>
+            </DrawerTitle>
 
-            {/* 説明 */}
+            {/* 説明（アクセシビリティ対応） */}
             {description && (
-              <p className="text-base text-muted-foreground max-w-sm">
+              <DrawerDescription className="text-base text-muted-foreground max-w-sm">
                 {description}
-              </p>
+              </DrawerDescription>
             )}
           </div>
         </div>
