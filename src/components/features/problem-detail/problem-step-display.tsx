@@ -151,10 +151,12 @@ export function ProblemStepDisplay({
           })}
 
           {/* 現在のステップ（既定カラー） */}
-          <div className="p-6 rounded-2xl border-2 border-primary shadow-md bg-primary/5" id={`current-step-${currentStepData.number}`}>
+          <div className="p-6 rounded-2xl border-2 border-border shadow-lg bg-card" id={`current-step-${currentStepData.number}`}>
             <div className="flex items-center gap-3 mb-3">
-              <Circle className="w-5 h-5 text-primary" />
-              <h3 className="text-base font-semibold text-primary">
+              <div className="flex items-center justify-center w-6 h-6 rounded-full bg-primary/10">
+                <Circle className="w-4 h-4 text-primary" />
+              </div>
+              <h3 className="text-base font-semibold text-foreground">
                 Step {currentStepData.number}: {currentStepData.title}
               </h3>
             </div>
