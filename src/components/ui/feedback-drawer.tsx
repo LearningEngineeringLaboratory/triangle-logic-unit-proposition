@@ -29,7 +29,7 @@ export function FeedbackDrawer({
     <Drawer open={open} onOpenChange={onOpenChange}>
       <DrawerContent className={cn(
         "border-t-4",
-        isSuccess ? "border-t-success bg-success/5" : "border-t-destructive bg-destructive/5"
+        isSuccess ? "border-t-success" : "border-t-destructive"
       )}>
         <div className="mx-auto w-full max-w-md py-8">
           <div className="flex flex-col items-center gap-4 text-center">
