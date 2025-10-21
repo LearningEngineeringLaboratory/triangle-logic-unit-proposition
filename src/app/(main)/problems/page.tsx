@@ -5,7 +5,7 @@ import { Problem, ProblemSet } from '@/lib/types'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
-import { ProblemSetSelector } from '@/components/problem-set-selector'
+import { ProblemSetSelector } from '@/components/features/problem-list/problem-set-selector'
 import Link from 'next/link'
 import { Suspense, useState, useEffect } from 'react'
 

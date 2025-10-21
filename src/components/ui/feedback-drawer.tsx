@@ -13,6 +13,7 @@ interface FeedbackDrawerProps {
   onOpenChange: (open: boolean) => void
   variant: 'success' | 'error'
   title: string
+  description?: string
 }
 
 export function FeedbackDrawer({
@@ -20,13 +21,14 @@ export function FeedbackDrawer({
   onOpenChange,
   variant,
   title,
+  description,
 }: FeedbackDrawerProps) {
   const isSuccess = variant === 'success'
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
       <DrawerContent className={cn(
-        "border-t-4 bg-white/70 dark:bg-background/70 backdrop-blur-xl backdrop-saturate-150 shadow-2xl",
+        "border-t-4",
         isSuccess ? "border-t-success" : "border-t-destructive"
       )}>
         <div className="mx-auto w-full max-w-md py-8">
@@ -53,10 +55,12 @@ export function FeedbackDrawer({
               {title}
             </DrawerTitle>
 
-            {/* 非表示の説明（アクセシビリティ対応） */}
-            <DrawerDescription className="sr-only">
-              {isSuccess ? '正解のフィードバック' : '不正解のフィードバック'}
-            </DrawerDescription>
+            {/* 説明（アクセシビリティ対応） */}
+            {description && (
+              <DrawerDescription className="text-base text-muted-foreground max-w-sm">
+                {description}
+              </DrawerDescription>
+            )}
           </div>
         </div>
       </DrawerContent>
