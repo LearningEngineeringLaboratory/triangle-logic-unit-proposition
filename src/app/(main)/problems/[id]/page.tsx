@@ -132,16 +132,12 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
                 <Skeleton className="h-48 w-full rounded-2xl" />
                 <Skeleton className="h-32 w-full rounded-2xl" />
               </div>
-              {/* 右パネルのスケルトン */}
-              <div className="flex items-center justify-center">
-                <Skeleton className="h-96 w-96 rounded-full" />
-              </div>
             </div>
 
             {/* フッターのスケルトン */}
             <div className="border-t-2 border-border flex items-center justify-between py-4 flex-shrink-0">
-              <Skeleton className="h-12 w-40 rounded-xl" />
-              <Skeleton className="h-12 w-48 rounded-xl" />
+              <Skeleton className="h-10 w-40 rounded-xl" />
+              <Skeleton className="h-14 w-[200px] rounded-xl" />
             </div>
           </div>
         </div>
