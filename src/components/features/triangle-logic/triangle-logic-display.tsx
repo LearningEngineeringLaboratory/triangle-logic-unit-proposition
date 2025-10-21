@@ -49,18 +49,14 @@ function TriangleStep1({
   return (
     <div className="relative w-[520px] h-96 mx-auto scale-[0.6] sm:scale-75 md:scale-90 lg:scale-100 origin-top">
       {/* 左上頂点 - 前件 */}
-      <div className="absolute top-12 left-0">
+      <div className="absolute top-40 left-0">
         <Select value={antecedentValue} onValueChange={onAntecedentChange}>
-          <SelectTrigger className={`w-52 h-14 rounded-xl border-2 text-base px-4 transition-all ${
-            antecedentValue 
-              ? 'bg-primary/5 border-primary shadow-sm' 
-              : 'bg-muted/30 border-muted-foreground/30 animate-glow-pulse'
-          }`}>
-            <SelectValue placeholder="選択してください" />
+          <SelectTrigger className={`w-48 text-lg px-4 py-6 min-h-[70px] ${antecedentValue ? '' : 'animate-glow-pulse rounded-md'}`}>
+            <SelectValue placeholder="選択" />
           </SelectTrigger>
           <SelectContent>
             {options.map((option) => (
-              <SelectItem key={option} value={option} className="text-base py-2">
+              <SelectItem key={option} value={option} className="text-lg py-3">
                 {option}
               </SelectItem>
             ))}
@@ -69,18 +65,14 @@ function TriangleStep1({
       </div>
 
       {/* 右上頂点 - 後件 */}
-      <div className="absolute top-12 right-0">
+      <div className="absolute top-40 right-0">
         <Select value={consequentValue} onValueChange={onConsequentChange}>
-          <SelectTrigger className={`w-52 h-14 rounded-xl border-2 text-base px-4 transition-all ${
-            consequentValue 
-              ? 'bg-primary/5 border-primary shadow-sm' 
-              : 'bg-muted/30 border-muted-foreground/30 animate-glow-pulse'
-          }`}>
-            <SelectValue placeholder="選択してください" />
+          <SelectTrigger className={`w-48 text-lg px-4 py-6 min-h-[70px] ${consequentValue ? '' : 'animate-glow-pulse rounded-md'}`}>
+            <SelectValue placeholder="選択" />
           </SelectTrigger>
           <SelectContent>
             {options.map((option) => (
-              <SelectItem key={option} value={option} className="text-base py-2">
+              <SelectItem key={option} value={option} className="text-lg py-3">
                 {option}
               </SelectItem>
             ))}
@@ -91,17 +83,15 @@ function TriangleStep1({
       {/* 導出命題の矢印 */}
       <Arrow
         centerX={260}
-        centerY={75}
-        length={150}
+        centerY={195}
+        length={130}
         angleDeg={0}
-        colorClassName="text-primary"
-        strokeWidth={4}
+        colorClassName="text-muted-foreground"
+        strokeWidth={6}
         dashed={false}
         showStartDot
         centerOverlay={
-          <Badge variant="secondary" className="border-2 border-primary bg-primary/10 text-primary font-semibold px-3 py-1">
-            ならば
-          </Badge>
+          <Badge variant="secondary" className="border-2 border-muted-foreground">ならば</Badge>
         }
       />
     </div>
