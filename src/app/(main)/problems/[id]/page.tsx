@@ -16,7 +16,6 @@ import { useProblemSteps } from '@/hooks/useProblemSteps'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { mapUiToDbState, isStepCorrect, logClientCheck } from '@/lib/utils'
-import { toast } from 'sonner'
 
 interface ProblemDetailPageProps {
   params: Promise<{
@@ -147,7 +146,6 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
     if (isCorrect) {
       setFeedbackType('success')
       setFeedbackVisible(true)
-      toast.success('正解です！')
       updateStep(stepNumber, { ...uiFragment, isPassed: true })
       
       setTimeout(() => {
@@ -161,7 +159,6 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
     } else {
       setFeedbackType('error')
       setFeedbackVisible(true)
-      toast.error('不正解...')
       setShakeToken((t) => t + 1)
       
       setTimeout(() => {
