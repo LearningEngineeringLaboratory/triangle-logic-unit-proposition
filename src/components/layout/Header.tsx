@@ -30,7 +30,8 @@ export function Header({ title }: HeaderProps) {
         {/* タイトル */}
         <div className="flex items-center">
           <h1 className="text-lg font-semibold tracking-tight">
-            {title || "単位命題三角ロジック演習システム"}
+            単位命題三角ロジック演習システム
+            <span className="text-sm text-muted-foreground">{` - ${title || ""}`}</span>
           </h1>
         </div>
 

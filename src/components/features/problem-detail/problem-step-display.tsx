@@ -1,8 +1,7 @@
 'use client'
 
 import { ProblemDetail } from '@/lib/types'
-import { Button } from '@/components/ui/button'
-import { ChevronLeft, ChevronRight, AlertCircle } from 'lucide-react'
+import { AlertCircle, CheckCircle2, Circle } from 'lucide-react'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useEffect, useRef, useState } from 'react'
 
@@ -125,21 +124,26 @@ export function ProblemStepDisplay({
             return (
               <div
                 key={step.number}
-                className={
-                  'p-4 rounded-lg border transition-all duration-200 bg-muted/20 border-border text-muted-foreground'
-                }
+                className="p-6 rounded-2xl border-2 border-border bg-muted/20 text-muted-foreground shadow-sm transition-all duration-300"
               >
-                <div className="flex items-center gap-2 mb-2">
-                  <h3 className="text-lg font-semibold">
-                    Step {step.number}: {step.title}
-                  </h3>
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="flex items-center gap-2">
+                    {isCompleted ? (
+                      <CheckCircle2 className="w-5 h-5 text-success" />
+                    ) : (
+                      <Circle className="w-5 h-5 text-muted-foreground" />
+                    )}
+                    <h3 className="text-base font-semibold">
+                      Step {step.number}: {step.title}
+                    </h3>
+                  </div>
                   {isCompleted && (
-                    <span className="text-sm bg-success/10 text-success px-2 py-1 rounded-full border border-success/20">
+                    <span className="ml-auto text-xs bg-success/10 text-success px-3 py-1 rounded-full border border-success/20 font-medium">
                       完了
                     </span>
                   )}
                 </div>
-                <p className="text-md leading-relaxed whitespace-pre-line">
+                <p className="text-sm leading-relaxed whitespace-pre-line">
                   {step.content}
                 </p>
               </div>
@@ -147,22 +151,23 @@ export function ProblemStepDisplay({
           })}
 
           {/* 現在のステップ（既定カラー） */}
-          <div className="p-4 rounded-lg border-4 border-border bg-background" id={`current-step-${currentStepData.number}`}>
-            <div className="flex items-center gap-2 mb-2">
-              <h3 className="text-lg font-semibold text-foreground">
+          <div className="p-6 rounded-2xl border-2 border-primary shadow-md bg-primary/5" id={`current-step-${currentStepData.number}`}>
+            <div className="flex items-center gap-3 mb-3">
+              <Circle className="w-5 h-5 text-primary" />
+              <h3 className="text-base font-semibold text-primary">
                 Step {currentStepData.number}: {currentStepData.title}
               </h3>
             </div>
-            <p className="text-md leading-relaxed text-foreground whitespace-pre-line">
+            <p className="text-base leading-relaxed text-foreground whitespace-pre-line">
               {currentStepData.content}
             </p>
             {currentStepData.hint && (
-              <div className="mt-6 rounded-md border border-warning/20 bg-warning/5 p-3">
-                <div className="flex items-center gap-2">
+              <div className="mt-6 rounded-xl border-2 border-warning/30 bg-warning/10 p-4 shadow-sm">
+                <div className="flex items-center gap-2 mb-2">
                   <AlertCircle className="h-5 w-5 text-warning" aria-hidden="true" />
-                  <span className="text-sm font-medium text-warning">ヒント</span>
+                  <span className="text-base font-semibold text-warning">ヒント</span>
                 </div>
-                <p className="mt-2 text-sm leading-relaxed text-foreground whitespace-pre-line">{currentStepData.hint}</p>
+                <p className="text-sm leading-relaxed text-foreground whitespace-pre-line">{currentStepData.hint}</p>
               </div>
             )}
 
@@ -171,9 +176,9 @@ export function ProblemStepDisplay({
               <div className="mt-6">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-xl">
                   <div className="flex flex-col gap-2">
-                    <span className="text-sm text-foreground">推論形式</span>
+                    <span className="text-sm font-medium text-foreground">推論形式</span>
                     <Select value={inferenceTypeValue} onValueChange={onInferenceTypeChange ?? (() => { })}>
-                      <SelectTrigger className={`w-full h-10 ${inferenceTypeValue ? '' : 'animate-glow-pulse rounded-md'}`}>
+                      <SelectTrigger className={`w-full h-12 rounded-xl border-2 text-base ${inferenceTypeValue ? '' : 'animate-glow-pulse'}`}>
                         <SelectValue placeholder="選択してください" />
                       </SelectTrigger>
                       <SelectContent>
@@ -184,9 +189,9 @@ export function ProblemStepDisplay({
                     </Select>
                   </div>
                   <div className="flex flex-col gap-2">
-                    <span className="text-sm text-foreground">妥当性</span>
+                    <span className="text-sm font-medium text-foreground">妥当性</span>
                     <Select value={validityValue} onValueChange={onValidityChange ?? (() => { })}>
-                      <SelectTrigger className={`w-full h-10 ${validityValue ? '' : 'animate-glow-pulse rounded-md'}`}>
+                      <SelectTrigger className={`w-full h-12 rounded-xl border-2 text-base ${validityValue ? '' : 'animate-glow-pulse'}`}>
                         <SelectValue placeholder="選択してください" />
                       </SelectTrigger>
                       <SelectContent>
