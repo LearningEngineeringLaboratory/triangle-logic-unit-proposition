@@ -147,7 +147,7 @@ export function ProblemStepDisplay({
           })}
 
           {/* 現在のステップ（既定カラー） */}
-          <div className="p-4 rounded-lg border border-border bg-background" id={`current-step-${currentStepData.number}`}>
+          <div className="p-4 rounded-lg border-4 border-border bg-background" id={`current-step-${currentStepData.number}`}>
             <div className="flex items-center gap-2 mb-2">
               <h3 className="text-lg font-semibold text-foreground">
                 Step {currentStepData.number}: {currentStepData.title}
