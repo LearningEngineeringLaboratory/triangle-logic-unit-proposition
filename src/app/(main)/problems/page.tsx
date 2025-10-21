@@ -2,13 +2,12 @@
 
 import { getProblems, getProblemSets, getProblemsBySet } from '@/lib/problems'
 import { Problem, ProblemSet } from '@/lib/types'
-import { Badge } from '@/components/ui/badge'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Progress } from '@/components/ui/progress'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
 import { ProblemSetSelector } from '@/components/features/problem-list/problem-set-selector'
 import { Header } from '@/components/layout/Header'
 import Link from 'next/link'
-import { Suspense, useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 
 export default function ProblemsPage() {
   const [problems, setProblems] = useState<Problem[]>([])
@@ -38,8 +37,24 @@ export default function ProblemsPage() {
       <>
         <Header title="問題一覧" />
         <div className="container mx-auto px-4 py-8">
-          <div className="flex justify-center py-12">
-            <p className="text-muted-foreground">読み込み中...</p>
+          {/* 問題セットセレクターのSkeleton */}
+          <div className="mb-8">
+            <Skeleton className="h-12 w-64 rounded-xl mb-4" />
+          </div>
+
+          {/* 問題カードのSkeleton */}
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <Card key={i}>
+                <CardHeader>
+                  <Skeleton className="h-6 w-24 rounded-lg" />
+                </CardHeader>
+                <CardContent>
+                  <Skeleton className="h-4 w-full rounded-md mb-2" />
+                  <Skeleton className="h-4 w-5/6 rounded-md" />
+                </CardContent>
+              </Card>
+            ))}
           </div>
         </div>
       </>
