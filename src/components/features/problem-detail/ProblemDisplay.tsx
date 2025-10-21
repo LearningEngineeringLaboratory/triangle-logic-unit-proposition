@@ -1,7 +1,6 @@
 'use client'
 
 import { ProblemDetail } from '@/lib/types'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 interface ProblemDisplayProps {
   problem: ProblemDetail
@@ -9,13 +8,13 @@ interface ProblemDisplayProps {
 
 export function ProblemDisplay({ problem }: ProblemDisplayProps) {
   return (
-    <Card className="mb-4">
-      <CardHeader>
-        <CardTitle>論証</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <p className="text-lg leading-relaxed">{problem.argument}</p>
-      </CardContent>
-    </Card>
+    <fieldset className="border-2 border-border rounded-lg px-4 py-3">
+      <legend className="px-2 text-sm font-semibold text-foreground">
+        論証
+      </legend>
+      <p className="text-lg leading-relaxed text-foreground">
+        {problem.argument}
+      </p>
+    </fieldset>
   )
 }
