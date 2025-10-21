@@ -1,8 +1,9 @@
 'use client'
 
 import { ProblemDetail } from '@/lib/types'
-import { AlertCircle, CheckCircle2, Circle } from 'lucide-react'
+import { AlertCircle, CheckCircle2, Circle, ArrowUp } from 'lucide-react'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Button } from '@/components/ui/button'
 import { useEffect, useRef, useState } from 'react'
 
 interface ProblemStepDisplayProps {
@@ -31,6 +32,8 @@ export function ProblemStepDisplay({
   stepsState = {}
 }: ProblemStepDisplayProps) {
   const [shouldShakeNext, setShouldShakeNext] = useState(false)
+  const [showScrollTop, setShowScrollTop] = useState(false)
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null)
 
   // 外部からのトリガーでshakeを発火（初回は発火させない）
   const prevShakeTokenRef = useRef(shakeNext)
@@ -43,6 +46,21 @@ export function ProblemStepDisplay({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [shakeNext])
+
+  // スクロール位置を監視してFABの表示/非表示を切り替え
+  useEffect(() => {
+    const container = scrollContainerRef.current
+    if (!container) return
+
+    const handleScroll = () => {
+      // 200px以上スクロールしたらFABを表示
+      setShowScrollTop(container.scrollTop > 200)
+    }
+
+    container.addEventListener('scroll', handleScroll)
+    return () => container.removeEventListener('scroll', handleScroll)
+  }, [])
+
   // アクティブステップへ自動スクロール（最上部に移動）
   useEffect(() => {
     const el = document.getElementById(`current-step-${currentStep}`)
@@ -51,6 +69,14 @@ export function ProblemStepDisplay({
       el.scrollIntoView({ behavior: 'smooth', block: 'start' })
     }
   }, [currentStep])
+
+  // 最上部にスクロールする関数
+  const scrollToTop = () => {
+    scrollContainerRef.current?.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    })
+  }
   // ステップ定義を動的に生成（可変ステップ数対応）
   const generateSteps = (totalSteps: number) => {
     const steps = []
@@ -113,10 +139,10 @@ export function ProblemStepDisplay({
   const currentStepData = steps[currentStep - 1]
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full relative">
       {/* 段階的ステップ表示（親から与えられたスクロール領域内で自動スクロール）*/}
-      <div className="flex-1">
-        <div className="space-y-4">
+      <div className="flex-1 overflow-y-auto px-1" ref={scrollContainerRef}>
+        <div className="space-y-4 p-2">
           {/* 現在のステップ（最上部に表示） */}
           <div className="p-6 rounded-2xl border-2 border-border shadow-lg bg-card" id={`current-step-${currentStepData.number}`}>
             <div className="flex items-center gap-3 mb-3">
@@ -182,7 +208,7 @@ export function ProblemStepDisplay({
             return (
               <div
                 key={step.number}
-                className="p-6 mb-6 rounded-2xl border-2 border-border bg-muted/20 text-muted-foreground shadow-sm"
+                className="p-6 mb-6 rounded-2xl border border-border bg-muted/20 text-muted-foreground shadow-sm"
               >
                 <div className="flex items-center gap-3 mb-3">
                   <div className="flex items-center gap-2">
@@ -209,6 +235,21 @@ export function ProblemStepDisplay({
           })}
         </div>
       </div>
+
+      {/* 下部フェードアウトグラデーション */}
+      <div className="absolute bottom-0 left-0 right-0 h-6 bg-gradient-to-t from-background via-background/50 to-transparent pointer-events-none" />
+
+      {/* 最上部に戻るFAB */}
+      {showScrollTop && (
+        <Button
+          onClick={scrollToTop}
+          size="lg"
+          className="absolute bottom-4 right-4 rounded-full w-14 h-14 shadow-xl hover:shadow-2xl transition-all duration-300 animate-in fade-in zoom-in z-10"
+          aria-label="最上部に戻る"
+        >
+          <ArrowUp className="w-6 h-6" />
+        </Button>
+      )}
     </div>
   )
 }

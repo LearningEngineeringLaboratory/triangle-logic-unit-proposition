@@ -26,13 +26,9 @@ export function ProblemDetailLayout({ problem, problemNumber, slots }: ProblemDe
 
         {/* 中央行（flex-1）: 2カラム。中央行自体はoverflow-hiddenにして、左だけスクロール */}
         <div className="flex-1 min-h-0 grid lg:grid-cols-[1fr_minmax(0,_560px)] gap-8 overflow-hidden">
-          {/* 左: ステップ（縦スクロール）- フェードアウト効果付き */}
-          <div className="relative h-full overflow-hidden">
-            <div className="h-full overflow-y-auto">
-              {slots.leftPanel}
-            </div>
-            {/* 下部フェードアウトグラデーション */}
-            <div className="absolute bottom-0 left-0 right-0 h-6 bg-gradient-to-t from-background via-background/50 to-transparent pointer-events-none" />
+          {/* 左: ステップ（スクロールとフェードアウト効果は子コンポーネントで管理） */}
+          <div className="h-full overflow-hidden">
+            {slots.leftPanel}
           </div>
           {/* 右: 三角ロジック（高さは親に合わせる） */}
           <div className="h-full overflow-hidden flex items-center justify-center">
