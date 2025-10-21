@@ -126,7 +126,7 @@ export function ProblemStepDisplay({
               <div
                 key={step.number}
                 className={
-                  'p-4 rounded-lg border transition-all duration-200 bg-white border-border text-muted-foreground'
+                  'p-4 rounded-lg border transition-all duration-200 bg-muted/20 border-border text-muted-foreground'
                 }
               >
                 <div className="flex items-center gap-2 mb-2">
@@ -134,7 +134,7 @@ export function ProblemStepDisplay({
                     Step {step.number}: {step.title}
                   </h3>
                   {isCompleted && (
-                    <span className="text-sm bg-green-100 text-green-700 px-2 py-1 rounded-full">
+                    <span className="text-sm bg-success/10 text-success px-2 py-1 rounded-full border border-success/20">
                       完了
                     </span>
                   )}
@@ -142,15 +142,6 @@ export function ProblemStepDisplay({
                 <p className="text-md leading-relaxed whitespace-pre-line">
                   {step.content}
                 </p>
-                {step.hint && !isCompleted && (
-                  <div className="mt-4 rounded-md border border-border bg-muted/30 p-3">
-                    <div className="flex items-center gap-2">
-                      <AlertCircle className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
-                      <span className="text-sm font-medium text-muted-foreground">ヒント</span>
-                    </div>
-                    <p className="mt-2 text-sm leading-relaxed whitespace-pre-line text-muted-foreground">{step.hint}</p>
-                  </div>
-                )}
               </div>
             )
           })}
@@ -166,10 +157,10 @@ export function ProblemStepDisplay({
               {currentStepData.content}
             </p>
             {currentStepData.hint && (
-              <div className="mt-6 rounded-md border border-border bg-muted/40 p-3">
+              <div className="mt-6 rounded-md border border-warning/20 bg-warning/5 p-3">
                 <div className="flex items-center gap-2">
-                  <AlertCircle className="h-5 w-5 text-amber-600" aria-hidden="true" />
-                  <span className="text-sm font-medium text-amber-700">ヒント</span>
+                  <AlertCircle className="h-5 w-5 text-warning" aria-hidden="true" />
+                  <span className="text-sm font-medium text-warning">ヒント</span>
                 </div>
                 <p className="mt-2 text-sm leading-relaxed text-foreground whitespace-pre-line">{currentStepData.hint}</p>
               </div>
