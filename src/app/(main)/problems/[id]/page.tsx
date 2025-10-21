@@ -11,7 +11,7 @@ import { TriangleLogicDisplay } from '@/components/triangle-logic/triangle-logic
 import { ProblemDetailLayout } from '@/components/problem-detail/ProblemDetailLayout'
 import { ProblemDisplay } from '@/components/problem-detail/ProblemDisplay'
 import { ClearDialog } from '@/components/problem-detail/ClearDialog'
-import { Feedback } from '@/components/ui/feedback'
+import { FeedbackDrawer } from '@/components/ui/feedback-drawer'
 import { useProblemSteps } from '@/hooks/useProblemSteps'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -223,36 +223,23 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
           />
         ),
         footer: (
-          <div className="w-full space-y-4">
-            {feedbackVisible && (
-              <Feedback
-                variant={feedbackType}
-                title={feedbackType === 'success' ? '正解です！' : 'もう一度考えてみましょう'}
-                description={
-                  feedbackType === 'success' 
-                    ? '次のステップに進みましょう' 
-                    : '前件と後件の関係を確認してください'
-                }
-              />
-            )}
-            <div className="flex items-center justify-between">
-              <Link href="/problems">
-                <Button variant="outline" size="default">
-                  <ArrowLeft className="w-5 h-5 mr-2" />
-                  問題一覧に戻る
-                </Button>
-              </Link>
-              <Button
-                onClick={() => {
-                  const maybePromise = handleAnswerCheck()
-                  if (maybePromise instanceof Promise) maybePromise.catch(() => { })
-                }}
-                size="lg"
-                className="min-w-[200px]"
-              >
-                答え合わせ
+          <div className="w-full flex items-center justify-between">
+            <Link href="/problems">
+              <Button variant="outline" size="default">
+                <ArrowLeft className="w-5 h-5 mr-2" />
+                問題一覧に戻る
               </Button>
-            </div>
+            </Link>
+            <Button
+              onClick={() => {
+                const maybePromise = handleAnswerCheck()
+                if (maybePromise instanceof Promise) maybePromise.catch(() => { })
+              }}
+              size="lg"
+              className="min-w-[200px]"
+            >
+              答え合わせ
+            </Button>
           </div>
         )
       }} />
@@ -264,6 +251,18 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
         onBackToProblems={handleBackToProblems}
         onNextProblem={handleNextProblem}
         nextProblem={nextProblem}
+      />
+      
+      <FeedbackDrawer
+        open={feedbackVisible}
+        onOpenChange={setFeedbackVisible}
+        variant={feedbackType}
+        title={feedbackType === 'success' ? '正解です！' : 'もう一度考えてみましょう'}
+        description={
+          feedbackType === 'success' 
+            ? '次のステップに進みましょう' 
+            : '前件と後件の関係を確認してください'
+        }
       />
     </div>
   )
