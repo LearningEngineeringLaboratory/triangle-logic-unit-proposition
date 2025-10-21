@@ -43,11 +43,12 @@ export function ProblemStepDisplay({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [shakeNext])
-  // アクティブステップへ自動スクロール（親のスクロール領域を利用）
+  // アクティブステップへ自動スクロール（最上部に移動）
   useEffect(() => {
     const el = document.getElementById(`current-step-${currentStep}`)
     if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+      // 最上部にスクロール（新しいステップは常に一番上）
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' })
     }
   }, [currentStep])
   // ステップ定義を動的に生成（可変ステップ数対応）
@@ -116,41 +117,7 @@ export function ProblemStepDisplay({
       {/* 段階的ステップ表示（親から与えられたスクロール領域内で自動スクロール）*/}
       <div className="flex-1">
         <div className="space-y-4 p-2">
-          {/* 過去のステップ（モノクロ基調、完了バッジのみ緑） */}
-          {visibleSteps.map((step) => {
-            const status = getStepStatus(step.number)
-            const isCompleted = status === 'completed'
-
-            return (
-              <div
-                key={step.number}
-                className="p-6 rounded-2xl border-2 border-border bg-muted/20 text-muted-foreground shadow-sm transition-all duration-300"
-              >
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="flex items-center gap-2">
-                    {isCompleted ? (
-                      <CheckCircle2 className="w-5 h-5 text-success" />
-                    ) : (
-                      <Circle className="w-5 h-5 text-muted-foreground" />
-                    )}
-                    <h3 className="text-base font-semibold">
-                      Step {step.number}: {step.title}
-                    </h3>
-                  </div>
-                  {isCompleted && (
-                    <span className="ml-auto text-xs bg-success/10 text-success px-3 py-1 rounded-full border border-success/20 font-medium">
-                      完了
-                    </span>
-                  )}
-                </div>
-                <p className="text-sm leading-relaxed whitespace-pre-line">
-                  {step.content}
-                </p>
-              </div>
-            )
-          })}
-
-          {/* 現在のステップ（既定カラー） */}
+          {/* 現在のステップ（最上部に表示） */}
           <div className="p-6 rounded-2xl border-2 border-border shadow-lg bg-card" id={`current-step-${currentStepData.number}`}>
             <div className="flex items-center gap-3 mb-3">
               <div className="flex items-center justify-center w-6 h-6 rounded-full bg-primary/10">
@@ -206,6 +173,40 @@ export function ProblemStepDisplay({
               </div>
             )}
           </div>
+
+          {/* 過去のステップ（逆順で表示：新しいものが上） */}
+          {visibleSteps.reverse().map((step) => {
+            const status = getStepStatus(step.number)
+            const isCompleted = status === 'completed'
+
+            return (
+              <div
+                key={step.number}
+                className="p-6 rounded-2xl border-2 border-border bg-muted/20 text-muted-foreground shadow-sm transition-all duration-300"
+              >
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="flex items-center gap-2">
+                    {isCompleted ? (
+                      <CheckCircle2 className="w-5 h-5 text-success" />
+                    ) : (
+                      <Circle className="w-5 h-5 text-muted-foreground" />
+                    )}
+                    <h3 className="text-base font-semibold">
+                      Step {step.number}: {step.title}
+                    </h3>
+                  </div>
+                  {isCompleted && (
+                    <span className="ml-auto text-xs bg-success/10 text-success px-3 py-1 rounded-full border border-success/20 font-medium">
+                      完了
+                    </span>
+                  )}
+                </div>
+                <p className="text-sm leading-relaxed whitespace-pre-line">
+                  {step.content}
+                </p>
+              </div>
+            )
+          })}
         </div>
       </div>
     </div>
