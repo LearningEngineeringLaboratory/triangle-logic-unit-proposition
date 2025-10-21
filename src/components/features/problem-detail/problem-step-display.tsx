@@ -141,8 +141,8 @@ export function ProblemStepDisplay({
   return (
     <div className="flex flex-col h-full relative">
       {/* 段階的ステップ表示（親から与えられたスクロール領域内で自動スクロール）*/}
-      <div className="flex-1 overflow-y-auto px-1" ref={scrollContainerRef}>
-        <div className="space-y-4 p-2">
+      <div className="flex-1 overflow-y-auto" ref={scrollContainerRef}>
+        <div className="space-y-4">
           {/* 現在のステップ（最上部に表示） */}
           <div className="p-6 rounded-2xl border-2 border-border shadow-lg bg-card" id={`current-step-${currentStepData.number}`}>
             <div className="flex items-center gap-3 mb-3">
@@ -240,16 +240,19 @@ export function ProblemStepDisplay({
       <div className="absolute bottom-0 left-0 right-0 h-6 bg-gradient-to-t from-background via-background/50 to-transparent pointer-events-none" />
 
       {/* 最上部に戻るFAB */}
-      {showScrollTop && (
-        <Button
-          onClick={scrollToTop}
-          size="lg"
-          className="absolute bottom-4 right-4 rounded-full w-14 h-14 shadow-xl hover:shadow-2xl transition-all duration-300 animate-in fade-in zoom-in z-10"
-          aria-label="最上部に戻る"
-        >
-          <ArrowUp className="w-6 h-6" />
-        </Button>
-      )}
+      <Button
+        onClick={scrollToTop}
+        size="lg"
+        variant="secondary"
+        className={`absolute bottom-4 right-4 rounded-full w-14 h-14 shadow-lg hover:shadow-xl transition-all duration-300 z-10 ${
+          showScrollTop 
+            ? 'opacity-100 scale-100 pointer-events-auto' 
+            : 'opacity-0 scale-0 pointer-events-none'
+        }`}
+        aria-label="最上部に戻る"
+      >
+        <ArrowUp className="w-6 h-6" />
+      </Button>
     </div>
   )
 }
