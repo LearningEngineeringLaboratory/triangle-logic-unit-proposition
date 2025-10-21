@@ -12,6 +12,7 @@ import { ProblemDetailLayout } from '@/components/features/problem-detail/Proble
 import { ProblemDisplay } from '@/components/features/problem-detail/ProblemDisplay'
 import { ClearDialog } from '@/components/features/problem-detail/ClearDialog'
 import { FeedbackDrawer } from '@/components/ui/feedback-drawer'
+import { Header } from '@/components/layout/Header'
 import { useProblemSteps } from '@/hooks/useProblemSteps'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -168,14 +169,13 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
   }
 
   return (
-    <div className="h-screen overflow-hidden bg-background">
+    <div className="h-screen overflow-hidden bg-background flex flex-col">
+      <Header title={`問題${problemNumber}`} />
+      
       {/* メインコンテンツ */}
       <ProblemDetailLayout problem={problem} problemNumber={problemNumber} slots={{
         header: (
-          <>
-            <h3 className="text-xl font-semibold tracking-tight mb-3">問題{problemNumber}</h3>
-            <ProblemDisplay problem={problem} />
-          </>
+          <ProblemDisplay problem={problem} />
         ),
         leftPanel: (
           <ProblemStepDisplay
