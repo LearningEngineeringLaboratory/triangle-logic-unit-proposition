@@ -11,6 +11,7 @@ import { TriangleLogicDisplay } from '@/components/triangle-logic/triangle-logic
 import { ProblemDetailLayout } from '@/components/problem-detail/ProblemDetailLayout'
 import { ProblemDisplay } from '@/components/problem-detail/ProblemDisplay'
 import { ClearDialog } from '@/components/problem-detail/ClearDialog'
+import { Feedback } from '@/components/ui/feedback'
 import { useProblemSteps } from '@/hooks/useProblemSteps'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -34,6 +35,8 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
   const [isLastProblem, setIsLastProblem] = useState(false)
   const [isClearOpen, setIsClearOpen] = useState(false)
   const [shakeToken, setShakeToken] = useState(0)
+  const [feedbackVisible, setFeedbackVisible] = useState(false)
+  const [feedbackType, setFeedbackType] = useState<'success' | 'error'>('success')
 
   // カスタムフックを使用してステップ管理を簡素化
   const {
@@ -142,16 +145,28 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
     })
 
     if (isCorrect) {
+      setFeedbackType('success')
+      setFeedbackVisible(true)
       toast.success('正解です！')
       updateStep(stepNumber, { ...uiFragment, isPassed: true })
-      if (stepNumber < totalSteps) {
-        goToNextStep()
-      } else {
-        setIsClearOpen(true)
-      }
+      
+      setTimeout(() => {
+        setFeedbackVisible(false)
+        if (stepNumber < totalSteps) {
+          goToNextStep()
+        } else {
+          setIsClearOpen(true)
+        }
+      }, 1500)
     } else {
+      setFeedbackType('error')
+      setFeedbackVisible(true)
       toast.error('不正解...')
       setShakeToken((t) => t + 1)
+      
+      setTimeout(() => {
+        setFeedbackVisible(false)
+      }, 2000)
     }
   }
 
@@ -211,25 +226,48 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
           />
         ),
         footer: (
-          <div className="w-full flex items-center justify-between">
-            <Link href="/problems">
-              <Button variant="outline" size="sm">
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                問題一覧に戻る
+          <div className="w-full space-y-4">
+            {feedbackVisible && (
+              <Feedback
+                variant={feedbackType}
+                title={feedbackType === 'success' ? '正解です！' : 'もう一度考えてみましょう'}
+                description={
+                  feedbackType === 'success' 
+                    ? '次のステップに進みましょう' 
+                    : '前件と後件の関係を確認してください'
+                }
+              />
+            )}
+            <div className="flex items-center justify-between">
+              <Link href="/problems">
+                <Button variant="outline" size="default">
+                  <ArrowLeft className="w-5 h-5 mr-2" />
+                  問題一覧に戻る
+                </Button>
+              </Link>
+              <Button
+                onClick={() => {
+                  const maybePromise = handleAnswerCheck()
+                  if (maybePromise instanceof Promise) maybePromise.catch(() => { })
+                }}
+                size="lg"
+                className="min-w-[200px]"
+              >
+                答え合わせ
               </Button>
-            </Link>
-            <Button
-              onClick={() => {
-                const maybePromise = handleAnswerCheck()
-                if (maybePromise instanceof Promise) maybePromise.catch(() => { })
-              }}
-              className="min-w-[160px]"
-            >
-              答え合わせ
-            </Button>
+            </div>
           </div>
         )
       }} />
+      
+      <ClearDialog
+        isOpen={isClearOpen}
+        onOpenChange={setIsClearOpen}
+        isLastProblem={isLastProblem}
+        onBackToProblems={handleBackToProblems}
+        onNextProblem={handleNextProblem}
+        nextProblem={nextProblem}
+      />
     </div>
   )
 }
