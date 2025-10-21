@@ -26,7 +26,7 @@ export function FeedbackDrawer({
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
       <DrawerContent className={cn(
-        "border-t-4 bg-muted/30",
+        "border-t-4 bg-background/95 backdrop-blur-xl backdrop-saturate-150 shadow-2xl",
         isSuccess ? "border-t-success" : "border-t-destructive"
       )}>
         <div className="mx-auto w-full max-w-md py-8">
