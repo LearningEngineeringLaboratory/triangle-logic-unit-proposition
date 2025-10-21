@@ -258,11 +258,6 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
         onOpenChange={setFeedbackVisible}
         variant={feedbackType}
         title={feedbackType === 'success' ? '正解です！' : 'もう一度考えてみましょう'}
-        description={
-          feedbackType === 'success' 
-            ? '次のステップに進みましょう' 
-            : '前件と後件の関係を確認してください'
-        }
       />
     </div>
   )
