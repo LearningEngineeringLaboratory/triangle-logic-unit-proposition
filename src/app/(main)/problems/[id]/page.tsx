@@ -115,10 +115,10 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
 
   if (loading) {
     return (
-      <div className="h-screen overflow-hidden bg-background flex flex-col">
+      <div className="h-screen overflow-hidden flex flex-col">
         <Header title="読み込み中..." />
         
-        <div className="flex-1 bg-background overflow-hidden flex flex-col">
+        <div className="flex-1 overflow-hidden flex flex-col">
           <div className="container mx-auto px-4 h-full flex flex-col gap-6">
             {/* ヘッダー部分のスケルトン */}
             <div className="pt-6 flex-shrink-0">
