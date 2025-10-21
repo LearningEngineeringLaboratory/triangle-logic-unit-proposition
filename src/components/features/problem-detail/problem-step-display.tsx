@@ -116,12 +116,12 @@ export function ProblemStepDisplay({
     <div className="flex flex-col h-full">
       {/* 段階的ステップ表示（親から与えられたスクロール領域内で自動スクロール）*/}
       <div className="flex-1">
-        <div className="space-y-4 p-2">
+        <div className="space-y-4">
           {/* 現在のステップ（最上部に表示） */}
           <div className="p-6 rounded-2xl border-2 border-border shadow-lg bg-card" id={`current-step-${currentStepData.number}`}>
             <div className="flex items-center gap-3 mb-3">
-              <div className="flex items-center justify-center w-6 h-6 rounded-full bg-primary/10">
-                <Circle className="w-4 h-4 text-primary" />
+              <div className="flex items-center justify-center">
+                <Circle className="w-5 h-5 text-primary" />
               </div>
               <h3 className="text-base font-semibold text-foreground">
                 Step {currentStepData.number}: {currentStepData.title}
@@ -182,7 +182,7 @@ export function ProblemStepDisplay({
             return (
               <div
                 key={step.number}
-                className="p-6 rounded-2xl border-2 border-border bg-muted/20 text-muted-foreground shadow-sm transition-all duration-300"
+                className="p-6 mb-6 rounded-2xl border-2 border-border bg-muted/20 text-muted-foreground shadow-sm"
               >
                 <div className="flex items-center gap-3 mb-3">
                   <div className="flex items-center gap-2">

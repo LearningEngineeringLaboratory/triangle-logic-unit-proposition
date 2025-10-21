@@ -32,7 +32,7 @@ export function ProblemDetailLayout({ problem, problemNumber, slots }: ProblemDe
               {slots.leftPanel}
             </div>
             {/* 下部フェードアウトグラデーション */}
-            <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-background via-background/50 to-transparent pointer-events-none" />
+            <div className="absolute bottom-0 left-0 right-0 h-6 bg-gradient-to-t from-background via-background/50 to-transparent pointer-events-none" />
           </div>
           {/* 右: 三角ロジック（高さは親に合わせる） */}
           <div className="h-full overflow-hidden flex items-center justify-center">
