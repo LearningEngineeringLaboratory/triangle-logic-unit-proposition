@@ -27,7 +27,7 @@ export function ProblemDetailLayout({ problem, problemNumber, slots }: ProblemDe
         {/* 中央行（flex-1）: 2カラム。中央行自体はoverflow-hiddenにして、左だけスクロール */}
         <div className="flex-1 min-h-0 grid lg:grid-cols-[1fr_minmax(0,_560px)] gap-8 overflow-hidden">
           {/* 左: ステップ（縦スクロール） */}
-          <div className="h-full overflow-y-auto pr-2 rounded-md border border-border bg-muted/30">
+          <div className="h-full overflow-y-auto px-1 rounded-2xl bg-card shadow-inner">
             {slots.leftPanel}
           </div>
           {/* 右: 三角ロジック（高さは親に合わせる） */}
