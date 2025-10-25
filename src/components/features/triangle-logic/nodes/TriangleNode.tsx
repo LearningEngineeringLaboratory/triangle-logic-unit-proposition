@@ -10,6 +10,7 @@ interface TriangleNodeData {
   isReadOnly?: boolean
   nodeId: string
   showHandles?: boolean
+  isTargetConnectable?: boolean
 }
 
 interface TriangleNodeProps {
@@ -17,7 +18,7 @@ interface TriangleNodeProps {
 }
 
 export function TriangleNode({ data }: TriangleNodeProps) {
-  const { options, value, onValueChange, isReadOnly = false, nodeId, showHandles = true } = data
+  const { options, value, onValueChange, isReadOnly = false, nodeId, showHandles = true, isTargetConnectable = true } = data
 
   return (
     <div className="relative">
@@ -27,6 +28,7 @@ export function TriangleNode({ data }: TriangleNodeProps) {
           type="target"
           position={Position.Top}
           id={`${nodeId}-target`}
+          isConnectable={isTargetConnectable}
           style={{
             width: '100%',
             height: '100%',
@@ -36,7 +38,7 @@ export function TriangleNode({ data }: TriangleNodeProps) {
             backgroundColor: 'transparent',
             border: 'none',
             transform: 'none',
-            cursor: 'crosshair',
+            cursor: isTargetConnectable ? 'crosshair' : 'default',
           }}
         />
       )}

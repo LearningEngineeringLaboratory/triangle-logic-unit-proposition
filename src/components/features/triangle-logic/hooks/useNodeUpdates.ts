@@ -42,6 +42,7 @@ export function useNodeUpdates({
               value: antecedentValue,
               isReadOnly: currentStep > 1,
               showHandles: currentStep >= 2,
+              isTargetConnectable: false, // Step1ノードは入力ハンドルを無効化
               onValueChange: onAntecedentChange || (() => {}),
             }
           }
@@ -59,6 +60,7 @@ export function useNodeUpdates({
               value: consequentValue,
               isReadOnly: currentStep > 1,
               showHandles: currentStep >= 2,
+              isTargetConnectable: false, // Step1ノードは入力ハンドルを無効化
               onValueChange: onConsequentChange || (() => {}),
             }
           }
