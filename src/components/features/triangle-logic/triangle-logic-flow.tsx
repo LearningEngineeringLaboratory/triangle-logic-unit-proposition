@@ -92,6 +92,11 @@ export function TriangleLogicFlow({
     setNodes 
   })
 
+  // エッジを動的に更新
+  useEffect(() => {
+    setEdges(initialEdges)
+  }, [initialEdges, setEdges])
+
   // ノードの状態更新
   useNodeUpdates({
     nodes,

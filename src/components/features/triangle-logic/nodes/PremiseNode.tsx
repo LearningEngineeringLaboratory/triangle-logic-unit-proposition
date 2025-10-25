@@ -25,77 +25,45 @@ export function PremiseNode({ data }: PremiseNodeProps) {
       {/* ハンドル表示制御 */}
       {showHandles ? (
         <>
-          {/* ノード全体を接続可能にするためのハンドル */}
-          {/* 右側のソースハンドル */}
+          {/* ノード外側のハンドル（接続ポイント） */}
           <Handle
             type="source"
             position={Position.Right}
             id={`${nodeId}-right`}
             style={{
-              right: -8,
-              top: '50%',
-              transform: 'translateY(-50%)',
-              width: 16,
-              height: 16,
-              backgroundColor: 'var(--primary)',
-              border: '2px solid var(--border)',
-              borderRadius: '50%',
+              right: 20,
+              top: 44,
+              width: 20,
+              height: 20,
+              backgroundColor: 'transparent',
+              border: 'none',
+              borderRadius: 0,
               zIndex: 10,
             }}
-          />
-          
-          {/* 左側のターゲットハンドル */}
-          <Handle
-            type="target"
-            position={Position.Left}
-            id={`${nodeId}-left`}
-            style={{
-              left: -8,
-              top: '50%',
-              transform: 'translateY(-50%)',
-              width: 16,
-              height: 16,
-              backgroundColor: 'var(--primary)',
-              border: '2px solid var(--border)',
-              borderRadius: '50%',
-              zIndex: 10,
-            }}
-          />
-          
-          {/* 上部のターゲットハンドル */}
+          >
+            {/* 右下向き矢印 */}
+            <div 
+              style={{
+                width: '100%',
+                height: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '20px',
+                color: 'oklch(0.70 0.19 48)',
+                transform: 'rotate(45deg)',
+                fontWeight: 'bold',
+                textShadow: '1px 1px 4px rgba(0, 0, 0, 0.3)',
+              }}
+            >
+              →
+            </div>
+          </Handle>
+          {/* ターゲットハンドル */}
           <Handle
             type="target"
             position={Position.Top}
-            id={`${nodeId}-top`}
-            style={{
-              top: -8,
-              left: '50%',
-              transform: 'translateX(-50%)',
-              width: 16,
-              height: 16,
-              backgroundColor: 'var(--primary)',
-              border: '2px solid var(--border)',
-              borderRadius: '50%',
-              zIndex: 10,
-            }}
-          />
-          
-          {/* 下部のソースハンドル */}
-          <Handle
-            type="source"
-            position={Position.Bottom}
-            id={`${nodeId}-bottom`}
-            style={{
-              bottom: -8,
-              left: '50%',
-              transform: 'translateX(-50%)',
-              width: 16,
-              height: 16,
-              backgroundColor: 'var(--primary)',
-              border: '2px solid var(--border)',
-              borderRadius: '50%',
-              zIndex: 10,
-            }}
+            style={{ opacity: 0, cursor: 'default' }}
           />
         </>
       ) : (
