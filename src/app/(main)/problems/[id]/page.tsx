@@ -195,6 +195,11 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
         const uiLinks = normalizeLinks(uiFragment.links || [])
         const correctLinksNormalized = normalizeLinks(correctLinks)
         
+        console.log(`[debug-step2] premiseMatch:`, premiseMatch)
+        console.log(`[debug-step2] uiLinks:`, uiLinks)
+        console.log(`[debug-step2] correctLinksNormalized:`, correctLinksNormalized)
+        console.log(`[debug-step2] linksMatch:`, JSON.stringify(uiLinks) === JSON.stringify(correctLinksNormalized))
+        
         isCorrect = premiseMatch && 
                    JSON.stringify(uiLinks) === JSON.stringify(correctLinksNormalized)
         break
@@ -215,6 +220,8 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
     }
 
     console.log(`[check-step][client] step=${stepNumber} isCorrect=${isCorrect ? 'correct' : 'incorrect'}`)
+    console.log(`[debug] uiFragment:`, uiFragment)
+    console.log(`[debug] correct_answers:`, problem.correct_answers)
 
     // ログ送信（研究用）
     logClientCheck({
