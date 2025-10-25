@@ -18,6 +18,8 @@ interface PremiseNodeProps {
 export function PremiseNode({ data }: PremiseNodeProps) {
   const { value, nodeId, showHandles = true, onDelete } = data
 
+  console.log('PremiseNode render:', { nodeId, showHandles, value })
+
   return (
     <div className="relative">
       {/* ハンドル表示制御 */}

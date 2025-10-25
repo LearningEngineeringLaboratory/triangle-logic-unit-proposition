@@ -19,6 +19,8 @@ interface TriangleNodeProps {
 export function TriangleNode({ data }: TriangleNodeProps) {
   const { options, value, onValueChange, isReadOnly = false, nodeId, showHandles = true } = data
 
+  console.log('TriangleNode render:', { nodeId, showHandles, value, isReadOnly })
+
   return (
     <div className="relative">
       {/* ハンドル表示制御 */}

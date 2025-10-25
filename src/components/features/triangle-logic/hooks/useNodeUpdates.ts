@@ -40,7 +40,7 @@ export function useNodeUpdates({
               ...node.data,
               value: antecedentValue,
               isReadOnly: currentStep > 1,
-              showHandles: currentStep > 1, // Step1ではハンドル非表示
+              showHandles: currentStep >= 2, // Step2以降でハンドル表示
               onValueChange: onAntecedentChange || (() => {}),
             }
           }
@@ -57,7 +57,7 @@ export function useNodeUpdates({
               ...node.data,
               value: consequentValue,
               isReadOnly: currentStep > 1,
-              showHandles: currentStep > 1, // Step1ではハンドル非表示
+              showHandles: currentStep >= 2, // Step2以降でハンドル表示
               onValueChange: onConsequentChange || (() => {}),
             }
           }
