@@ -38,6 +38,11 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
   const [shakeToken, setShakeToken] = useState(0)
   const [feedbackVisible, setFeedbackVisible] = useState(false)
   const [feedbackType, setFeedbackType] = useState<'success' | 'error'>('success')
+  const [nodeValues, setNodeValues] = useState<{ antecedent: string; consequent: string; premiseNodes: Array<{ id: string; value: string }> }>({
+    antecedent: '',
+    consequent: '',
+    premiseNodes: []
+  })
 
   // カスタムフックを使用してステップ管理を簡素化
   const {
@@ -173,8 +178,8 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
         const correctPremise = problem.correct_answers.step2?.premise
         
         // premiseの比較：Step2で追加したPremiseNodeの値と一致するか
-        // uiFragment.premiseがStep2で追加したノードの値
-        const premiseMatch = uiFragment.premise === correctPremise
+        // nodeValuesから実際のノードの値を取得
+        const premiseMatch = nodeValues.premiseNodes.some(node => node.value === correctPremise)
         
         // linksの比較：Step2で追加したリンクの始点と終点が一致するか（順不同）
         // ノードIDを実際の値に変換して比較
@@ -182,9 +187,12 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
         
         // ノードIDから実際の値を取得する関数
         const getNodeValue = (nodeId: string) => {
-          if (nodeId === 'antecedent') return uiFragment.antecedent || ''
-          if (nodeId === 'consequent') return uiFragment.consequent || ''
-          if (nodeId.startsWith('premise-')) return uiFragment.premise || ''
+          if (nodeId === 'antecedent') return nodeValues.antecedent
+          if (nodeId === 'consequent') return nodeValues.consequent
+          if (nodeId.startsWith('premise-')) {
+            const premiseNode = nodeValues.premiseNodes.find(node => node.id === nodeId)
+            return premiseNode?.value || ''
+          }
           return nodeId
         }
         
@@ -207,7 +215,7 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
         )
         
         console.log(`[debug-step2] correctPremise:`, correctPremise)
-        console.log(`[debug-step2] uiFragment.premise:`, uiFragment.premise)
+        console.log(`[debug-step2] nodeValues.premiseNodes:`, nodeValues.premiseNodes)
         console.log(`[debug-step2] premiseMatch:`, premiseMatch)
         console.log(`[debug-step2] correctLinks:`, correctLinks)
         console.log(`[debug-step2] uiLinks:`, uiLinks)
@@ -305,6 +313,7 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
             onLinksChange={(links) => updateStep(2, { ...steps.step2, links })}
             activeLinks={steps.step4?.links || []}
             onActiveLinksChange={(links) => updateStep(4, { ...steps.step4, links })}
+            onGetNodeValues={setNodeValues}
           />
         ),
         footer: (

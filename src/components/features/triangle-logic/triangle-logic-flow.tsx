@@ -54,6 +54,8 @@ interface TriangleLogicFlowProps {
   // Step4 props
   activeLinks?: Array<{ from: string; to: string; active: boolean }>
   onActiveLinksChange?: (links: Array<{ from: string; to: string; active: boolean }>) => void
+  // 答え合わせ用
+  onGetNodeValues?: (values: { antecedent: string; consequent: string; premiseNodes: Array<{ id: string; value: string }> }) => void
 }
 
 export function TriangleLogicFlow({
@@ -69,6 +71,7 @@ export function TriangleLogicFlow({
   onLinksChange,
   activeLinks = [],
   onActiveLinksChange,
+  onGetNodeValues,
 }: TriangleLogicFlowProps) {
   // テーマを取得
   const { theme } = useTheme()
@@ -142,6 +145,24 @@ export function TriangleLogicFlow({
     },
     [currentStep, links, onLinksChange]
   )
+
+  // ノードの値を取得してコールバックを呼び出す
+  useEffect(() => {
+    if (onGetNodeValues && nodes.length > 0) {
+      const antecedentNode = nodes.find(node => node.id === 'antecedent')
+      const consequentNode = nodes.find(node => node.id === 'consequent')
+      const premiseNodes = nodes.filter(node => node.id.startsWith('premise-'))
+      
+      onGetNodeValues({
+        antecedent: (antecedentNode?.data?.value as string) || '',
+        consequent: (consequentNode?.data?.value as string) || '',
+        premiseNodes: premiseNodes.map(node => ({
+          id: node.id,
+          value: (node.data?.value as string) || ''
+        }))
+      })
+    }
+  }, [nodes, onGetNodeValues])
 
   // エッジを動的に生成（linksとactiveLinksの変更を監視）
   useEffect(() => {
