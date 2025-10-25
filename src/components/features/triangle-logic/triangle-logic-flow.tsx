@@ -444,8 +444,8 @@ export function TriangleLogicFlow({
     return edges
   }, [currentStep, links, activeLinks, onLinksChange])
 
-  const [nodes, setNodes, onNodesChange] = useNodesState([])
-  const [edges, setEdges, onEdgesChange] = useEdgesState([])
+  const [nodes, setNodes, onNodesChange] = useNodesState<Node[]>([])
+  const [edges, setEdges, onEdgesChange] = useEdgesState<Edge[]>([])
 
   // 初期ノードの設定（一度だけ実行）
   useEffect(() => {
