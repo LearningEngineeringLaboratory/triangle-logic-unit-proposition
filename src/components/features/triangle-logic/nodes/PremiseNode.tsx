@@ -38,6 +38,7 @@ export function PremiseNode({ data }: PremiseNodeProps) {
               backgroundColor: 'transparent',
               border: 'none',
               borderRadius: 0,
+              zIndex: 10,
             }}
           >
             {/* 右下向き矢印 */}
@@ -92,7 +93,7 @@ export function PremiseNode({ data }: PremiseNodeProps) {
               variant="destructive"
               size="sm"
               onClick={onDelete}
-              className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0 shadow-lg hover:shadow-xl"
+              className="absolute -top-2 -left-2 h-6 w-6 rounded-full p-0 shadow-lg hover:shadow-xl"
             >
               <X className="h-3 w-3" />
             </Button>

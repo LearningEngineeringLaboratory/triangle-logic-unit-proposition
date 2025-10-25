@@ -39,6 +39,7 @@ export function TriangleNode({ data }: TriangleNodeProps) {
               backgroundColor: 'transparent',
               border: 'none',
               borderRadius: 0,
+              zIndex: 10,
             }}
           >
             {/* 右下向き矢印 */}
