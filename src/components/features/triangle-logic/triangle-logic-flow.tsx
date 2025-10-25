@@ -275,7 +275,7 @@ export function TriangleLogicFlow({
   activeLinks = [],
   onActiveLinksChange,
 }: TriangleLogicFlowProps) {
-  // ノードの初期設定
+  // ノードの初期設定（値の変更時は再作成しない）
   const initialNodes: Node[] = useMemo(() => {
     const nodes: Node[] = []
     
@@ -288,9 +288,9 @@ export function TriangleLogicFlow({
         data: {
           label: '前件',
           options,
-          value: antecedentValue,
+          value: '',
           onValueChange: onAntecedentChange || (() => {}),
-          isReadOnly: currentStep > 1,
+          isReadOnly: false,
           nodeId: 'antecedent',
         },
       })
@@ -303,9 +303,9 @@ export function TriangleLogicFlow({
         data: {
           label: '後件',
           options,
-          value: consequentValue,
+          value: '',
           onValueChange: onConsequentChange || (() => {}),
-          isReadOnly: currentStep > 1,
+          isReadOnly: false,
           nodeId: 'consequent',
         },
       })
@@ -320,21 +320,21 @@ export function TriangleLogicFlow({
         data: {
           label: '所与命題',
           options,
-          value: premiseValue,
+          value: '',
           onValueChange: onPremiseChange || (() => {}),
-          isReadOnly: currentStep > 2,
+          isReadOnly: false,
           nodeId: 'premise',
         },
       })
     }
 
     return nodes
-  }, [currentStep, options, antecedentValue, consequentValue, premiseValue, onAntecedentChange, onConsequentChange, onPremiseChange])
+  }, [currentStep, options, onAntecedentChange, onConsequentChange, onPremiseChange])
 
   // ノードの状態を更新
   const updateNodes = useCallback(() => {
-    setNodes(prevNodes => 
-      prevNodes.map(node => {
+    setNodes(prevNodes => {
+      const updatedNodes = prevNodes.map(node => {
         if (node.id === 'antecedent') {
           return {
             ...node,
@@ -367,7 +367,18 @@ export function TriangleLogicFlow({
         }
         return node
       })
-    )
+      
+      // デバッグ用ログ
+      console.log('Updating nodes:', {
+        antecedentValue,
+        consequentValue,
+        premiseValue,
+        currentStep,
+        updatedNodes: updatedNodes.map(n => ({ id: n.id, value: n.data.value }))
+      })
+      
+      return updatedNodes
+    })
   }, [antecedentValue, consequentValue, premiseValue, currentStep])
 
   // 値が変更されたときにノードを更新
@@ -433,8 +444,27 @@ export function TriangleLogicFlow({
     return edges
   }, [currentStep, links, activeLinks, onLinksChange])
 
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes)
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges)
+  const [nodes, setNodes, onNodesChange] = useNodesState([])
+  const [edges, setEdges, onEdgesChange] = useEdgesState([])
+
+  // 初期ノードの設定（一度だけ実行）
+  useEffect(() => {
+    if (nodes.length === 0) {
+      setNodes(initialNodes)
+    }
+  }, [initialNodes, nodes.length, setNodes])
+
+  // 初期エッジの設定（一度だけ実行）
+  useEffect(() => {
+    if (edges.length === 0) {
+      setEdges(initialEdges)
+    }
+  }, [initialEdges, edges.length, setEdges])
+
+  // エッジの更新（linksやactiveLinksが変更されたとき）
+  useEffect(() => {
+    setEdges(initialEdges)
+  }, [initialEdges, setEdges])
 
   // エッジ接続時の処理
   const onConnect = useCallback(
