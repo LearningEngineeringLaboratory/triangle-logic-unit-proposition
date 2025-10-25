@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useState, useMemo } from 'react'
+import { useCallback, useState, useMemo, useEffect } from 'react'
 import {
   ReactFlow,
   Node,
@@ -331,6 +331,50 @@ export function TriangleLogicFlow({
     return nodes
   }, [currentStep, options, antecedentValue, consequentValue, premiseValue, onAntecedentChange, onConsequentChange, onPremiseChange])
 
+  // ノードの状態を更新
+  const updateNodes = useCallback(() => {
+    setNodes(prevNodes => 
+      prevNodes.map(node => {
+        if (node.id === 'antecedent') {
+          return {
+            ...node,
+            data: {
+              ...node.data,
+              value: antecedentValue,
+              isReadOnly: currentStep > 1,
+            }
+          }
+        }
+        if (node.id === 'consequent') {
+          return {
+            ...node,
+            data: {
+              ...node.data,
+              value: consequentValue,
+              isReadOnly: currentStep > 1,
+            }
+          }
+        }
+        if (node.id === 'premise') {
+          return {
+            ...node,
+            data: {
+              ...node.data,
+              value: premiseValue,
+              isReadOnly: currentStep > 2,
+            }
+          }
+        }
+        return node
+      })
+    )
+  }, [antecedentValue, consequentValue, premiseValue, currentStep])
+
+  // 値が変更されたときにノードを更新
+  useEffect(() => {
+    updateNodes()
+  }, [updateNodes])
+
   // エッジの初期設定
   const initialEdges: Edge[] = useMemo(() => {
     const edges: Edge[] = []
@@ -408,7 +452,7 @@ export function TriangleLogicFlow({
   )
 
   return (
-    <div className="w-full h-[400px] border border-border rounded-lg">
+    <div className="w-full h-full min-h-[500px]">
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -419,7 +463,7 @@ export function TriangleLogicFlow({
         edgeTypes={edgeTypes}
         connectionMode={ConnectionMode.Loose}
         fitView
-        fitViewOptions={{ padding: 0.2 }}
+        fitViewOptions={{ padding: 0.1 }}
       >
         <Controls />
         <Background variant={BackgroundVariant.Dots} gap={12} size={1} />

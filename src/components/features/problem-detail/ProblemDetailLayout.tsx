@@ -25,7 +25,7 @@ export function ProblemDetailLayout({ problem, problemNumber, slots }: ProblemDe
         </div>
 
         {/* 中央行（flex-1）: 2カラム。中央行自体はoverflow-hiddenにして、左だけスクロール */}
-        <div className="flex-1 min-h-0 grid lg:grid-cols-[1fr_minmax(0,_560px)] gap-8 overflow-hidden">
+        <div className="flex-1 min-h-0 grid lg:grid-cols-[1fr_1fr] gap-8 overflow-hidden">
           {/* 左: ステップ（スクロールとフェードアウト効果は子コンポーネントで管理） */}
           <div className="h-full overflow-hidden">
             {slots.leftPanel}
