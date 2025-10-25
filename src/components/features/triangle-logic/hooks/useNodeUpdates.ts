@@ -35,8 +35,8 @@ export function useNodeUpdates({
           return {
             ...node,
             position: { x: 100, y: step1YPosition },
-            // Step1のノードも位置移動可能（draggable: true）
-            draggable: true,
+            // Step1のノードは常に座標を固定（draggable: false）
+            draggable: false,
             data: {
               ...node.data,
               value: antecedentValue,
@@ -52,8 +52,8 @@ export function useNodeUpdates({
           return {
             ...node,
             position: { x: 400, y: step1YPosition },
-            // Step1のノードも位置移動可能（draggable: true）
-            draggable: true,
+            // Step1のノードは常に座標を固定（draggable: false）
+            draggable: false,
             data: {
               ...node.data,
               value: consequentValue,
