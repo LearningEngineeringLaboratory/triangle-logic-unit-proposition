@@ -111,7 +111,12 @@ export function TriangleLogicFlow({
       if (!connection.targetHandle) return false
       if (!connection.targetHandle.endsWith('-target')) return false
       
-      // 4. 既存のエッジとの重複をチェック
+      // 4. Step1の前件→後件リンクの作成を禁止
+      if (connection.source === 'antecedent' && connection.target === 'consequent') {
+        return false
+      }
+      
+      // 5. 既存のエッジとの重複をチェック
       const isDuplicate = links.some(link => 
         link.from === connection.source && link.to === connection.target
       )
