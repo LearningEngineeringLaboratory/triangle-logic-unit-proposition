@@ -27,17 +27,36 @@ export function TriangleNode({ data }: TriangleNodeProps) {
           {/* ノード外側のハンドル（接続ポイント） */}
           <Handle
             type="source"
-            position={Position.Bottom}
-            id={`${nodeId}-bottom`}
+            position={Position.Right}
+            id={`${nodeId}-right`}
             style={{
-              bottom: -12,
-              width: 14,
-              height: 14,
-              backgroundColor: `var(--primary)`,
-              border: '2px solid var(--border)',
-              borderRadius: 'full',
+              right: 20,
+              top: 44,
+              width: 20,
+              height: 20,
+              backgroundColor: 'transparent',
+              border: 'none',
+              borderRadius: 0,
             }}
-          />
+          >
+            {/* 右下向き矢印 */}
+            <div 
+              style={{
+                width: '100%',
+                height: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '20px',
+                color: 'oklch(0.70 0.19 48)',
+                transform: 'rotate(45deg)',
+                fontWeight: 'bold',
+                textShadow: '1px 1px 4px rgba(0, 0, 0, 0.3)',
+              }}
+            >
+              →
+            </div>
+          </Handle>
 
           {/* ターゲットハンドル */}
           <Handle
@@ -56,7 +75,7 @@ export function TriangleNode({ data }: TriangleNodeProps) {
           />
           <Handle
             type="source"
-            position={Position.Bottom}
+            position={Position.Right}
             style={{ opacity: 0, cursor: 'default' }}
           />
         </>

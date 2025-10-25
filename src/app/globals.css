@@ -217,6 +217,7 @@
 .react-flow__attribution {
   right: 8px !important;
   top: 4px !important;
+  border-radius: 8px !important;
   background: oklch(1 0 0 / 0.8) !important;
   padding: 4px 8px !important;
   font-size: 8px !important;
@@ -241,4 +242,22 @@
 .dark .react-flow__attribution {
   background: oklch(0.2 0.03 260 / 0.8) !important;
   color: oklch(0.65 0.08 260) !important;
+}
+
+/* PremiseNode ドラッグハンドル制御 */
+.react-flow__node-premiseNode {
+  pointer-events: none;
+}
+
+.react-flow__node-premiseNode .drag-handle {
+  pointer-events: auto;
+}
+
+.react-flow__node-premiseNode .drag-handle * {
+  pointer-events: none;
+}
+
+/* ハンドルは常にクリック可能 */
+.react-flow__handle {
+  pointer-events: auto !important;
 }

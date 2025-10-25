@@ -150,15 +150,6 @@ export function TriangleLogicFlow({
           showInteractive={false}
           position="bottom-right"
         />
-        {/* <MiniMap 
-          position="top-left" 
-          nodeStrokeWidth={1}
-          maskColor="rgba(0, 0, 0, 0.1)"
-          style={{
-            width: 120,
-            height: 80,
-          }}
-        /> */}
         <Background 
           variant={BackgroundVariant.Dots} 
           gap={20} 

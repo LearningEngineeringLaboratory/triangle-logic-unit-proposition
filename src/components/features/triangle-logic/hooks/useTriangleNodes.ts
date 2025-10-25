@@ -85,13 +85,13 @@ export function useTriangleNodes({ currentStep, options, setNodes }: UseTriangle
 
   // 所与命題ノードを追加する関数
   const addPremiseNode = useCallback((value: string) => {
-    const newNodeId = `premise-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+    const newNodeId = `premise-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`
     const newPremiseNode: PremiseNode = {
       id: newNodeId,
       value,
       position: { 
-        x: 250 + (premiseNodes.length * 50), // 横にずらして配置
-        y: 300 + (premiseNodes.length * 20)  // 縦にも少しずらして配置
+        x: 250 + (premiseNodes.length * 80), // 横にずらして配置
+        y: 200 + (premiseNodes.length * 40)  // 縦にも少しずらして配置
       }
     }
     
