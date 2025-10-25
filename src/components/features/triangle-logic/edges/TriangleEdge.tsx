@@ -37,15 +37,20 @@ export function TriangleEdge({ id, source, target, style, data }: TriangleEdgePr
     const midX = (sx + tx) / 2
     const midY = (sy + ty) / 2
     const controlOffset = 80 // 弧の高さを大きくして重なりを回避
+    const nodeOffset = 15 // ノード端からのオフセット
     
     // 現在のエッジが上向きか下向きかを決定（IDで判定）
     const reverseEdge = edges.find(edge => edge.source === target && edge.target === source)
     const isUpward = reverseEdge ? id < reverseEdge.id : false
     
-    // 制御点を計算（より大きなオフセットで分離）
-    const controlY = isUpward ? midY - controlOffset : midY + controlOffset
+    // 始点と終点のY座標をずらす
+    const adjustedSy = isUpward ? sy - nodeOffset : sy + nodeOffset
+    const adjustedTy = isUpward ? ty + nodeOffset : ty - nodeOffset
     
-    edgePath = `M ${sx} ${sy} Q ${midX} ${controlY} ${tx} ${ty}`
+    // 制御点を計算（より大きなオフセットで分離）
+    const controlY = midY + (isUpward ? -controlOffset : controlOffset)
+    
+    edgePath = `M ${sx} ${adjustedSy} Q ${midX} ${controlY} ${tx} ${adjustedTy}`
     labelX = midX
     labelY = controlY
   } else {
