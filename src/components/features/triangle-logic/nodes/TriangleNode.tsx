@@ -98,6 +98,24 @@ export function TriangleNode({ data }: TriangleNodeProps) {
               zIndex: 10,
             }}
           />
+          
+          {/* ターゲットハンドル（右側） */}
+          <Handle
+            type="target"
+            position={Position.Right}
+            id={`${nodeId}-right-target`}
+            style={{
+              right: -8,
+              top: '50%',
+              transform: 'translateY(-50%)',
+              width: 16,
+              height: 16,
+              backgroundColor: 'var(--primary)',
+              border: '2px solid var(--border)',
+              borderRadius: '50%',
+              zIndex: 10,
+            }}
+          />
         </>
       ) : (
         <>
@@ -110,6 +128,11 @@ export function TriangleNode({ data }: TriangleNodeProps) {
           <Handle
             type="target"
             position={Position.Left}
+            style={{ opacity: 0, cursor: 'default' }}
+          />
+          <Handle
+            type="target"
+            position={Position.Right}
             style={{ opacity: 0, cursor: 'default' }}
           />
           <Handle
