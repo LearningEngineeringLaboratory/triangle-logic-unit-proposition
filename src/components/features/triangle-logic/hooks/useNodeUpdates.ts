@@ -34,7 +34,7 @@ export function useNodeUpdates({
           return {
             ...node,
             position: { x: 100, y: step1YPosition },
-            // Step1のノードは座標を固定（draggable: false）
+            // Step1のノードは常に座標を固定（draggable: false）
             draggable: false,
             data: {
               ...node.data,
@@ -51,7 +51,7 @@ export function useNodeUpdates({
           return {
             ...node,
             position: { x: 400, y: step1YPosition },
-            // Step1のノードは座標を固定（draggable: false）
+            // Step1のノードは常に座標を固定（draggable: false）
             draggable: false,
             data: {
               ...node.data,

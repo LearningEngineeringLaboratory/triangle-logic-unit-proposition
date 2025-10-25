@@ -175,7 +175,7 @@ export function TriangleLogicFlow({
   const onConnect = useCallback(
     (params: Connection) => {
       console.log('onConnect called:', { params, currentStep, links })
-      if (currentStep === 2 && params.source && params.target) {
+      if (currentStep >= 2 && params.source && params.target) {
         // ReactFlowのaddEdgeを使用してエッジを追加
         const newEdge = addEdge(params, edgesRef.current)
         setEdges(newEdge)
