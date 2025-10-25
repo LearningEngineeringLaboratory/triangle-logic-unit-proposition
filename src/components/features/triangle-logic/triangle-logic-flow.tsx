@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import { useTheme } from 'next-themes'
 import {
   ReactFlow,
@@ -14,6 +14,8 @@ import {
   EdgeTypes,
   ConnectionMode,
   MiniMap,
+  addEdge,
+  Edge,
 } from '@xyflow/react'
 import { TriangleNode } from './nodes/TriangleNode'
 import { PremiseNode } from './nodes/PremiseNode'
@@ -92,10 +94,20 @@ export function TriangleLogicFlow({
     setNodes 
   })
 
-  // エッジを動的に更新
-  useEffect(() => {
-    setEdges(initialEdges)
-  }, [initialEdges, setEdges])
+  // エッジの参照を保持
+  const edgesRef = useRef<Edge[]>(initialEdges)
+  
+  // エッジを動的に更新するコールバック
+  const updateEdges = useCallback(() => {
+    const newEdges = useTriangleEdges({ 
+      currentStep, 
+      links, 
+      activeLinks, 
+      onLinksChange 
+    }).initialEdges
+    edgesRef.current = newEdges
+    setEdges(newEdges)
+  }, [currentStep, links, activeLinks, onLinksChange])
 
   // ノードの状態更新
   useNodeUpdates({
@@ -115,6 +127,11 @@ export function TriangleLogicFlow({
     (params: Connection) => {
       console.log('onConnect called:', { params, currentStep, links })
       if (currentStep === 2 && params.source && params.target) {
+        // ReactFlowのaddEdgeを使用してエッジを追加
+        const newEdge = addEdge(params, edgesRef.current)
+        setEdges(newEdge)
+        
+        // リンク状態も更新
         const newLink = {
           from: params.source,
           to: params.target,
@@ -126,6 +143,11 @@ export function TriangleLogicFlow({
     },
     [currentStep, links, onLinksChange]
   )
+
+  // linksが変更されたときにエッジを更新
+  useEffect(() => {
+    updateEdges()
+  }, [updateEdges])
 
   return (
     <div className="w-full h-full rounded-2xl border-2 border-border bg-card overflow-hidden">
