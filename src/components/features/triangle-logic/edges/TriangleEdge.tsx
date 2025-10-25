@@ -33,29 +33,21 @@ export function TriangleEdge({ id, source, target, style, data }: TriangleEdgePr
   let labelY: number
 
   if (hasReverseEdge) {
-    // 双方向エッジの場合は円弧を描画
+    // 双方向エッジの場合はベジェ曲線で弧を描画（重なりを確実に回避）
     const midX = (sx + tx) / 2
     const midY = (sy + ty) / 2
-    const radius = 50 // 円弧の半径
+    const controlOffset = 80 // 弧の高さを大きくして重なりを回避
     
     // 現在のエッジが上向きか下向きかを決定（IDで判定）
     const reverseEdge = edges.find(edge => edge.source === target && edge.target === source)
     const isUpward = reverseEdge ? id < reverseEdge.id : false
     
-    // 円弧の中心点を計算
-    const centerX = midX
-    const centerY = isUpward ? midY - radius : midY + radius
+    // 制御点を計算（より大きなオフセットで分離）
+    const controlY = isUpward ? midY - controlOffset : midY + controlOffset
     
-    // 円弧の開始角度と終了角度を計算
-    const startAngle = Math.atan2(sy - centerY, sx - centerX)
-    const endAngle = Math.atan2(ty - centerY, tx - centerX)
-    
-    // 円弧の方向を決定（上向きは時計回り、下向きは反時計回り）
-    const sweepFlag = isUpward ? 1 : 0
-    
-    edgePath = `M ${sx} ${sy} A ${radius} ${radius} 0 0 ${sweepFlag} ${tx} ${ty}`
-    labelX = centerX
-    labelY = centerY
+    edgePath = `M ${sx} ${sy} Q ${midX} ${controlY} ${tx} ${ty}`
+    labelX = midX
+    labelY = controlY
   } else {
     // 通常の直線パス
     const [path, x, y] = getStraightPath({
