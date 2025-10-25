@@ -37,7 +37,7 @@ export function TriangleEdge({ id, source, target, style, data }: TriangleEdgePr
     const midX = (sx + tx) / 2
     const midY = (sy + ty) / 2
     const controlOffset = 80 // 弧の高さを大きくして重なりを回避
-    const nodeOffset = -15 // ノード端からのオフセット
+    const nodeOffset = 8 // ノード端からのオフセット
     
     // 現在のエッジが上向きか下向きかを決定（IDで判定）
     const reverseEdge = edges.find(edge => edge.source === target && edge.target === source)
@@ -51,8 +51,11 @@ export function TriangleEdge({ id, source, target, style, data }: TriangleEdgePr
     const controlY = midY + (isUpward ? -controlOffset : controlOffset)
     
     edgePath = `M ${sx} ${adjustedSy} Q ${midX} ${controlY} ${tx} ${adjustedTy}`
-    labelX = midX
-    labelY = controlY
+    
+    // ベジェ曲線の実際の中央位置を計算（t=0.5の位置）
+    const t = 0.5
+    labelX = (1-t)*(1-t)*sx + 2*(1-t)*t*midX + t*t*tx
+    labelY = (1-t)*(1-t)*adjustedSy + 2*(1-t)*t*controlY + t*t*adjustedTy
   } else {
     // 通常の直線パス
     const [path, x, y] = getStraightPath({
