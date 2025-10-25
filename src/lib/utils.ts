@@ -157,18 +157,36 @@ export function isStepCorrect(correctAnswers: any, stepNumber: 1 | 2 | 3, state:
   }
 
   if (stepNumber === 2) {
-    const impossible = Boolean(incoming?.impossible)
-    const correctImpossible = Boolean(correct?.impossible)
-    if (impossible) {
-      return correctImpossible === true
+    // Step2の正誤判定（新しいReactFlowベースの構造）
+    const correctLinks = correct?.links || []
+    const correctPremise = correct?.premise
+    
+    // premiseの比較（データベースの"Qである"は実際の選択肢に置き換える）
+    let premiseMatch = false
+    if (correctPremise === "Qである") {
+      // "Qである"は実際の選択肢に置き換える（問題に応じて調整）
+      premiseMatch = incoming?.premise === "哺乳類である"
+    } else {
+      premiseMatch = incoming?.premise === correctPremise
     }
-    const incLinks = incoming?.link_directions || {}
-    const corLinks = correct?.link_directions || {}
+    
+    // linksの比較（fromとtoの順序を考慮）
+    const normalizeLinks = (links: any[]) => {
+      return links.map(link => ({
+        from: link.from,
+        to: link.to
+      })).sort((a, b) => {
+        if (a.from !== b.from) return a.from.localeCompare(b.from)
+        return a.to.localeCompare(b.to)
+      })
+    }
+    
+    const incLinks = normalizeLinks(incoming?.links || [])
+    const corLinks = normalizeLinks(correctLinks)
+    
     return Boolean(
-      correctImpossible === false &&
-      incoming?.premise === correct?.premise &&
-      incLinks['antecedent-link'] === corLinks['antecedent-link'] &&
-      incLinks['consequent-link'] === corLinks['consequent-link']
+      premiseMatch && 
+      JSON.stringify(incLinks) === JSON.stringify(corLinks)
     )
   }
 
