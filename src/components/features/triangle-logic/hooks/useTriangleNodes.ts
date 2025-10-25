@@ -16,12 +16,14 @@ export function useTriangleNodes({ currentStep, options }: UseTriangleNodesProps
         id: 'antecedent',
         type: 'triangleNode',
         position: { x: 100, y: 100 },
+        draggable: true, // Step1ではドラッグ可能
         data: {
           options,
           value: '',
           onValueChange: () => {},
           isReadOnly: false,
           nodeId: 'antecedent',
+          showHandles: false, // Step1ではハンドル非表示
         },
       })
 
@@ -30,12 +32,14 @@ export function useTriangleNodes({ currentStep, options }: UseTriangleNodesProps
         id: 'consequent',
         type: 'triangleNode',
         position: { x: 400, y: 100 },
+        draggable: true, // Step1ではドラッグ可能
         data: {
           options,
           value: '',
           onValueChange: () => {},
           isReadOnly: false,
           nodeId: 'consequent',
+          showHandles: false, // Step1ではハンドル非表示
         },
       })
     }

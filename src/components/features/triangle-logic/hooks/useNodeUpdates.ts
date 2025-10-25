@@ -31,10 +31,13 @@ export function useNodeUpdates({
         if (node.id === 'antecedent') {
           return {
             ...node,
+            // Step1のノードは座標を固定（draggable: false）
+            draggable: currentStep > 1 ? false : true,
             data: {
               ...node.data,
               value: antecedentValue,
               isReadOnly: currentStep > 1,
+              showHandles: currentStep > 1, // Step1ではハンドル非表示
               onValueChange: onAntecedentChange || (() => {}),
             }
           }
@@ -42,10 +45,13 @@ export function useNodeUpdates({
         if (node.id === 'consequent') {
           return {
             ...node,
+            // Step1のノードは座標を固定（draggable: false）
+            draggable: currentStep > 1 ? false : true,
             data: {
               ...node.data,
               value: consequentValue,
               isReadOnly: currentStep > 1,
+              showHandles: currentStep > 1, // Step1ではハンドル非表示
               onValueChange: onConsequentChange || (() => {}),
             }
           }
