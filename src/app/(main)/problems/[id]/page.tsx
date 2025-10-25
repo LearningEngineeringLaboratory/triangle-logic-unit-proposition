@@ -173,17 +173,33 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
         const correctPremise = problem.correct_answers.step2?.premise
         
         // premiseの比較：Step2で追加したPremiseNodeの値と一致するか
-        const uiPremiseNodes = uiFragment.premiseNodes || []
-        const premiseMatch = uiPremiseNodes.some((node: any) => node.value === correctPremise)
+        // uiFragment.premiseがStep2で追加したノードの値
+        const premiseMatch = uiFragment.premise === correctPremise
         
         // linksの比較：Step2で追加したリンクの始点と終点が一致するか（順不同）
+        // ノードIDを実際の値に変換して比較
         const uiLinks = uiFragment.links || []
+        
+        // ノードIDから実際の値を取得する関数
+        const getNodeValue = (nodeId: string) => {
+          if (nodeId === 'antecedent') return uiFragment.antecedent || ''
+          if (nodeId === 'consequent') return uiFragment.consequent || ''
+          if (nodeId.startsWith('premise-')) return uiFragment.premise || ''
+          return nodeId
+        }
+        
+        // UIのリンクを実際の値に変換
+        const uiLinksWithValues = uiLinks.map((link: any) => ({
+          from: getNodeValue(link.from),
+          to: getNodeValue(link.to)
+        }))
+        
         const linksMatch = correctLinks.every((correctLink: any) => 
-          uiLinks.some((uiLink: any) => 
+          uiLinksWithValues.some((uiLink: any) => 
             (uiLink.from === correctLink.from && uiLink.to === correctLink.to) ||
             (uiLink.from === correctLink.to && uiLink.to === correctLink.from)
           )
-        ) && uiLinks.every((uiLink: any) =>
+        ) && uiLinksWithValues.every((uiLink: any) =>
           correctLinks.some((correctLink: any) =>
             (uiLink.from === correctLink.from && uiLink.to === correctLink.to) ||
             (uiLink.from === correctLink.to && uiLink.to === correctLink.from)
@@ -191,10 +207,11 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
         )
         
         console.log(`[debug-step2] correctPremise:`, correctPremise)
-        console.log(`[debug-step2] uiPremiseNodes:`, uiPremiseNodes)
+        console.log(`[debug-step2] uiFragment.premise:`, uiFragment.premise)
         console.log(`[debug-step2] premiseMatch:`, premiseMatch)
         console.log(`[debug-step2] correctLinks:`, correctLinks)
         console.log(`[debug-step2] uiLinks:`, uiLinks)
+        console.log(`[debug-step2] uiLinksWithValues:`, uiLinksWithValues)
         console.log(`[debug-step2] linksMatch:`, linksMatch)
         
         isCorrect = premiseMatch && linksMatch

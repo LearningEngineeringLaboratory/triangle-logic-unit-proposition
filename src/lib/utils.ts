@@ -162,17 +162,31 @@ export function isStepCorrect(correctAnswers: any, stepNumber: 1 | 2 | 3, state:
     const correctPremise = correct?.premise
     
     // premiseの比較：Step2で追加したPremiseNodeの値と一致するか
-    const uiPremiseNodes = incoming?.premiseNodes || []
-    const premiseMatch = uiPremiseNodes.some((node: any) => node.value === correctPremise)
+    const premiseMatch = incoming?.premise === correctPremise
     
     // linksの比較：Step2で追加したリンクの始点と終点が一致するか（順不同）
     const uiLinks = incoming?.links || []
+    
+    // ノードIDから実際の値を取得する関数
+    const getNodeValue = (nodeId: string) => {
+      if (nodeId === 'antecedent') return incoming?.antecedent || ''
+      if (nodeId === 'consequent') return incoming?.consequent || ''
+      if (nodeId.startsWith('premise-')) return incoming?.premise || ''
+      return nodeId
+    }
+    
+    // UIのリンクを実際の値に変換
+    const uiLinksWithValues = uiLinks.map((link: any) => ({
+      from: getNodeValue(link.from),
+      to: getNodeValue(link.to)
+    }))
+    
     const linksMatch = correctLinks.every((correctLink: any) => 
-      uiLinks.some((uiLink: any) => 
+      uiLinksWithValues.some((uiLink: any) => 
         (uiLink.from === correctLink.from && uiLink.to === correctLink.to) ||
         (uiLink.from === correctLink.to && uiLink.to === correctLink.from)
       )
-    ) && uiLinks.every((uiLink: any) =>
+    ) && uiLinksWithValues.every((uiLink: any) =>
       correctLinks.some((correctLink: any) =>
         (uiLink.from === correctLink.from && uiLink.to === correctLink.to) ||
         (uiLink.from === correctLink.to && uiLink.to === correctLink.from)
