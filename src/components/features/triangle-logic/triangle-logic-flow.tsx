@@ -15,7 +15,9 @@ import {
   ConnectionMode,
 } from '@xyflow/react'
 import { TriangleNode } from './nodes/TriangleNode'
+import { PremiseNode } from './nodes/PremiseNode'
 import { TriangleEdge } from './edges/TriangleEdge'
+import { AddPremiseNodeButton } from './components/AddPremiseNodeButton'
 import { useTriangleNodes } from './hooks/useTriangleNodes'
 import { useTriangleEdges } from './hooks/useTriangleEdges'
 import { useNodeUpdates } from './hooks/useNodeUpdates'
@@ -25,6 +27,7 @@ import { useNodeUpdates } from './hooks/useNodeUpdates'
 // ========================================
 const nodeTypes: NodeTypes = {
   triangleNode: TriangleNode,
+  premiseNode: PremiseNode,
 }
 
 const edgeTypes: EdgeTypes = {
@@ -70,7 +73,7 @@ export function TriangleLogicFlow({
   const { theme } = useTheme()
   
   // カスタムフックを使用してノードとエッジを管理
-  const { initialNodes } = useTriangleNodes({ currentStep, options })
+  const { initialNodes, addPremiseNode, removePremiseNode } = useTriangleNodes({ currentStep, options })
   const { initialEdges } = useTriangleEdges({ 
     currentStep, 
     links, 
@@ -130,7 +133,7 @@ export function TriangleLogicFlow({
         defaultViewport={{ x: 0, y: 0, zoom: 1 }}
         minZoom={0.3}
         maxZoom={2}
-        attributionPosition="bottom-left"
+        attributionPosition="top-right"
         colorMode={theme === 'dark' ? 'dark' : 'light'}
       >
         <Controls 
@@ -145,6 +148,16 @@ export function TriangleLogicFlow({
           size={1}
         />
       </ReactFlow>
+      
+      {/* Step2の時のみノード追加ボタンを表示 */}
+      {currentStep === 2 && (
+        <div className="absolute bottom-4 left-4 right-4 z-10">
+          <AddPremiseNodeButton 
+            options={options}
+            onAddNode={addPremiseNode}
+          />
+        </div>
+      )}
     </div>
   )
 }

@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useState, useCallback } from 'react'
 import { Node } from '@xyflow/react'
 
 interface UseTriangleNodesProps {
@@ -6,7 +6,16 @@ interface UseTriangleNodesProps {
   options: string[]
 }
 
+interface PremiseNode {
+  id: string
+  value: string
+  position: { x: number; y: number }
+}
+
 export function useTriangleNodes({ currentStep, options }: UseTriangleNodesProps) {
+  // 動的に追加される所与命題ノードの状態
+  const [premiseNodes, setPremiseNodes] = useState<PremiseNode[]>([])
+
   const initialNodes: Node[] = useMemo(() => {
     const nodes: Node[] = []
     
@@ -45,23 +54,49 @@ export function useTriangleNodes({ currentStep, options }: UseTriangleNodesProps
     }
 
     if (currentStep >= 2) {
-      // Step2: 所与命題ノード（中央下）
-      nodes.push({
-        id: 'premise',
-        type: 'triangleNode',
-        position: { x: 250, y: 300 },
-        data: {
-          options,
-          value: '',
-          onValueChange: () => {},
-          isReadOnly: false,
-          nodeId: 'premise',
-        },
+      // Step2: 動的に追加された所与命題ノード
+      premiseNodes.forEach((premiseNode, index) => {
+        nodes.push({
+          id: premiseNode.id,
+          type: 'premiseNode',
+          position: premiseNode.position,
+          draggable: true, // 自由に動かせる
+          data: {
+            value: premiseNode.value,
+            nodeId: premiseNode.id,
+            showHandles: true, // ハンドル表示
+          },
+        })
       })
     }
 
     return nodes
-  }, [currentStep, options])
+  }, [currentStep, options, premiseNodes])
 
-  return { initialNodes }
+  // 所与命題ノードを追加する関数
+  const addPremiseNode = useCallback((value: string) => {
+    const newNodeId = `premise-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+    const newPremiseNode: PremiseNode = {
+      id: newNodeId,
+      value,
+      position: { 
+        x: 250 + (premiseNodes.length * 50), // 横にずらして配置
+        y: 300 + (premiseNodes.length * 20)  // 縦にも少しずらして配置
+      }
+    }
+    
+    setPremiseNodes(prev => [...prev, newPremiseNode])
+  }, [premiseNodes.length])
+
+  // 所与命題ノードを削除する関数
+  const removePremiseNode = useCallback((nodeId: string) => {
+    setPremiseNodes(prev => prev.filter(node => node.id !== nodeId))
+  }, [])
+
+  return { 
+    initialNodes, 
+    addPremiseNode, 
+    removePremiseNode,
+    premiseNodes 
+  }
 }

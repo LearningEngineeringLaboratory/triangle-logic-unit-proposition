@@ -215,8 +215,8 @@
 }
 
 .react-flow__attribution {
-  left: 10px !important;
-  bottom: 8px !important;
+  right: 8px !important;
+  top: 4px !important;
   background: oklch(1 0 0 / 0.8) !important;
   padding: 4px 8px !important;
   font-size: 8px !important;
