@@ -147,17 +147,17 @@ export function TriangleLogicFlow({
           gap={20} 
           size={1}
         />
+        
+        {/* Step2の時のみノード追加ボタンを表示 */}
+        {currentStep === 2 && (
+          <div className="absolute bottom-4 left-4 right-4 z-10">
+            <AddPremiseNodeButton 
+              options={options}
+              onAddNode={addPremiseNode}
+            />
+          </div>
+        )}
       </ReactFlow>
-      
-      {/* Step2の時のみノード追加ボタンを表示 */}
-      {currentStep === 2 && (
-        <div className="absolute bottom-4 left-4 right-4 z-10">
-          <AddPremiseNodeButton 
-            options={options}
-            onAddNode={addPremiseNode}
-          />
-        </div>
-      )}
     </div>
   )
 }
