@@ -32,7 +32,7 @@ export function useNodeUpdates({
           return {
             ...node,
             // Step1のノードは座標を固定（draggable: false）
-            draggable: currentStep > 1 ? false : true,
+            draggable: false,
             data: {
               ...node.data,
               value: antecedentValue,
@@ -46,7 +46,7 @@ export function useNodeUpdates({
           return {
             ...node,
             // Step1のノードは座標を固定（draggable: false）
-            draggable: currentStep > 1 ? false : true,
+            draggable: false,
             data: {
               ...node.data,
               value: consequentValue,

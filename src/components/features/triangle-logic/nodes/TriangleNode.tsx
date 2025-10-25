@@ -22,7 +22,7 @@ export function TriangleNode({ data }: TriangleNodeProps) {
   return (
     <div className="relative">
       {/* ハンドル表示制御 */}
-      {showHandles && (
+      {showHandles ? (
         <>
           {/* ノード外側のハンドル（接続ポイント） */}
           <Handle
@@ -37,6 +37,20 @@ export function TriangleNode({ data }: TriangleNodeProps) {
           <Handle
             type="target"
             position={Position.Top}
+            style={{ opacity: 0, cursor: 'default' }}
+          />
+        </>
+      ) : (
+        <>
+          {/* ハンドルを非表示 */}
+          <Handle
+            type="target"
+            position={Position.Top}
+            style={{ opacity: 0, cursor: 'default' }}
+          />
+          <Handle
+            type="source"
+            position={Position.Bottom}
             style={{ opacity: 0, cursor: 'default' }}
           />
         </>
