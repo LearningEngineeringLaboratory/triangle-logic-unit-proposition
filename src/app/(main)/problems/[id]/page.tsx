@@ -15,7 +15,7 @@ import { ClearDialog } from '@/components/features/problem-detail/ClearDialog'
 import { FeedbackDrawer } from '@/components/ui/feedback-drawer'
 import { Header } from '@/components/layout/Header'
 import { useProblemSteps } from '@/hooks/useProblemSteps'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { logClientCheck } from '@/lib/utils'
 
@@ -43,6 +43,11 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
     consequent: '',
     premiseNodes: []
   })
+
+  // ノードの値を更新するコールバック
+  const handleNodeValuesChange = useCallback((values: { antecedent: string; consequent: string; premiseNodes: Array<{ id: string; value: string }> }) => {
+    setNodeValues(values)
+  }, [])
 
   // カスタムフックを使用してステップ管理を簡素化
   const {
@@ -313,7 +318,7 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
             onLinksChange={(links) => updateStep(2, { ...steps.step2, links })}
             activeLinks={steps.step4?.links || []}
             onActiveLinksChange={(links) => updateStep(4, { ...steps.step4, links })}
-            onGetNodeValues={setNodeValues}
+            onGetNodeValues={handleNodeValuesChange}
           />
         ),
         footer: (

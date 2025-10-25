@@ -153,16 +153,19 @@ export function TriangleLogicFlow({
       const consequentNode = nodes.find(node => node.id === 'consequent')
       const premiseNodes = nodes.filter(node => node.id.startsWith('premise-'))
       
-      onGetNodeValues({
+      const currentValues = {
         antecedent: (antecedentNode?.data?.value as string) || '',
         consequent: (consequentNode?.data?.value as string) || '',
         premiseNodes: premiseNodes.map(node => ({
           id: node.id,
           value: (node.data?.value as string) || ''
         }))
-      })
+      }
+      
+      // 値が変更された場合のみコールバックを呼び出す
+      onGetNodeValues(currentValues)
     }
-  }, [nodes, onGetNodeValues])
+  }, [nodes])
 
   // エッジを動的に生成（linksとactiveLinksの変更を監視）
   useEffect(() => {
