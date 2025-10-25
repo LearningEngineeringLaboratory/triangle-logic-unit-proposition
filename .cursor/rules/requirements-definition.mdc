@@ -1,9 +1,9 @@
 ---
 alwaysApply: true
 ---
-# 単位命題三角ロジック演習システム 要件定義 v0.3
+# 単位命題三角ロジック演習システム 要件定義 v0.4
 
-作成日：2025-10-05（JST）／更新：認証・セッション管理の詳細化
+作成日：2025-10-25（JST）／更新：ステップ構成の変更・ReactFlow導入
 
 ---
 
@@ -13,7 +13,7 @@ alwaysApply: true
 
 ## 2. 技術スタック
 
-* **フロントエンド**: Next.js App Router, TypeScript, TailwindCSS, shadcn/ui, Radix UI
+* **フロントエンド**: Next.js App Router, TypeScript, TailwindCSS, shadcn/ui, Radix UI, ReactFlow
 * **バックエンド**: Next.js Server Actions, Route Handlers
 * **データベース**: Supabase (PostgreSQL + RLS)
 * **デプロイ**: Vercel
@@ -169,15 +169,16 @@ interface ContinueDialog {
 
 ### 5.1 テーブル構成
 * `users`: ユーザー情報（`user_id`, `name`, `email`, `created_at`）
-* `problems`: 問題データ（`problem_id`, `title`, `argument`, `total_steps`, `steps`, `version`）
+* `problems`: 問題データ（`problem_id`, `argument`, `correct_answers`, `options`, `version`）
 * `sessions`: セッション管理（`session_id`, `user_id`, `created_at`, `last_activity`）
 * `attempts`: 試行記録（`session_id`, `user_id`, `problem_id`, `started_at`, `finished_at`, `status`）
 * `events`: 操作ログ（`session_id`, `user_id`, `attempt_id`, `seq`, `kind`, `payload`, `client_ts`, `server_ts`）
 * `responses`: 回答状態（`response_id`, `session_id`, `user_id`, `problem_id`, `problem_number`, `state`, `current_step`, `is_completed`）
 
 ### 5.2 データ構造詳細
-* `problems.total_steps`: 問題内のステップ数（可変対応）
-* `problems.steps`: ステップ情報の配列（JSONB形式）
+* `problems.argument`: 論証文（問題文）
+* `problems.correct_answers`: 各ステップの正解データ（JSONB形式）
+* `problems.options`: 単位命題の共通選択肢（JSONB配列）
 * `responses.state`: 全ステップの回答状態（JSONB形式）
 * `responses.problem_number`: 問題番号（1, 2, 3...）
 * `responses.current_step`: 現在のステップ番号
@@ -185,40 +186,43 @@ interface ContinueDialog {
 
 ### 5.3 JSONBフィールドの詳細
 
-#### `problems.steps`の構造
+#### `problems.correct_answers`の構造
 ```json
 {
   "step1": {
-    "rubric": {
-      "correct_answer": {
-        "antecedent": "Pである",
-        "consequent": "Rである"
-      }
-    },
-    "options": ["Pである", "Qである", "Rである"]
+    "antecedent": "Pである",
+    "consequent": "Rである"
   },
   "step2": {
-    "rubric": {
-      "answer_type": "selectable",
-      "correct_answer": {
-        "premise": "Qである",
-        "link_directions": {
-          "antecedent-link": true,
-          "consequent-link": true
-        }
-      }
-    },
-    "options": ["Pである", "Qである", "Rである"]
+    "premise": "Qである",
+    "links": [
+      { "from": "Pである", "to": "Qである" },
+      { "from": "Qである", "to": "Rである" }
+    ]
   },
   "step3": {
-    "rubric": {
-      "correct_answer": {
-        "inference_type": "演繹",
-        "validity": true
-      }
-    },
+    "inference_type": "演繹推論",
+    "validity": true
+  },
+  "step4": {
+    "links": [
+      { "from": "Pである", "to": "Qである", "active": true },
+      { "from": "Qである", "to": "Rである", "active": true },
+      { "from": "Pである", "to": "Rである", "active": false }
+    ]
+  },
+  "step5": {
+    "premises": [
+      { "antecedent": "Pである", "consequent": "Qである" },
+      { "antecedent": "Qである", "consequent": "Rである" }
+    ]
   }
 }
+```
+
+**注意**: `problems.options`は別フィールドとして共通選択肢を保持
+```json
+["Pである", "Qである", "Rである"]
 ```
 
 #### `responses.state`の構造
@@ -230,17 +234,31 @@ interface ContinueDialog {
     "is_passed": true
   },
   "step2": {
-    "answer_type": "selectable",
     "premise": "Qである",
-    "link_directions": {
-      "antecedent-link": true,
-      "consequent-link": true
-    },
-    "is_passed": false
+    "links": [
+      { "from": "node1", "to": "node2" },
+      { "from": "node2", "to": "node3" }
+    ],
+    "is_passed": true
   },
   "step3": {
-    "inference_type": "演繹",
+    "inference_type": "演繹推論",
     "validity": true,
+    "is_passed": true
+  },
+  "step4": {
+    "links": [
+      { "from": "node1", "to": "node2", "active": true },
+      { "from": "node2", "to": "node3", "active": false },
+      { "from": "node3", "to": "node1", "active": false }
+    ],
+    "is_passed": true
+  },
+  "step5": {
+    "premises": [
+      { "antecedent": "Pである", "consequent": "Qである" },
+      { "antecedent": "Qである", "consequent": "Rである" }
+    ],
     "is_passed": false
   }
 }
@@ -253,20 +271,48 @@ interface ContinueDialog {
 
 ### 6.1 問題・ステップ構成
 
+#### 学習目的
+三項論証の妥当性、推論形式を判別する。もし、論証が妥当ではなかった場合は元の論証の導出命題を正しく導くための前提を構成する。
+
 #### 問題1（例）
 **問題文**: PであるならばQである。また，QであるならばRである。したがって，PであるならばRである。
 
 * **Step1**: 導出命題を構成（前件/後件ドロップダウン選択）
   - クリア条件: 正しい前件・後件の組み合わせを選択
-* **Step2**: 所与命題を構成（ドロップダウン選択＋矢印向き反転）
-  - クリア条件: 正しい所与命題の組み合わせと矢印方向を設定
+  - UI: 2ノード構成（左上・右上頂点）+ 導出命題リンク
+
+* **Step2**: 所与命題を構成（ドロップダウン選択＋リンク作成）
+  - クリア条件: 正しい所与命題を選択し、ノード間のリンクを正しく設定
+  - UI: 3ノード構成（Step1 + 中央下頂点）
+  - インタラクション:
+    - ノード外側のハンドルをドラッグして他のノードに接続
+    - リンクはマグネット式で吸着
+    - 双方向リンク（A→B、B→A）は弧を描いて表示
+    - ユーザー作成リンクのみ削除可能
+    - ノードとStep1の導出命題リンクは削除不可
+
 * **Step3**: 推論形式と妥当性を選択
-  - クリア条件: 正しい推論形式（演繹/仮説/非形式）と妥当性（妥当/非妥当）を選択
+  - クリア条件: 正しい推論形式（演繹推論/仮説推論/非形式推論）と妥当性（妥当/非妥当）を選択
+  - **分岐条件**: 
+    - 演繹推論の場合 → 問題クリア
+    - 演繹推論以外の場合 → Step4に進む
+
+* **Step4**: 妥当性のある三角ロジックの構成（Step3で演繹推論以外の場合のみ）
+  - クリア条件: 導出命題（Step1）はそのままで、所与命題のリンクを変更して妥当性のある三角ロジックを構成
+  - インタラクション:
+    - 不要なリンクに「不要マーク」を追加（矢印が薄く表示）
+    - 必要な新しいリンクを追加
+    - リンクの`active`フラグで管理（true=必要、false=不要）
+
+* **Step5**: 妥当性のある三項論証を構成
+  - クリア条件: Step4で構成した三角ロジックを参考に、妥当性のある三項論証を構成
+  - UI: 「【】ならば【】。【】ならば【】。」形式（常に2つの条件文）
+  - インタラクション: 各【】部分をドロップダウンで選択
 
 #### 問題2以降
 - 同様の構造で複数の問題を配置
 - 各問題は独立したステップ構成を持つ
-- ステップ数は問題ごとに可変（現在は3ステップ、将来は4ステップ以上も可能）
+- ステップ数は問題ごとに可変（3ステップまたは5ステップ）
 
 ### 6.2 進捗管理の統合構造
 
@@ -293,7 +339,10 @@ interface ContinueDialog {
 * `continue_dialog_shown`: 継続確認ダイアログ表示（`user_id`, `problem_number`, `current_step`）
 * `continue_selected`: 継続方法選択（`user_id`, `choice`, `problem_number`, `current_step`）
 * `select_dropdown`: ドロップダウン選択（`control_id`, `value`）
-* `toggle_link_direction`: 矢印反転（`link_id`, `new_direction`）
+* `link_created`: リンク作成（`from_node`, `to_node`）
+* `link_deleted`: リンク削除（`from_node`, `to_node`）
+* `link_marked_inactive`: リンクを不要としてマーク（`link_id`, `active: false`）
+* `link_marked_active`: リンクを必要としてマーク（`link_id`, `active: true`）
 * `step_completed`: ステップ完了（`step`, `result`, `is_correct`）
 * `attempt_started`: 試行開始（`problem_id`）
 * `attempt_finished`: 試行終了（`problem_id`, `success`）
@@ -340,24 +389,47 @@ interface ContinueDialog {
 * 下部: 単位命題三角ロジック表示エリア
 * 最下部: 答え合わせボタン
 
-### 9.2 単位命題三角ロジック仕様
+### 9.2 単位命題三角ロジック仕様（ReactFlow実装）
 
 #### 基本構造
 * **形状**: 逆正三角形
 * **ノード**: 単位命題を表示（ドロップダウンで選択可能）
-* **リンク**: 有向リンクでノード間を接続
+* **ハンドル**: ノード外側に接続ポイントを配置
+* **リンク**: 有向リンクでノード間を接続（ReactFlowのEdge）
 * **選択肢**: 全ノードで同一の選択肢を使用
 
 #### ステップ別表示
 * **Step1**: 2ノード構成（左上・右上頂点）
   - 導出命題の前件・後件を選択
+  - 固定リンク: 前件→後件（削除不可）
   - 例：「Pである→Rである」
+
 * **Step2**: 3ノード構成（Step1 + 中央下頂点）
   - 所与命題の単位命題を選択
-  - リンクの向き反転ボタン付き
+  - インタラクション:
+    - ハンドルをドラッグして他のノードに接続
+    - マグネット式でリンクが吸着
+    - 双方向リンク（A→B、B→A）は弧を描いて表示
+    - ユーザー作成リンクのみ削除可能（×ボタンまたは選択して削除）
+    - Step1の導出命題リンクは削除不可
   - 例：「Pである→Qである」「Qである→Rである」
+
 * **Step3**: 表示のみ（操作不可）
   - 推論形式・妥当性選択UI
+  - 三角ロジックは表示のみ
+
+* **Step4**: リンクの活性/非活性マーク（Step3で演繹推論以外の場合のみ）
+  - Step2で作成した三角ロジックを編集
+  - インタラクション:
+    - 既存リンクをクリックして「不要マーク」を追加（矢印が薄く表示）
+    - 新しいリンクを追加可能
+    - `active`フラグで管理（true=必要、false=不要）
+  - 導出命題（Step1）のノードとリンクは変更不可
+
+* **Step5**: 論証構成UI（Step3で演繹推論以外の場合のみ）
+  - 三角ロジックは表示のみ（参考用）
+  - 「【】ならば【】。【】ならば【】。」形式
+  - 各【】部分をドロップダウンで選択。選択肢は、Step1、Step2の選択肢の中身と同一。
 
 ### 9.3 インタラクション仕様
 
@@ -393,8 +465,8 @@ interface ContinueDialog {
 - **復帰時の整合性**: セッション復帰時に問題・ステップ両方の最新状態を確実に復元
 - **継続確認機能**: 途中で中断した学習を適切に継続できる仕組み
 - **データの整合性**: 外部キー制約とRLSでデータの整合性を保証
-- **可変ステップ対応**: JSONB構造により問題ごとに異なるステップ数に対応可能
-- **ログ分析の簡素化**: テーブル統合によりJOINが不要で分析クエリが簡潔
+- **可変ステップ対応**: JSONB構造により問題ごとに異なるステップ数に対応可能（3ステップまたは5ステップ）
+- **リンク情報の管理**: Step2とStep4でリンク情報を分離して保持し、学習過程を詳細に記録
 
 ### 11.3 エラーハンドリング
 - **ネットワークエラー**: オフライン時の操作をバッファリング
