@@ -144,11 +144,8 @@ export function ProblemStepDisplay({
       <div className="flex-1 overflow-y-auto" ref={scrollContainerRef}>
         <div className="space-y-0">
           {/* 現在のステップ（最上部に表示） */}
-          <div className="p-6" id={`current-step-${currentStepData.number}`}>
+          <div className="pd-6 pr-6" id={`current-step-${currentStepData.number}`}>
             <div className="flex items-center gap-3 mb-4">
-              <div className="flex items-center justify-center">
-                <Circle className="w-5 h-5 text-primary" />
-              </div>
               <h3 className="text-lg font-semibold text-foreground">
                 Step {currentStepData.number}: {currentStepData.title}
               </h3>
@@ -208,17 +205,12 @@ export function ProblemStepDisplay({
             return (
               <div key={step.number}>
                 {/* ステップ間のボーダー */}
-                <div className="border-t border-border mx-6" />
+                <div className="border-t border-border mr-6" />
                 
-                <div className="p-6">
+                <div className="pr-6 py-6">
                   <div className="flex items-center gap-3 mb-4">
                     <div className="flex items-center gap-2">
-                      {isCompleted ? (
-                        <CheckCircle2 className="w-5 h-5 text-success" />
-                      ) : (
-                        <Circle className="w-5 h-5 text-muted-foreground" />
-                      )}
-                      <h3 className="text-lg font-semibold text-muted-foreground">
+                      <h3 className="text-lg font-semibold text-muted-foreground/60">
                         Step {step.number}: {step.title}
                       </h3>
                     </div>
@@ -228,7 +220,7 @@ export function ProblemStepDisplay({
                       </span>
                     )}
                   </div>
-                  <p className="text-base leading-relaxed text-muted-foreground whitespace-pre-line">
+                  <p className="text-base leading-relaxed text-muted-foreground/60 whitespace-pre-line">
                     {step.content}
                   </p>
                 </div>
