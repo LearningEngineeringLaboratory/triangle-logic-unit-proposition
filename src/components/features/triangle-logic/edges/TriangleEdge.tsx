@@ -56,10 +56,11 @@ export function TriangleEdge({
 
   const edgeStyle = {
     ...style,
-    stroke: isActive ? '#64748b' : '#f97316',
+    stroke: isActive ? '#3b82f6' : '#ef4444',
     strokeWidth: isActive ? 3 : 2,
     strokeDasharray: isActive ? 'none' : '5,5',
     opacity: isActive ? 1 : 0.6,
+    fill: 'none',
   }
 
   return (

@@ -58,8 +58,8 @@ export function useProblemSteps(problem: ProblemDetail | null) {
   const updateStep = useCallback((stepNumber: number, updates: Partial<Step1State | Step2State | Step3State | Step4State | Step5State>) => {
     setSteps(prev => ({
       ...prev,
-      [`step${stepNumber}`]: {
-        ...prev[`step${stepNumber}`],
+      [`step${stepNumber}` as keyof StepsState]: {
+        ...prev[`step${stepNumber}` as keyof StepsState],
         ...updates,
       },
     }))

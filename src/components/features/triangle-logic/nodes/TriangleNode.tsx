@@ -25,28 +25,28 @@ export function TriangleNode({ data }: TriangleNodeProps) {
         type="source"
         position={Position.Right}
         id={`${nodeId}-right`}
-        className="w-3 h-3 bg-primary border-2 border-background"
+        className="w-3 h-3 bg-blue-500 border-2 border-white"
         style={{ right: -6 }}
       />
       <Handle
         type="source"
         position={Position.Left}
         id={`${nodeId}-left`}
-        className="w-3 h-3 bg-primary border-2 border-background"
+        className="w-3 h-3 bg-blue-500 border-2 border-white"
         style={{ left: -6 }}
       />
       <Handle
         type="source"
         position={Position.Top}
         id={`${nodeId}-top`}
-        className="w-3 h-3 bg-primary border-2 border-background"
+        className="w-3 h-3 bg-blue-500 border-2 border-white"
         style={{ top: -6 }}
       />
       <Handle
         type="source"
         position={Position.Bottom}
         id={`${nodeId}-bottom`}
-        className="w-3 h-3 bg-primary border-2 border-background"
+        className="w-3 h-3 bg-blue-500 border-2 border-white"
         style={{ bottom: -6 }}
       />
 
@@ -55,28 +55,28 @@ export function TriangleNode({ data }: TriangleNodeProps) {
         type="target"
         position={Position.Right}
         id={`${nodeId}-target-right`}
-        className="w-3 h-3 bg-secondary border-2 border-background"
+        className="w-3 h-3 bg-green-500 border-2 border-white"
         style={{ right: -6 }}
       />
       <Handle
         type="target"
         position={Position.Left}
         id={`${nodeId}-target-left`}
-        className="w-3 h-3 bg-secondary border-2 border-background"
+        className="w-3 h-3 bg-green-500 border-2 border-white"
         style={{ left: -6 }}
       />
       <Handle
         type="target"
         position={Position.Top}
         id={`${nodeId}-target-top`}
-        className="w-3 h-3 bg-secondary border-2 border-background"
+        className="w-3 h-3 bg-green-500 border-2 border-white"
         style={{ top: -6 }}
       />
       <Handle
         type="target"
         position={Position.Bottom}
         id={`${nodeId}-target-bottom`}
-        className="w-3 h-3 bg-secondary border-2 border-background"
+        className="w-3 h-3 bg-green-500 border-2 border-white"
         style={{ bottom: -6 }}
       />
 

@@ -1,11 +1,8 @@
 'use client'
 
-import { useCallback, useState, useMemo, useEffect } from 'react'
+import { useCallback } from 'react'
 import {
   ReactFlow,
-  Node,
-  Edge,
-  addEdge,
   Connection,
   useNodesState,
   useEdgesState,
@@ -18,6 +15,9 @@ import {
 } from '@xyflow/react'
 import { TriangleNode } from './nodes/TriangleNode'
 import { TriangleEdge } from './edges/TriangleEdge'
+import { useTriangleNodes } from './hooks/useTriangleNodes'
+import { useTriangleEdges } from './hooks/useTriangleEdges'
+import { useNodeUpdates } from './hooks/useNodeUpdates'
 
 // ========================================
 // ノードタイプとエッジタイプの定義
@@ -65,179 +65,30 @@ export function TriangleLogicFlow({
   activeLinks = [],
   onActiveLinksChange,
 }: TriangleLogicFlowProps) {
-  // ノードの初期設定（ステップとオプションのみに依存）
-  const initialNodes: Node[] = useMemo(() => {
-    const nodes: Node[] = []
-    
-    if (currentStep >= 1) {
-      // Step1: 前件ノード（左上）
-      nodes.push({
-        id: 'antecedent',
-        type: 'triangleNode',
-        position: { x: 50, y: 50 },
-        data: {
-          options,
-          value: '',
-          onValueChange: () => {},
-          isReadOnly: false,
-          nodeId: 'antecedent',
-        },
-      })
-
-      // Step1: 後件ノード（右上）
-      nodes.push({
-        id: 'consequent',
-        type: 'triangleNode',
-        position: { x: 300, y: 50 },
-        data: {
-          options,
-          value: '',
-          onValueChange: () => {},
-          isReadOnly: false,
-          nodeId: 'consequent',
-        },
-      })
-    }
-
-    if (currentStep >= 2) {
-      // Step2: 所与命題ノード（中央下）
-      nodes.push({
-        id: 'premise',
-        type: 'triangleNode',
-        position: { x: 175, y: 200 },
-        data: {
-          options,
-          value: '',
-          onValueChange: () => {},
-          isReadOnly: false,
-          nodeId: 'premise',
-        },
-      })
-    }
-
-    return nodes
-  }, [currentStep, options])
-
-  // エッジの初期設定
-  const initialEdges: Edge[] = useMemo(() => {
-    const edges: Edge[] = []
-    
-    if (currentStep >= 1) {
-      // Step1: 導出命題のリンク（固定、削除不可）
-      edges.push({
-        id: 'derived-link',
-        source: 'antecedent',
-        target: 'consequent',
-        type: 'triangleEdge',
-        data: {
-          label: 'ならば',
-          isActive: true,
-          isDeletable: false,
-        },
-      })
-    }
-
-    if (currentStep >= 2) {
-      // Step2: ユーザー作成リンク
-      links.forEach((link, index) => {
-        edges.push({
-          id: `user-link-${index}`,
-          source: link.from,
-          target: link.to,
-          type: 'triangleEdge',
-          data: {
-            isActive: true,
-            isDeletable: true,
-            onDelete: () => {
-              const newLinks = links.filter((_, i) => i !== index)
-              onLinksChange?.(newLinks)
-            },
-          },
-        })
-      })
-    }
-
-    if (currentStep >= 4) {
-      // Step4: 活性/非活性リンク
-      activeLinks.forEach((link, index) => {
-        edges.push({
-          id: `active-link-${index}`,
-          source: link.from,
-          target: link.to,
-          type: 'triangleEdge',
-          data: {
-            isActive: link.active,
-            isDeletable: false,
-          },
-        })
-      })
-    }
-
-    return edges
-  }, [currentStep, links, activeLinks, onLinksChange])
+  // カスタムフックを使用してノードとエッジを管理
+  const { initialNodes } = useTriangleNodes({ currentStep, options })
+  const { initialEdges } = useTriangleEdges({ 
+    currentStep, 
+    links, 
+    activeLinks, 
+    onLinksChange 
+  })
 
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes)
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges)
 
-  // ノードの状態を更新
-  const updateNodes = useCallback(() => {
-    setNodes(prevNodes => {
-      const updatedNodes = prevNodes.map(node => {
-        if (node.id === 'antecedent') {
-          return {
-            ...node,
-            data: {
-              ...node.data,
-              value: antecedentValue,
-              isReadOnly: currentStep > 1,
-              onValueChange: onAntecedentChange || (() => {}),
-            }
-          }
-        }
-        if (node.id === 'consequent') {
-          return {
-            ...node,
-            data: {
-              ...node.data,
-              value: consequentValue,
-              isReadOnly: currentStep > 1,
-              onValueChange: onConsequentChange || (() => {}),
-            }
-          }
-        }
-        if (node.id === 'premise') {
-          return {
-            ...node,
-            data: {
-              ...node.data,
-              value: premiseValue,
-              isReadOnly: currentStep > 2,
-              onValueChange: onPremiseChange || (() => {}),
-            }
-          }
-        }
-        return node
-      })
-      
-      // デバッグ用ログ
-      console.log('Updating nodes:', {
-        antecedentValue,
-        consequentValue,
-        premiseValue,
-        currentStep,
-        updatedNodes: updatedNodes.map(n => ({ id: n.id, value: n.data.value }))
-      })
-      
-      return updatedNodes
-    })
-  }, [antecedentValue, consequentValue, premiseValue, currentStep, onAntecedentChange, onConsequentChange, onPremiseChange])
-
-  // 値が変更されたときにノードを更新
-  useEffect(() => {
-    if (nodes.length > 0) {
-      updateNodes()
-    }
-  }, [updateNodes, nodes.length])
+  // ノードの状態更新
+  useNodeUpdates({
+    nodes,
+    setNodes,
+    currentStep,
+    antecedentValue,
+    consequentValue,
+    premiseValue,
+    onAntecedentChange,
+    onConsequentChange,
+    onPremiseChange,
+  })
 
   // エッジ接続時の処理
   const onConnect = useCallback(
@@ -266,10 +117,28 @@ export function TriangleLogicFlow({
         edgeTypes={edgeTypes}
         connectionMode={ConnectionMode.Loose}
         fitView
-        fitViewOptions={{ padding: 0.1 }}
+        fitViewOptions={{ 
+          padding: 0.2,
+          includeHiddenNodes: false,
+          minZoom: 0.5,
+          maxZoom: 2
+        }}
+        defaultViewport={{ x: 0, y: 0, zoom: 1 }}
+        minZoom={0.3}
+        maxZoom={2}
+        attributionPosition="bottom-left"
       >
-        <Controls />
-        <Background variant={BackgroundVariant.Dots} gap={12} size={1} />
+        <Controls 
+          showZoom={true}
+          showFitView={true}
+          showInteractive={false}
+        />
+        <Background 
+          variant={BackgroundVariant.Dots} 
+          gap={20} 
+          size={1}
+          color="#e2e8f0"
+        />
       </ReactFlow>
     </div>
   )
