@@ -60,6 +60,11 @@ export function useTriangleNodes({ currentStep, options, setNodes }: UseTriangle
     return nodes
   }, [currentStep, options])
 
+  // 所与命題ノードを削除する関数
+  const removePremiseNode = useCallback((nodeId: string) => {
+    setPremiseNodes(prev => prev.filter(node => node.id !== nodeId))
+  }, [])
+
   // premiseNodesが変更されたときにReactFlowのノードを更新
   useEffect(() => {
     if (currentStep >= 2) {
@@ -72,6 +77,7 @@ export function useTriangleNodes({ currentStep, options, setNodes }: UseTriangle
           value: premiseNode.value,
           nodeId: premiseNode.id,
           showHandles: true, // ハンドル表示
+          onDelete: () => removePremiseNode(premiseNode.id), // 削除機能
         },
       }))
 
@@ -81,7 +87,7 @@ export function useTriangleNodes({ currentStep, options, setNodes }: UseTriangle
         return [...filteredNodes, ...premiseNodeElements]
       })
     }
-  }, [premiseNodes, currentStep, setNodes])
+  }, [premiseNodes, currentStep, setNodes, removePremiseNode])
 
   // 所与命題ノードを追加する関数
   const addPremiseNode = useCallback((value: string) => {
@@ -97,11 +103,6 @@ export function useTriangleNodes({ currentStep, options, setNodes }: UseTriangle
     
     setPremiseNodes(prev => [...prev, newPremiseNode])
   }, [premiseNodes.length])
-
-  // 所与命題ノードを削除する関数
-  const removePremiseNode = useCallback((nodeId: string) => {
-    setPremiseNodes(prev => prev.filter(node => node.id !== nodeId))
-  }, [])
 
   return { 
     initialNodes, 
