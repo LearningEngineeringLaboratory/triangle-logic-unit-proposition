@@ -21,11 +21,14 @@ export function useTriangleNodes({ currentStep, options, setNodes }: UseTriangle
     const nodes: Node[] = []
     
     if (currentStep >= 1) {
+      // Step1のノード位置をStep2以降では上に移動
+      const step1YPosition = currentStep >= 2 ? 0 : 100 // Step2以降は上に100px移動
+      
       // Step1: 前件ノード（左上）
       nodes.push({
         id: 'antecedent',
         type: 'triangleNode',
-        position: { x: 100, y: 100 },
+        position: { x: 100, y: step1YPosition },
         draggable: false, // Step1ではドラッグ不可
         data: {
           options,
@@ -41,7 +44,7 @@ export function useTriangleNodes({ currentStep, options, setNodes }: UseTriangle
       nodes.push({
         id: 'consequent',
         type: 'triangleNode',
-        position: { x: 400, y: 100 },
+        position: { x: 400, y: step1YPosition },
         draggable: false, // Step1ではドラッグ不可
         data: {
           options,

@@ -29,8 +29,11 @@ export function useNodeUpdates({
     setNodes(prevNodes => {
       const updatedNodes = prevNodes.map(node => {
         if (node.id === 'antecedent') {
+          // Step1のノード位置をStep2以降では上に移動
+          const step1YPosition = currentStep >= 2 ? 0 : 100
           return {
             ...node,
+            position: { x: 100, y: step1YPosition },
             // Step1のノードは座標を固定（draggable: false）
             draggable: false,
             data: {
@@ -43,8 +46,11 @@ export function useNodeUpdates({
           }
         }
         if (node.id === 'consequent') {
+          // Step1のノード位置をStep2以降では上に移動
+          const step1YPosition = currentStep >= 2 ? 0 : 100
           return {
             ...node,
+            position: { x: 400, y: step1YPosition },
             // Step1のノードは座標を固定（draggable: false）
             draggable: false,
             data: {
