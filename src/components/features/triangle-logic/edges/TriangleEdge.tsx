@@ -47,11 +47,19 @@ export function TriangleEdge({ id, source, target, style, data }: TriangleEdgePr
     const adjustedSy = isUpward ? sy - nodeOffset : sy + nodeOffset
     const adjustedTy = isUpward ? ty - nodeOffset : ty + nodeOffset
     
-    // 制御点を計算（始点と終点の中央より少し膨らんだ位置）
-    const controlY = midY + (isUpward ? -controlOffset : controlOffset)
+    // 制御点を計算（始点と終点を結ぶ直線の垂直二等分線上）
+    const dx = tx - sx
+    const dy = ty - sy
+    const distance = Math.sqrt(dx * dx + dy * dy)
     
-    // 制御点のX座標も調整（より自然な曲線にする）
-    const controlX = midX + (isUpward ? -10 : 10) // 左右に少しずらして自然な曲線に
+    // 垂直二等分線の方向ベクトル（時計回りに90度回転）
+    const perpX = -dy / distance
+    const perpY = dx / distance
+    
+    // 制御点の位置（垂直二等分線上で、距離に応じて調整）
+    const offsetDistance = Math.min(distance * 0.3, 60) // 距離の30%または最大60px
+    const controlX = midX + perpX * offsetDistance * (isUpward ? 1 : -1)
+    const controlY = midY + perpY * offsetDistance * (isUpward ? 1 : -1)
     
     edgePath = `M ${sx} ${adjustedSy} Q ${controlX} ${controlY} ${tx} ${adjustedTy}`
     
