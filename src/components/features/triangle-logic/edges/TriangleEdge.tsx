@@ -1,19 +1,11 @@
 'use client'
 
-import { Position } from '@xyflow/react'
+import { useInternalNode, getStraightPath, EdgeProps, EdgeLabelRenderer } from '@xyflow/react'
+import { getEdgeParams } from '../utils/edgeUtils'
 import { Button } from '@/components/ui/button'
 import { X } from 'lucide-react'
-import { useMemo } from 'react'
 
-interface TriangleEdgeProps {
-  id: string
-  sourceX: number
-  sourceY: number
-  targetX: number
-  targetY: number
-  sourcePosition: Position
-  targetPosition: Position
-  style?: React.CSSProperties
+interface TriangleEdgeProps extends EdgeProps {
   data?: {
     label?: string
     isActive?: boolean
@@ -22,37 +14,22 @@ interface TriangleEdgeProps {
   }
 }
 
-export function TriangleEdge({
-  id,
-  sourceX,
-  sourceY,
-  targetX,
-  targetY,
-  sourcePosition,
-  targetPosition,
-  style = {},
-  data
-}: TriangleEdgeProps) {
-  const { label, isActive = true, isDeletable = false, onDelete } = data || {}
+export function TriangleEdge({ id, source, target, style, data }: TriangleEdgeProps) {
+  const sourceNode = useInternalNode(source)
+  const targetNode = useInternalNode(target)
 
-  // エッジのパスを計算
-  const edgePath = useMemo(() => {
-    const offsetX = targetX - sourceX
-    const offsetY = targetY - sourceY
-    const distance = Math.sqrt(offsetX * offsetX + offsetY * offsetY)
-    
-    // 双方向リンクの場合は弧を描く
-    const isBidirectional = Math.abs(offsetX) < 50 && Math.abs(offsetY) < 50
-    
-    if (isBidirectional) {
-      const radius = 30
-      const controlX = sourceX + offsetX / 2
-      const controlY = sourceY - radius
-      return `M ${sourceX} ${sourceY} Q ${controlX} ${controlY} ${targetX} ${targetY}`
-    }
-    
-    return `M ${sourceX} ${sourceY} L ${targetX} ${targetY}`
-  }, [sourceX, sourceY, targetX, targetY])
+  if (!sourceNode || !targetNode) return null
+
+  const { sx, sy, tx, ty } = getEdgeParams(sourceNode, targetNode)
+
+  const [edgePath, labelX, labelY] = getStraightPath({
+    sourceX: sx,
+    sourceY: sy,
+    targetX: tx,
+    targetY: ty,
+  })
+
+  const { label, isActive = true, isDeletable = false, onDelete } = data || {}
 
   const edgeStyle = {
     ...style,
@@ -65,35 +42,71 @@ export function TriangleEdge({
 
   return (
     <>
+      <defs>
+        <marker
+          id={`circle-${id}`}
+          markerWidth="4"
+          markerHeight="4"
+          refX="2"
+          refY="2"
+          markerUnits="strokeWidth"
+        >
+          <circle cx="2" cy="2" r="1.5" fill={isActive ? '#3b82f6' : '#ef4444'} />
+        </marker>
+        <marker
+          id={`arrow-${id}`}
+          markerWidth="6"
+          markerHeight="6"
+          refX="4"
+          refY="3"
+          orient="auto"
+          markerUnits="strokeWidth"
+        >
+          <path d="M0,0.5 L0,5.5 L5,3 z" fill={isActive ? '#3b82f6' : '#ef4444'} />
+        </marker>
+      </defs>
       <path
         id={id}
         className="react-flow__edge-path"
         d={edgePath}
+        markerStart={`url(#circle-${id})`}
+        markerEnd={`url(#arrow-${id})`}
         style={edgeStyle}
       />
       {label && (
-        <text>
-          <textPath href={`#${id}`} style={{ fontSize: 12, fill: '#64748b' }}>
+        <EdgeLabelRenderer>
+          <div
+            className="nodrag nopan p-1 bg-background border border-border rounded-md text-xs"
+            style={{
+              position: 'absolute',
+              transform: `translate(-50%, -50%) translate(${labelX}px, ${labelY}px)`,
+              pointerEvents: 'all',
+            }}
+          >
             {label}
-          </textPath>
-        </text>
+          </div>
+        </EdgeLabelRenderer>
       )}
       {isDeletable && onDelete && (
-        <foreignObject
-          x={(sourceX + targetX) / 2 - 10}
-          y={(sourceY + targetY) / 2 - 10}
-          width={20}
-          height={20}
-        >
-          <Button
-            variant="destructive"
-            size="sm"
-            onClick={onDelete}
-            className="h-6 w-6 rounded-full p-0"
+        <EdgeLabelRenderer>
+          <div
+            className="nodrag nopan"
+            style={{
+              position: 'absolute',
+              transform: `translate(-50%, -50%) translate(${labelX}px, ${labelY}px)`,
+              pointerEvents: 'all',
+            }}
           >
-            <X className="h-3 w-3" />
-          </Button>
-        </foreignObject>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={onDelete}
+              className="h-6 w-6 rounded-full p-0"
+            >
+              <X className="h-3 w-3" />
+            </Button>
+          </div>
+        </EdgeLabelRenderer>
       )}
     </>
   )
