@@ -74,8 +74,8 @@ export function TriangleNode({ data }: TriangleNodeProps) {
               transform: 'translateY(-50%)',
               width: 16,
               height: 16,
-              backgroundColor: 'var(--primary)',
-              border: '2px solid var(--border)',
+              backgroundColor: 'transparent',
+              border: 'none',
               borderRadius: '50%',
             }}
           />
@@ -91,8 +91,8 @@ export function TriangleNode({ data }: TriangleNodeProps) {
               transform: 'translateX(-50%)',
               width: 16,
               height: 16,
-              backgroundColor: 'var(--primary)',
-              border: '2px solid var(--border)',
+              backgroundColor: 'transparent',
+              border: 'none',
               borderRadius: '50%',
             }}
           />
