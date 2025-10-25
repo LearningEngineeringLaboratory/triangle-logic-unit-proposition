@@ -12,222 +12,12 @@ import {
   Controls,
   Background,
   BackgroundVariant,
-  Handle,
-  Position,
   NodeTypes,
   EdgeTypes,
   ConnectionMode,
 } from '@xyflow/react'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { X } from 'lucide-react'
-
-// ========================================
-// カスタムノードコンポーネント
-// ========================================
-interface TriangleNodeData {
-  label: string
-  options: string[]
-  value: string
-  onValueChange: (value: string) => void
-  isReadOnly?: boolean
-  nodeId: string
-}
-
-interface TriangleNodeProps {
-  data: TriangleNodeData
-}
-
-function TriangleNode({ data }: TriangleNodeProps) {
-  const { label, options, value, onValueChange, isReadOnly = false, nodeId } = data
-
-  return (
-    <div className="relative">
-      {/* ノード外側のハンドル（接続ポイント） */}
-      <Handle
-        type="source"
-        position={Position.Right}
-        id={`${nodeId}-right`}
-        className="w-3 h-3 bg-primary border-2 border-background"
-        style={{ right: -6 }}
-      />
-      <Handle
-        type="source"
-        position={Position.Left}
-        id={`${nodeId}-left`}
-        className="w-3 h-3 bg-primary border-2 border-background"
-        style={{ left: -6 }}
-      />
-      <Handle
-        type="source"
-        position={Position.Top}
-        id={`${nodeId}-top`}
-        className="w-3 h-3 bg-primary border-2 border-background"
-        style={{ top: -6 }}
-      />
-      <Handle
-        type="source"
-        position={Position.Bottom}
-        id={`${nodeId}-bottom`}
-        className="w-3 h-3 bg-primary border-2 border-background"
-        style={{ bottom: -6 }}
-      />
-
-      {/* ターゲットハンドル */}
-      <Handle
-        type="target"
-        position={Position.Right}
-        id={`${nodeId}-target-right`}
-        className="w-3 h-3 bg-secondary border-2 border-background"
-        style={{ right: -6 }}
-      />
-      <Handle
-        type="target"
-        position={Position.Left}
-        id={`${nodeId}-target-left`}
-        className="w-3 h-3 bg-secondary border-2 border-background"
-        style={{ left: -6 }}
-      />
-      <Handle
-        type="target"
-        position={Position.Top}
-        id={`${nodeId}-target-top`}
-        className="w-3 h-3 bg-secondary border-2 border-background"
-        style={{ top: -6 }}
-      />
-      <Handle
-        type="target"
-        position={Position.Bottom}
-        id={`${nodeId}-target-bottom`}
-        className="w-3 h-3 bg-secondary border-2 border-background"
-        style={{ bottom: -6 }}
-      />
-
-      {/* ノード本体 */}
-      <div className="px-4 py-2 bg-background border-2 border-border rounded-lg shadow-sm min-w-[120px]">
-        {isReadOnly ? (
-          <div className="text-center">
-            <div className="text-sm text-muted-foreground mb-1">{label}</div>
-            <div className="text-lg font-medium">{value || "選択されていません"}</div>
-          </div>
-        ) : (
-          <div className="text-center">
-            <div className="text-sm text-muted-foreground mb-1">{label}</div>
-            <Select value={value} onValueChange={onValueChange}>
-              <SelectTrigger className={`w-full ${value ? '' : 'animate-glow-pulse'}`}>
-                <SelectValue placeholder="選択" />
-              </SelectTrigger>
-              <SelectContent>
-                {options.map((option) => (
-                  <SelectItem key={option} value={option}>
-                    {option}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        )}
-      </div>
-    </div>
-  )
-}
-
-// ========================================
-// カスタムエッジコンポーネント
-// ========================================
-interface TriangleEdgeProps {
-  id: string
-  sourceX: number
-  sourceY: number
-  targetX: number
-  targetY: number
-  sourcePosition: Position
-  targetPosition: Position
-  style?: React.CSSProperties
-  data?: {
-    label?: string
-    isActive?: boolean
-    isDeletable?: boolean
-    onDelete?: () => void
-  }
-}
-
-function TriangleEdge({
-  id,
-  sourceX,
-  sourceY,
-  targetX,
-  targetY,
-  sourcePosition,
-  targetPosition,
-  style = {},
-  data
-}: TriangleEdgeProps) {
-  const { label, isActive = true, isDeletable = false, onDelete } = data || {}
-
-  // エッジのパスを計算
-  const edgePath = useMemo(() => {
-    const offsetX = targetX - sourceX
-    const offsetY = targetY - sourceY
-    const distance = Math.sqrt(offsetX * offsetX + offsetY * offsetY)
-    
-    // 双方向リンクの場合は弧を描く
-    const isBidirectional = Math.abs(offsetX) < 50 && Math.abs(offsetY) < 50
-    
-    if (isBidirectional) {
-      const radius = 30
-      const controlX = sourceX + offsetX / 2
-      const controlY = sourceY - radius
-      return `M ${sourceX} ${sourceY} Q ${controlX} ${controlY} ${targetX} ${targetY}`
-    }
-    
-    return `M ${sourceX} ${sourceY} L ${targetX} ${targetY}`
-  }, [sourceX, sourceY, targetX, targetY])
-
-  const edgeStyle = {
-    ...style,
-    stroke: isActive ? '#64748b' : '#f97316',
-    strokeWidth: isActive ? 3 : 2,
-    strokeDasharray: isActive ? 'none' : '5,5',
-    opacity: isActive ? 1 : 0.6,
-  }
-
-  return (
-    <>
-      <path
-        id={id}
-        className="react-flow__edge-path"
-        d={edgePath}
-        style={edgeStyle}
-      />
-      {label && (
-        <text>
-          <textPath href={`#${id}`} style={{ fontSize: 12, fill: '#64748b' }}>
-            {label}
-          </textPath>
-        </text>
-      )}
-      {isDeletable && onDelete && (
-        <foreignObject
-          x={(sourceX + targetX) / 2 - 10}
-          y={(sourceY + targetY) / 2 - 10}
-          width={20}
-          height={20}
-        >
-          <Button
-            variant="destructive"
-            size="sm"
-            onClick={onDelete}
-            className="h-6 w-6 rounded-full p-0"
-          >
-            <X className="h-3 w-3" />
-          </Button>
-        </foreignObject>
-      )}
-    </>
-  )
-}
+import { TriangleNode } from './nodes/TriangleNode'
+import { TriangleEdge } from './edges/TriangleEdge'
 
 // ========================================
 // ノードタイプとエッジタイプの定義
@@ -275,7 +65,7 @@ export function TriangleLogicFlow({
   activeLinks = [],
   onActiveLinksChange,
 }: TriangleLogicFlowProps) {
-  // ノードの初期設定（値の変更時は再作成しない）
+  // ノードの初期設定（ステップとオプションのみに依存）
   const initialNodes: Node[] = useMemo(() => {
     const nodes: Node[] = []
     
@@ -286,10 +76,9 @@ export function TriangleLogicFlow({
         type: 'triangleNode',
         position: { x: 50, y: 50 },
         data: {
-          label: '前件',
           options,
           value: '',
-          onValueChange: onAntecedentChange || (() => {}),
+          onValueChange: () => {},
           isReadOnly: false,
           nodeId: 'antecedent',
         },
@@ -301,10 +90,9 @@ export function TriangleLogicFlow({
         type: 'triangleNode',
         position: { x: 300, y: 50 },
         data: {
-          label: '後件',
           options,
           value: '',
-          onValueChange: onConsequentChange || (() => {}),
+          onValueChange: () => {},
           isReadOnly: false,
           nodeId: 'consequent',
         },
@@ -318,10 +106,9 @@ export function TriangleLogicFlow({
         type: 'triangleNode',
         position: { x: 175, y: 200 },
         data: {
-          label: '所与命題',
           options,
           value: '',
-          onValueChange: onPremiseChange || (() => {}),
+          onValueChange: () => {},
           isReadOnly: false,
           nodeId: 'premise',
         },
@@ -329,62 +116,7 @@ export function TriangleLogicFlow({
     }
 
     return nodes
-  }, [currentStep, options, onAntecedentChange, onConsequentChange, onPremiseChange])
-
-  // ノードの状態を更新
-  const updateNodes = useCallback(() => {
-    setNodes(prevNodes => {
-      const updatedNodes = prevNodes.map(node => {
-        if (node.id === 'antecedent') {
-          return {
-            ...node,
-            data: {
-              ...node.data,
-              value: antecedentValue,
-              isReadOnly: currentStep > 1,
-            }
-          }
-        }
-        if (node.id === 'consequent') {
-          return {
-            ...node,
-            data: {
-              ...node.data,
-              value: consequentValue,
-              isReadOnly: currentStep > 1,
-            }
-          }
-        }
-        if (node.id === 'premise') {
-          return {
-            ...node,
-            data: {
-              ...node.data,
-              value: premiseValue,
-              isReadOnly: currentStep > 2,
-            }
-          }
-        }
-        return node
-      })
-      
-      // デバッグ用ログ
-      console.log('Updating nodes:', {
-        antecedentValue,
-        consequentValue,
-        premiseValue,
-        currentStep,
-        updatedNodes: updatedNodes.map(n => ({ id: n.id, value: n.data.value }))
-      })
-      
-      return updatedNodes
-    })
-  }, [antecedentValue, consequentValue, premiseValue, currentStep])
-
-  // 値が変更されたときにノードを更新
-  useEffect(() => {
-    updateNodes()
-  }, [updateNodes])
+  }, [currentStep, options])
 
   // エッジの初期設定
   const initialEdges: Edge[] = useMemo(() => {
@@ -444,27 +176,68 @@ export function TriangleLogicFlow({
     return edges
   }, [currentStep, links, activeLinks, onLinksChange])
 
-  const [nodes, setNodes, onNodesChange] = useNodesState<Node[]>([])
-  const [edges, setEdges, onEdgesChange] = useEdgesState<Edge[]>([])
+  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes)
+  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges)
 
-  // 初期ノードの設定（一度だけ実行）
+  // ノードの状態を更新
+  const updateNodes = useCallback(() => {
+    setNodes(prevNodes => {
+      const updatedNodes = prevNodes.map(node => {
+        if (node.id === 'antecedent') {
+          return {
+            ...node,
+            data: {
+              ...node.data,
+              value: antecedentValue,
+              isReadOnly: currentStep > 1,
+              onValueChange: onAntecedentChange || (() => {}),
+            }
+          }
+        }
+        if (node.id === 'consequent') {
+          return {
+            ...node,
+            data: {
+              ...node.data,
+              value: consequentValue,
+              isReadOnly: currentStep > 1,
+              onValueChange: onConsequentChange || (() => {}),
+            }
+          }
+        }
+        if (node.id === 'premise') {
+          return {
+            ...node,
+            data: {
+              ...node.data,
+              value: premiseValue,
+              isReadOnly: currentStep > 2,
+              onValueChange: onPremiseChange || (() => {}),
+            }
+          }
+        }
+        return node
+      })
+      
+      // デバッグ用ログ
+      console.log('Updating nodes:', {
+        antecedentValue,
+        consequentValue,
+        premiseValue,
+        currentStep,
+        updatedNodes: updatedNodes.map(n => ({ id: n.id, value: n.data.value }))
+      })
+      
+      return updatedNodes
+    })
+  }, [antecedentValue, consequentValue, premiseValue, currentStep, onAntecedentChange, onConsequentChange, onPremiseChange])
+
+  // 値が変更されたときにノードを更新
   useEffect(() => {
-    if (nodes.length === 0) {
-      setNodes(initialNodes)
+    if (nodes.length > 0) {
+      updateNodes()
     }
-  }, [initialNodes, nodes.length, setNodes])
-
-  // 初期エッジの設定（一度だけ実行）
-  useEffect(() => {
-    if (edges.length === 0) {
-      setEdges(initialEdges)
-    }
-  }, [initialEdges, edges.length, setEdges])
-
-  // エッジの更新（linksやactiveLinksが変更されたとき）
-  useEffect(() => {
-    setEdges(initialEdges)
-  }, [initialEdges, setEdges])
+  }, [updateNodes, nodes.length])
 
   // エッジ接続時の処理
   const onConnect = useCallback(
