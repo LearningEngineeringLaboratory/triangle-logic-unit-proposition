@@ -108,12 +108,14 @@ export function TriangleLogicFlow({
   // エッジ接続時の処理
   const onConnect = useCallback(
     (params: Connection) => {
+      console.log('onConnect called:', { params, currentStep, links })
       if (currentStep === 2 && params.source && params.target) {
         const newLink = {
           from: params.source,
           to: params.target,
         }
         const newLinks = [...links, newLink]
+        console.log('Adding new link:', newLink, 'Total links:', newLinks)
         onLinksChange?.(newLinks)
       }
     },

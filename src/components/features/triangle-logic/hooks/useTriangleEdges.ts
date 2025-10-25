@@ -15,6 +15,7 @@ export function useTriangleEdges({
   onLinksChange 
 }: UseTriangleEdgesProps) {
   const initialEdges: Edge[] = useMemo(() => {
+    console.log('useTriangleEdges called:', { currentStep, links, activeLinks })
     const edges: Edge[] = []
     
     if (currentStep >= 1) {
@@ -34,6 +35,7 @@ export function useTriangleEdges({
 
     if (currentStep >= 2) {
       // Step2: ユーザー作成リンク
+      console.log('Creating user links for Step2:', links)
       links.forEach((link, index) => {
         edges.push({
           id: `user-link-${index}`,
