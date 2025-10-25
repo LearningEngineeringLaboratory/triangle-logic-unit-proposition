@@ -110,7 +110,7 @@ export function TriangleLogicFlow({
   )
 
   return (
-    <div className="w-full h-full min-h-[500px] rounded-2xl border-2 border-border bg-card overflow-hidden">
+    <div className="w-full h-full rounded-2xl border-2 border-border bg-card overflow-hidden">
       <ReactFlow
         nodes={nodes}
         edges={edges}

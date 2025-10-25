@@ -2,7 +2,7 @@ import { Position, InternalNode } from "@xyflow/react";
 
 // this helper function returns the intersection point
 // of the line between the center of the intersectionNode and the target node
-function getNodeIntersection(intersectionNode: InternalNode, targetNode: InternalNode, offset = 16) {
+function getNodeIntersection(intersectionNode: InternalNode, targetNode: InternalNode) {
   const { width: intersectionNodeWidth, height: intersectionNodeHeight } =
     intersectionNode.measured || { width: 0, height: 0 };
   const intersectionNodePosition = intersectionNode.internals.positionAbsolute;
@@ -21,13 +21,8 @@ function getNodeIntersection(intersectionNode: InternalNode, targetNode: Interna
   const a = 1 / (Math.abs(xx1) + Math.abs(yy1));
   const xx3 = a * xx1;
   const yy3 = a * yy1;
-  
-  // ノードの境界からoffset分離れた位置を計算
-  const distance = Math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2);
-  const scale = Math.max(0, (distance - offset) / distance);
-  
-  const x = x2 + (x1 - x2) * scale;
-  const y = y2 + (y1 - y2) * scale;
+  const x = w * (xx3 + yy3) + x2;
+  const y = h * (-xx3 + yy3) + y2;
 
   return { x, y };
 }
