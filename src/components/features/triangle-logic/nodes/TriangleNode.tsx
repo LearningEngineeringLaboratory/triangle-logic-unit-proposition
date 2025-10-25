@@ -37,13 +37,13 @@ export function TriangleNode({ data }: TriangleNodeProps) {
       />
 
       {/* ノード本体 */}
-      <div className="m-1.5 bg-background border-2 border-border rounded-lg shadow-sm min-w-[120px]">
+      <div className="m-1.5 bg-background border-2 border-border rounded-xl shadow-sm min-w-[120px] min-h-[60px] flex items-center justify-center">
         {isReadOnly ? (
-          <div className="text-center min-h-[70px] min-w-[120px] flex items-center justify-center">{value || "選択されていません"}</div>
+          <div className="text-sm text-center flex items-center justify-center">{value || "選択されていません"}</div>
         ) : (
-          <div className="text-center">
+          <div className="text-center w-full">
             <Select value={value} onValueChange={onValueChange}>
-              <SelectTrigger className={`w-full min-h-[60px] min-w-[120px]`}>
+              <SelectTrigger className="w-full min-h-[60px] rounded-xl border-2 hover:border-primary focus:ring-2 focus:ring-primary">
                 <SelectValue placeholder="選択" />
               </SelectTrigger>
               <SelectContent>

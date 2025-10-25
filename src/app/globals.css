@@ -193,3 +193,52 @@
 @media (prefers-reduced-motion: reduce) {
   .animate-glow-pulse { animation: none }
 }
+
+/* ReactFlow Controls and Attribution Styling */
+.react-flow__controls {
+  border-radius: 12px !important;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1) !important;
+  border: 1px solid oklch(0.9 0.02 260) !important;
+  background: oklch(1 0 0) !important;
+}
+
+.react-flow__controls button {
+  border-radius: 8px !important;
+  border: none !important;
+  background: transparent !important;
+  color: oklch(0.15 0.02 260) !important;
+}
+
+.react-flow__controls button:hover {
+  background: oklch(0.96 0.01 260) !important;
+  color: oklch(0.5 0.2 260) !important;
+}
+
+.react-flow__attribution {
+  left: 10px !important;
+  bottom: 8px !important;
+  background: oklch(1 0 0 / 0.8) !important;
+  padding: 4px 8px !important;
+  font-size: 8px !important;
+  color: oklch(0.5 0.05 260) !important;
+  backdrop-filter: blur(4px) !important;
+}
+
+.dark .react-flow__controls {
+  background: oklch(0.2 0.03 260) !important;
+  border: 1px solid oklch(0.3 0.05 260) !important;
+}
+
+.dark .react-flow__controls button {
+  color: oklch(0.95 0.01 260) !important;
+}
+
+.dark .react-flow__controls button:hover {
+  background: oklch(0.25 0.04 260) !important;
+  color: oklch(0.65 0.2 260) !important;
+}
+
+.dark .react-flow__attribution {
+  background: oklch(0.2 0.03 260 / 0.8) !important;
+  color: oklch(0.65 0.08 260) !important;
+}
