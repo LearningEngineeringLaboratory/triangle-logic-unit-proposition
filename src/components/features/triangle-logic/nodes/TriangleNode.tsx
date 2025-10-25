@@ -20,6 +20,7 @@ export function TriangleNode({ data }: TriangleNodeProps) {
   const { options, value, onValueChange, isReadOnly = false, nodeId, showHandles = true } = data
 
   console.log('TriangleNode render:', { nodeId, showHandles, value, isReadOnly })
+  console.log('TriangleNode showHandles value:', showHandles, 'type:', typeof showHandles)
 
   return (
     <div className="relative">
@@ -61,7 +62,7 @@ export function TriangleNode({ data }: TriangleNodeProps) {
             </div>
           </Handle>
 
-          {/* ターゲットハンドル */}
+          {/* ターゲットハンドル（左側） */}
           <Handle
             type="target"
             position={Position.Left}
@@ -79,7 +80,7 @@ export function TriangleNode({ data }: TriangleNodeProps) {
             }}
           />
           
-          {/* 上部ターゲットハンドル */}
+          {/* ターゲットハンドル（上部） */}
           <Handle
             type="target"
             position={Position.Top}
@@ -102,12 +103,12 @@ export function TriangleNode({ data }: TriangleNodeProps) {
           {/* ハンドルを非表示 */}
           <Handle
             type="target"
-            position={Position.Left}
+            position={Position.Top}
             style={{ opacity: 0, cursor: 'default' }}
           />
           <Handle
             type="target"
-            position={Position.Top}
+            position={Position.Left}
             style={{ opacity: 0, cursor: 'default' }}
           />
           <Handle
