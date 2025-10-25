@@ -157,37 +157,29 @@ export function isStepCorrect(correctAnswers: any, stepNumber: 1 | 2 | 3, state:
   }
 
   if (stepNumber === 2) {
-    // Step2の正誤判定（新しいReactFlowベースの構造）
+    // Step2の正誤判定（ReactFlowベースの新しい構造）
     const correctLinks = correct?.links || []
     const correctPremise = correct?.premise
     
-    // premiseの比較（データベースの"Qである"は実際の選択肢に置き換える）
-    let premiseMatch = false
-    if (correctPremise === "Qである") {
-      // "Qである"は実際の選択肢に置き換える（問題に応じて調整）
-      premiseMatch = incoming?.premise === "哺乳類である"
-    } else {
-      premiseMatch = incoming?.premise === correctPremise
-    }
+    // premiseの比較：Step2で追加したPremiseNodeの値と一致するか
+    const uiPremiseNodes = incoming?.premiseNodes || []
+    const premiseMatch = uiPremiseNodes.some((node: any) => node.value === correctPremise)
     
-    // linksの比較（fromとtoの順序を考慮）
-    const normalizeLinks = (links: any[]) => {
-      return links.map(link => ({
-        from: link.from,
-        to: link.to
-      })).sort((a, b) => {
-        if (a.from !== b.from) return a.from.localeCompare(b.from)
-        return a.to.localeCompare(b.to)
-      })
-    }
-    
-    const incLinks = normalizeLinks(incoming?.links || [])
-    const corLinks = normalizeLinks(correctLinks)
-    
-    return Boolean(
-      premiseMatch && 
-      JSON.stringify(incLinks) === JSON.stringify(corLinks)
+    // linksの比較：Step2で追加したリンクの始点と終点が一致するか（順不同）
+    const uiLinks = incoming?.links || []
+    const linksMatch = correctLinks.every((correctLink: any) => 
+      uiLinks.some((uiLink: any) => 
+        (uiLink.from === correctLink.from && uiLink.to === correctLink.to) ||
+        (uiLink.from === correctLink.to && uiLink.to === correctLink.from)
+      )
+    ) && uiLinks.every((uiLink: any) =>
+      correctLinks.some((correctLink: any) =>
+        (uiLink.from === correctLink.from && uiLink.to === correctLink.to) ||
+        (uiLink.from === correctLink.to && uiLink.to === correctLink.from)
+      )
     )
+    
+    return Boolean(premiseMatch && linksMatch)
   }
 
   if (stepNumber === 3) {

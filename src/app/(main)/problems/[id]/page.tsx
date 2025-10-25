@@ -168,40 +168,36 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
                    uiFragment.consequent === problem.correct_answers.step1?.consequent
         break
       case 2:
-        // Step2の正誤判定（リンク構造の比較）
+        // Step2の正誤判定（ReactFlowベースの新しい構造）
         const correctLinks = problem.correct_answers.step2?.links || []
         const correctPremise = problem.correct_answers.step2?.premise
         
-        // premiseの比較（データベースの"Qである"は実際の選択肢に置き換える）
-        let premiseMatch = false
-        if (correctPremise === "Qである") {
-          // "Qである"は実際の選択肢に置き換える（問題に応じて調整）
-          premiseMatch = uiFragment.premise === "哺乳類である"
-        } else {
-          premiseMatch = uiFragment.premise === correctPremise
-        }
+        // premiseの比較：Step2で追加したPremiseNodeの値と一致するか
+        const uiPremiseNodes = uiFragment.premiseNodes || []
+        const premiseMatch = uiPremiseNodes.some((node: any) => node.value === correctPremise)
         
-        // linksの比較（fromとtoの順序を考慮）
-        const normalizeLinks = (links: any[]) => {
-          return links.map(link => ({
-            from: link.from,
-            to: link.to
-          })).sort((a, b) => {
-            if (a.from !== b.from) return a.from.localeCompare(b.from)
-            return a.to.localeCompare(b.to)
-          })
-        }
+        // linksの比較：Step2で追加したリンクの始点と終点が一致するか（順不同）
+        const uiLinks = uiFragment.links || []
+        const linksMatch = correctLinks.every((correctLink: any) => 
+          uiLinks.some((uiLink: any) => 
+            (uiLink.from === correctLink.from && uiLink.to === correctLink.to) ||
+            (uiLink.from === correctLink.to && uiLink.to === correctLink.from)
+          )
+        ) && uiLinks.every((uiLink: any) =>
+          correctLinks.some((correctLink: any) =>
+            (uiLink.from === correctLink.from && uiLink.to === correctLink.to) ||
+            (uiLink.from === correctLink.to && uiLink.to === correctLink.from)
+          )
+        )
         
-        const uiLinks = normalizeLinks(uiFragment.links || [])
-        const correctLinksNormalized = normalizeLinks(correctLinks)
-        
+        console.log(`[debug-step2] correctPremise:`, correctPremise)
+        console.log(`[debug-step2] uiPremiseNodes:`, uiPremiseNodes)
         console.log(`[debug-step2] premiseMatch:`, premiseMatch)
+        console.log(`[debug-step2] correctLinks:`, correctLinks)
         console.log(`[debug-step2] uiLinks:`, uiLinks)
-        console.log(`[debug-step2] correctLinksNormalized:`, correctLinksNormalized)
-        console.log(`[debug-step2] linksMatch:`, JSON.stringify(uiLinks) === JSON.stringify(correctLinksNormalized))
+        console.log(`[debug-step2] linksMatch:`, linksMatch)
         
-        isCorrect = premiseMatch && 
-                   JSON.stringify(uiLinks) === JSON.stringify(correctLinksNormalized)
+        isCorrect = premiseMatch && linksMatch
         break
       case 3:
         isCorrect = uiFragment.inferenceType === problem.correct_answers.step3?.inference_type &&
