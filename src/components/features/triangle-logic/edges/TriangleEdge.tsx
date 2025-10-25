@@ -58,8 +58,10 @@ export function TriangleEdge({ id, source, target, style, data }: TriangleEdgePr
     
     // 制御点の位置（垂直二等分線上で、距離に応じて調整）
     const offsetDistance = Math.min(distance * 0.3, 60) // 距離の30%または最大60px
-    const controlX = midX + perpX * offsetDistance * (isUpward ? 1 : -1)
-    const controlY = midY + perpY * offsetDistance * (isUpward ? 1 : -1)
+    // 互いに逆向きの弧を描くため、IDの偶奇で方向を決定
+    const direction = parseInt(id.split('-')[0]) % 2 === 0 ? 1 : -1
+    const controlX = midX + perpX * offsetDistance * direction
+    const controlY = midY + perpY * offsetDistance * direction
     
     edgePath = `M ${sx} ${adjustedSy} Q ${controlX} ${controlY} ${tx} ${adjustedTy}`
     
