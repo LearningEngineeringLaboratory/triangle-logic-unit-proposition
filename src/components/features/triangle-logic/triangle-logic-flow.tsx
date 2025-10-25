@@ -97,12 +97,21 @@ export function TriangleLogicFlow({
     onPremiseChange,
   })
 
-  // 接続の妥当性を検証（sourceハンドルからのみ接続可能）
+  // 接続の妥当性を検証
   const isValidConnection = useCallback(
     (connection: Connection | Edge) => {
-      // sourceHandleが存在し、かつ'-right'で終わる（sourceハンドル）場合のみ許可
+      // 1. sourceHandleが存在し、かつ'-right'で終わる（sourceハンドル）場合のみ許可
       if (!connection.sourceHandle) return false
-      return connection.sourceHandle.endsWith('-right')
+      if (!connection.sourceHandle.endsWith('-right')) return false
+      
+      // 2. 自己ループ（同じノードへの接続）を禁止
+      if (connection.source === connection.target) return false
+      
+      // 3. targetHandleが'-target'で終わる（入力ハンドル）場合のみ許可
+      if (!connection.targetHandle) return false
+      if (!connection.targetHandle.endsWith('-target')) return false
+      
+      return true
     },
     []
   )
@@ -192,7 +201,8 @@ export function TriangleLogicFlow({
         isValidConnection={isValidConnection}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
-        connectionMode={ConnectionMode.Loose}
+        connectionMode={ConnectionMode.Strict}
+        connectOnClick={false}
         fitView
         fitViewOptions={{ 
           padding: 0.2,
