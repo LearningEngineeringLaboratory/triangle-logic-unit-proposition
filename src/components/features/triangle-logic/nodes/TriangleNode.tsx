@@ -41,7 +41,7 @@ export function TriangleNode({ data }: TriangleNodeProps) {
               backgroundColor: 'transparent',
               border: 'none',
               borderRadius: 0,
-              zIndex: 10,
+              zIndex: 100,
             }}
           >
             {/* 右下向き矢印 */}
@@ -77,7 +77,7 @@ export function TriangleNode({ data }: TriangleNodeProps) {
               backgroundColor: 'var(--primary)',
               border: '2px solid var(--border)',
               borderRadius: '50%',
-              zIndex: 10,
+              zIndex: 100,
             }}
           />
           
@@ -95,7 +95,7 @@ export function TriangleNode({ data }: TriangleNodeProps) {
               backgroundColor: 'var(--primary)',
               border: '2px solid var(--border)',
               borderRadius: '50%',
-              zIndex: 10,
+              zIndex: 100,
             }}
           />
           
@@ -113,7 +113,7 @@ export function TriangleNode({ data }: TriangleNodeProps) {
               backgroundColor: 'var(--primary)',
               border: '2px solid var(--border)',
               borderRadius: '50%',
-              zIndex: 10,
+              zIndex: 100,
             }}
           />
         </>
@@ -144,7 +144,7 @@ export function TriangleNode({ data }: TriangleNodeProps) {
       )}
 
       {/* ノード本体 */}
-      <div className="m-1.5 flex items-center justify-center">
+      <div className="m-1.5 flex items-center justify-center" style={{ zIndex: 1 }}>
         {isReadOnly ? (
           <div className="bg-background border-2 border-border rounded-xl shadow-sm min-w-[160px] min-h-[60px] text-sm text-center flex items-center justify-center">{value || "選択されていません"}</div>
         ) : (
