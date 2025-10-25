@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback } from 'react'
+import { useTheme } from 'next-themes'
 import {
   ReactFlow,
   Connection,
@@ -65,6 +66,9 @@ export function TriangleLogicFlow({
   activeLinks = [],
   onActiveLinksChange,
 }: TriangleLogicFlowProps) {
+  // テーマを取得
+  const { theme } = useTheme()
+  
   // カスタムフックを使用してノードとエッジを管理
   const { initialNodes } = useTriangleNodes({ currentStep, options })
   const { initialEdges } = useTriangleEdges({ 
@@ -127,7 +131,7 @@ export function TriangleLogicFlow({
         minZoom={0.3}
         maxZoom={2}
         attributionPosition="bottom-left"
-        colorMode="dark"
+        colorMode={theme === 'dark' ? 'dark' : 'light'}
       >
         <Controls 
           showZoom={true}
