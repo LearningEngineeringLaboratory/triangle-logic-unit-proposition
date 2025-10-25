@@ -21,11 +21,11 @@ export function AddPremiseNodeButton({ options, onAddNode }: AddPremiseNodeButto
   }
 
   return (
-    <div className="flex items-center gap-3 p-4 bg-card border border-border rounded-2xl shadow-md">
-      <div className="flex-1">
+    <div className="flex items-center gap-3 p-2 bg-card border border-border rounded-2xl shadow-md w-fit">
+      <div className="">
         <Select value={selectedValue} onValueChange={setSelectedValue}>
-          <SelectTrigger className="rounded-xl border-2 h-12 text-base hover:border-primary focus:ring-2 focus:ring-primary">
-            <SelectValue placeholder="所与命題を選択してください" />
+          <SelectTrigger className="rounded-xl border-2 min-h-[48px] w-48 text-base hover:border-primary focus:ring-2 focus:ring-primary">
+            <SelectValue placeholder="選択してください" />
           </SelectTrigger>
           <SelectContent>
             {options.map((option) => (
@@ -39,10 +39,10 @@ export function AddPremiseNodeButton({ options, onAddNode }: AddPremiseNodeButto
       <Button
         onClick={handleAddNode}
         disabled={!selectedValue}
-        className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl shadow-lg px-6 py-3 text-base font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+        className="bg-secondary text-secondary-foreground hover:bg-secondary/90 rounded-xl shadow-lg px-4 py-2 text-base font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        <Plus className="w-5 h-5 mr-2" />
-        ノード追加
+        <Plus className="w-4 h-4" />
+        命題追加
       </Button>
     </div>
   )

@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback } from 'react'
+import { useCallback, useEffect } from 'react'
 import { useTheme } from 'next-themes'
 import {
   ReactFlow,
@@ -13,6 +13,7 @@ import {
   NodeTypes,
   EdgeTypes,
   ConnectionMode,
+  MiniMap,
 } from '@xyflow/react'
 import { TriangleNode } from './nodes/TriangleNode'
 import { PremiseNode } from './nodes/PremiseNode'
@@ -73,7 +74,7 @@ export function TriangleLogicFlow({
   const { theme } = useTheme()
   
   // カスタムフックを使用してノードとエッジを管理
-  const { initialNodes, addPremiseNode, removePremiseNode } = useTriangleNodes({ currentStep, options })
+  const { initialNodes, addPremiseNode, removePremiseNode } = useTriangleNodes({ currentStep, options, setNodes: () => {} })
   const { initialEdges } = useTriangleEdges({ 
     currentStep, 
     links, 
@@ -83,6 +84,13 @@ export function TriangleLogicFlow({
 
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes)
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges)
+
+  // 動的ノード更新のためのsetNodesを渡す
+  const { addPremiseNode: addPremiseNodeDynamic, removePremiseNode: removePremiseNodeDynamic } = useTriangleNodes({ 
+    currentStep, 
+    options, 
+    setNodes 
+  })
 
   // ノードの状態更新
   useNodeUpdates({
@@ -142,6 +150,15 @@ export function TriangleLogicFlow({
           showInteractive={false}
           position="bottom-right"
         />
+        {/* <MiniMap 
+          position="top-left" 
+          nodeStrokeWidth={1}
+          maskColor="rgba(0, 0, 0, 0.1)"
+          style={{
+            width: 120,
+            height: 80,
+          }}
+        /> */}
         <Background 
           variant={BackgroundVariant.Dots} 
           gap={20} 
@@ -150,10 +167,10 @@ export function TriangleLogicFlow({
         
         {/* Step2の時のみノード追加ボタンを表示 */}
         {currentStep === 2 && (
-          <div className="absolute bottom-4 left-4 right-4 z-10">
+          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-10">
             <AddPremiseNodeButton 
               options={options}
-              onAddNode={addPremiseNode}
+              onAddNode={addPremiseNodeDynamic}
             />
           </div>
         )}

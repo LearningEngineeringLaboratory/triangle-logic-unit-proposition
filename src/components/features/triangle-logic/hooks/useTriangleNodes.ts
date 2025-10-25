@@ -1,9 +1,10 @@
-import { useMemo, useState, useCallback } from 'react'
+import { useMemo, useState, useCallback, useEffect } from 'react'
 import { Node } from '@xyflow/react'
 
 interface UseTriangleNodesProps {
   currentStep: number
   options: string[]
+  setNodes: (nodes: Node[] | ((prevNodes: Node[]) => Node[])) => void
 }
 
 interface PremiseNode {
@@ -12,7 +13,7 @@ interface PremiseNode {
   position: { x: number; y: number }
 }
 
-export function useTriangleNodes({ currentStep, options }: UseTriangleNodesProps) {
+export function useTriangleNodes({ currentStep, options, setNodes }: UseTriangleNodesProps) {
   // 動的に追加される所与命題ノードの状態
   const [premiseNodes, setPremiseNodes] = useState<PremiseNode[]>([])
 
@@ -53,25 +54,31 @@ export function useTriangleNodes({ currentStep, options }: UseTriangleNodesProps
       })
     }
 
+    return nodes
+  }, [currentStep, options])
+
+  // premiseNodesが変更されたときにReactFlowのノードを更新
+  useEffect(() => {
     if (currentStep >= 2) {
-      // Step2: 動的に追加された所与命題ノード
-      premiseNodes.forEach((premiseNode, index) => {
-        nodes.push({
-          id: premiseNode.id,
-          type: 'premiseNode',
-          position: premiseNode.position,
-          draggable: true, // 自由に動かせる
-          data: {
-            value: premiseNode.value,
-            nodeId: premiseNode.id,
-            showHandles: true, // ハンドル表示
-          },
-        })
+      const premiseNodeElements: Node[] = premiseNodes.map((premiseNode) => ({
+        id: premiseNode.id,
+        type: 'premiseNode',
+        position: premiseNode.position,
+        draggable: true, // 自由に動かせる
+        data: {
+          value: premiseNode.value,
+          nodeId: premiseNode.id,
+          showHandles: true, // ハンドル表示
+        },
+      }))
+
+      setNodes(prevNodes => {
+        // 既存のpremiseNodeを削除して新しいものを追加
+        const filteredNodes = prevNodes.filter(node => !node.id.startsWith('premise-'))
+        return [...filteredNodes, ...premiseNodeElements]
       })
     }
-
-    return nodes
-  }, [currentStep, options, premiseNodes])
+  }, [premiseNodes, currentStep, setNodes])
 
   // 所与命題ノードを追加する関数
   const addPremiseNode = useCallback((value: string) => {
