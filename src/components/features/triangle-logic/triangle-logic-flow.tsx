@@ -127,20 +127,18 @@ export function TriangleLogicFlow({
         minZoom={0.3}
         maxZoom={2}
         attributionPosition="bottom-left"
-        className="[&_.react-flow__attribution]:bg-background/80 [&_.react-flow__attribution]:text-muted-foreground [&_.react-flow__attribution]:border-border [&_.react-flow__attribution]:rounded-md [&_.react-flow__attribution]:px-2 [&_.react-flow__attribution]:py-1"
+        colorMode="dark"
       >
         <Controls 
           showZoom={true}
           showFitView={true}
           showInteractive={false}
           position="bottom-right"
-          className="[&_button]:bg-background [&_button]:border-border [&_button]:text-foreground hover:[&_button]:bg-muted"
         />
         <Background 
           variant={BackgroundVariant.Dots} 
           gap={20} 
           size={1}
-          className="[&_pattern]:opacity-30 dark:[&_pattern]:opacity-20"
         />
       </ReactFlow>
     </div>
