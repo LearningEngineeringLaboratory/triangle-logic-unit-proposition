@@ -8,7 +8,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import { ProblemStepDisplay } from '@/components/features/problem-detail/problem-step-display'
-import { TriangleLogicDisplay } from '@/components/features/triangle-logic/triangle-logic-display'
+import { TriangleLogicFlow } from '@/components/features/triangle-logic/triangle-logic-flow'
 import { ProblemDetailLayout } from '@/components/features/problem-detail/ProblemDetailLayout'
 import { ProblemDisplay } from '@/components/features/problem-detail/ProblemDisplay'
 import { ClearDialog } from '@/components/features/problem-detail/ClearDialog'
@@ -17,7 +17,7 @@ import { Header } from '@/components/layout/Header'
 import { useProblemSteps } from '@/hooks/useProblemSteps'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { mapUiToDbState, isStepCorrect, logClientCheck } from '@/lib/utils'
+import { logClientCheck } from '@/lib/utils'
 
 interface ProblemDetailPageProps {
   params: Promise<{
@@ -153,20 +153,50 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
   const handleAnswerCheck = async () => {
     if (!problem) return
 
-    const stepNumber = currentStep as 1 | 2 | 3
-    const uiFragment = steps[`step${stepNumber}` as keyof typeof steps]
-    const dbState = mapUiToDbState(steps as any)
-    const dbFragment = dbState[`step${stepNumber}` as 'step1' | 'step2' | 'step3']
-    const isCorrect = isStepCorrect(problem.correct_answers, stepNumber, dbFragment)
+    const stepNumber = currentStep as 1 | 2 | 3 | 4 | 5
+    const stepKey = `step${stepNumber}` as keyof typeof steps
+    const uiFragment = steps[stepKey]
+    
+    if (!uiFragment) return
+
+    // 新しいステップ構造に合わせた正誤判定
+    let isCorrect = false
+    
+    switch (stepNumber) {
+      case 1:
+        isCorrect = uiFragment.antecedent === problem.correct_answers.step1?.antecedent &&
+                   uiFragment.consequent === problem.correct_answers.step1?.consequent
+        break
+      case 2:
+        // Step2の正誤判定（リンク構造の比較）
+        const correctLinks = problem.correct_answers.step2?.links || []
+        isCorrect = uiFragment.premise === problem.correct_answers.step2?.premise &&
+                   JSON.stringify(uiFragment.links?.sort()) === JSON.stringify(correctLinks.sort())
+        break
+      case 3:
+        isCorrect = uiFragment.inferenceType === problem.correct_answers.step3?.inferenceType &&
+                   uiFragment.validity === problem.correct_answers.step3?.validity
+        break
+      case 4:
+        // Step4の正誤判定（活性/非活性リンクの比較）
+        const correctActiveLinks = problem.correct_answers.step4?.links || []
+        isCorrect = JSON.stringify(uiFragment.links?.sort()) === JSON.stringify(correctActiveLinks.sort())
+        break
+      case 5:
+        // Step5の正誤判定（論証構成の比較）
+        const correctPremises = problem.correct_answers.step5?.premises || []
+        isCorrect = JSON.stringify(uiFragment.premises?.sort()) === JSON.stringify(correctPremises.sort())
+        break
+    }
 
     console.log(`[check-step][client] step=${stepNumber} isCorrect=${isCorrect ? 'correct' : 'incorrect'}`)
 
     // ログ送信（研究用）
     logClientCheck({
       problemId: problem.problem_id,
-      step: stepNumber,
+      step: stepNumber as 1 | 2 | 3,
       isCorrect,
-      payload: dbFragment,
+      payload: uiFragment as any,
     })
 
     if (isCorrect) {
@@ -213,38 +243,23 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
             onInferenceTypeChange={(value) => updateStep(3, { ...steps.step3, inferenceType: value })}
             onValidityChange={(value) => updateStep(3, { ...steps.step3, validity: value === '妥当' })}
             onRequestNext={handleAnswerCheck}
-            stepsState={steps}
+            stepsState={steps as any}
           />
         ),
         rightPanel: (
-          <TriangleLogicDisplay
+          <TriangleLogicFlow
             options={problem.options ?? ['選択肢が設定されていません']}
-            onAntecedentChange={(value) => updateStep(1, { ...steps.step1, antecedent: value })}
-            onConsequentChange={(value) => updateStep(1, { ...steps.step1, consequent: value })}
-            onPremiseChange={(value) => updateStep(2, { ...steps.step2, premise: value })}
-            onLinkDirectionToggle={(linkType) => {
-              const currentDirections = steps.step2?.linkDirections || { antecedentLink: true, consequentLink: true }
-              updateStep(2, {
-                ...steps.step2,
-                linkDirections: {
-                  ...currentDirections,
-                  [linkType === 'antecedent' ? 'antecedentLink' : 'consequentLink']:
-                    !currentDirections[linkType === 'antecedent' ? 'antecedentLink' : 'consequentLink']
-                }
-              })
-            }}
-            onInferenceTypeChange={(value) => updateStep(3, { ...steps.step3, inferenceType: value })}
-            onValidityChange={(value) => updateStep(3, { ...steps.step3, validity: value === '妥当' })}
-            inferenceTypeValue={steps.step3?.inferenceType || ''}
-            validityValue={steps.step3?.validity === null ? '' : (steps.step3?.validity ? '妥当' : '非妥当')}
+            currentStep={currentStep}
             antecedentValue={steps.step1?.antecedent || ''}
             consequentValue={steps.step1?.consequent || ''}
+            onAntecedentChange={(value) => updateStep(1, { ...steps.step1, antecedent: value })}
+            onConsequentChange={(value) => updateStep(1, { ...steps.step1, consequent: value })}
             premiseValue={steps.step2?.premise || ''}
-            antecedentLinkDirection={steps.step2?.linkDirections?.antecedentLink ?? true}
-            consequentLinkDirection={steps.step2?.linkDirections?.consequentLink ?? true}
-            currentStep={currentStep}
-            impossibleValue={steps.step2?.impossible || false}
-            onImpossibleToggle={(value) => updateStep(2, { ...steps.step2, impossible: value })}
+            onPremiseChange={(value) => updateStep(2, { ...steps.step2, premise: value })}
+            links={steps.step2?.links || []}
+            onLinksChange={(links) => updateStep(2, { ...steps.step2, links })}
+            activeLinks={steps.step4?.links || []}
+            onActiveLinksChange={(links) => updateStep(4, { ...steps.step4, links })}
           />
         ),
         footer: (

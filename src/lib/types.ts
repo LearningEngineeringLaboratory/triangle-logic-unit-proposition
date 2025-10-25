@@ -43,8 +43,40 @@ export interface StepState {
   [key: string]: any // 各ステップの固有フィールド
 }
 
+// Step1: 導出命題
+export interface Step1State extends StepState {
+  antecedent: string
+  consequent: string
+}
+
+// Step2: 所与命題とリンク
+export interface Step2State extends StepState {
+  premise: string
+  links: Array<{ from: string; to: string }>
+}
+
+// Step3: 推論形式と妥当性
+export interface Step3State extends StepState {
+  inferenceType: string
+  validity: boolean | null
+}
+
+// Step4: リンクの活性/非活性
+export interface Step4State extends StepState {
+  links: Array<{ from: string; to: string; active: boolean }>
+}
+
+// Step5: 論証構成
+export interface Step5State extends StepState {
+  premises: Array<{ antecedent: string; consequent: string }>
+}
+
 export interface StepsState {
-  [stepKey: string]: StepState // step1, step2, step3, ... の形式
+  step1?: Step1State
+  step2?: Step2State
+  step3?: Step3State
+  step4?: Step4State
+  step5?: Step5State
 }
 
 // 問題の型定義（可変ステップ数対応）
