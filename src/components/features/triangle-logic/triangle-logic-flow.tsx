@@ -111,9 +111,15 @@ export function TriangleLogicFlow({
       if (!connection.targetHandle) return false
       if (!connection.targetHandle.endsWith('-target')) return false
       
+      // 4. 既存のエッジとの重複をチェック
+      const isDuplicate = links.some(link => 
+        link.from === connection.source && link.to === connection.target
+      )
+      if (isDuplicate) return false
+      
       return true
     },
-    []
+    [links]
   )
 
   // エッジ接続時の処理

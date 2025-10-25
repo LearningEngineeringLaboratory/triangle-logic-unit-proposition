@@ -37,7 +37,7 @@ export function PremiseNode({ data }: PremiseNodeProps) {
           cursor: 'crosshair',
         }}
       />
-      
+
       {/* ハンドル表示制御 */}
       {showHandles ? (
         <>
@@ -58,7 +58,7 @@ export function PremiseNode({ data }: PremiseNodeProps) {
             }}
           >
             {/* 右下向き矢印 */}
-            <div 
+            <div
               style={{
                 width: '100%',
                 height: '100%',
@@ -84,6 +84,11 @@ export function PremiseNode({ data }: PremiseNodeProps) {
             position={Position.Bottom}
             style={{ opacity: 0, cursor: 'default' }}
           />
+          <Handle
+            type="source"
+            position={Position.Right}
+            style={{ opacity: 0, cursor: 'default' }}
+          />
         </>
       )}
 
@@ -91,7 +96,7 @@ export function PremiseNode({ data }: PremiseNodeProps) {
       <div className="m-1.5 flex items-center justify-center">
         <div className="relative bg-background border-2 border-border rounded-xl shadow-sm min-w-[160px] min-h-[60px] text-sm text-center flex items-center justify-center">
           {value || "選択されていません"}
-          
+
           {/* 削除ボタン */}
           {onDelete && (
             <Button
