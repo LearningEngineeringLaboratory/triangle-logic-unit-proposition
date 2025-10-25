@@ -59,11 +59,38 @@ export function PremiseNode({ data }: PremiseNodeProps) {
               →
             </div>
           </Handle>
-          {/* ターゲットハンドル */}
+          {/* ターゲットハンドル（左側） */}
+          <Handle
+            type="target"
+            position={Position.Left}
+            id={`${nodeId}-left`}
+            style={{
+              left: -8,
+              top: '50%',
+              transform: 'translateY(-50%)',
+              width: 16,
+              height: 16,
+              backgroundColor: 'transparent',
+              border: 'none',
+              borderRadius: '50%',
+            }}
+          />
+          
+          {/* ターゲットハンドル（上部） */}
           <Handle
             type="target"
             position={Position.Top}
-            style={{ opacity: 0, cursor: 'default' }}
+            id={`${nodeId}-top`}
+            style={{
+              top: -8,
+              left: '50%',
+              transform: 'translateX(-50%)',
+              width: 16,
+              height: 16,
+              backgroundColor: 'transparent',
+              border: 'none',
+              borderRadius: '50%',
+            }}
           />
         </>
       ) : (
@@ -75,8 +102,13 @@ export function PremiseNode({ data }: PremiseNodeProps) {
             style={{ opacity: 0, cursor: 'default' }}
           />
           <Handle
+            type="target"
+            position={Position.Left}
+            style={{ opacity: 0, cursor: 'default' }}
+          />
+          <Handle
             type="source"
-            position={Position.Bottom}
+            position={Position.Right}
             style={{ opacity: 0, cursor: 'default' }}
           />
         </>
