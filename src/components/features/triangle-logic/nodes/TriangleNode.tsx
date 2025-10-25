@@ -64,13 +64,47 @@ export function TriangleNode({ data }: TriangleNodeProps) {
           {/* ターゲットハンドル */}
           <Handle
             type="target"
+            position={Position.Left}
+            id={`${nodeId}-left`}
+            style={{
+              left: -8,
+              top: '50%',
+              transform: 'translateY(-50%)',
+              width: 16,
+              height: 16,
+              backgroundColor: 'var(--primary)',
+              border: '2px solid var(--border)',
+              borderRadius: '50%',
+              zIndex: 10,
+            }}
+          />
+          
+          {/* 上部ターゲットハンドル */}
+          <Handle
+            type="target"
             position={Position.Top}
-            style={{ opacity: 0, cursor: 'default' }}
+            id={`${nodeId}-top`}
+            style={{
+              top: -8,
+              left: '50%',
+              transform: 'translateX(-50%)',
+              width: 16,
+              height: 16,
+              backgroundColor: 'var(--primary)',
+              border: '2px solid var(--border)',
+              borderRadius: '50%',
+              zIndex: 10,
+            }}
           />
         </>
       ) : (
         <>
           {/* ハンドルを非表示 */}
+          <Handle
+            type="target"
+            position={Position.Left}
+            style={{ opacity: 0, cursor: 'default' }}
+          />
           <Handle
             type="target"
             position={Position.Top}
