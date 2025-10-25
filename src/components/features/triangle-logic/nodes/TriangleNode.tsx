@@ -25,6 +25,26 @@ export function TriangleNode({ data }: TriangleNodeProps) {
 
   return (
     <div className="relative">
+      {/* ノード全体を入力用ハンドルとして機能させる */}
+      {showHandles && (
+        <Handle
+          type="target"
+          position={Position.Top}
+          id={`${nodeId}-target`}
+          style={{
+            width: '100%',
+            height: '100%',
+            top: 0,
+            left: 0,
+            borderRadius: '12px',
+            backgroundColor: 'transparent',
+            border: 'none',
+            transform: 'none',
+            cursor: 'crosshair',
+          }}
+        />
+      )}
+      
       {/* ハンドル表示制御 */}
       {showHandles ? (
         <>
@@ -62,40 +82,6 @@ export function TriangleNode({ data }: TriangleNodeProps) {
               →
             </div>
           </Handle>
-
-          {/* ターゲットハンドル（左側） */}
-          <Handle
-            type="target"
-            position={Position.Left}
-            id={`${nodeId}-left`}
-            style={{
-              left: -8,
-              top: '50%',
-              transform: 'translateY(-50%)',
-              width: 16,
-              height: 16,
-              backgroundColor: 'transparent',
-              border: 'none',
-              borderRadius: '50%',
-            }}
-          />
-          
-          {/* ターゲットハンドル（上部） */}
-          <Handle
-            type="target"
-            position={Position.Top}
-            id={`${nodeId}-top`}
-            style={{
-              top: -8,
-              left: '50%',
-              transform: 'translateX(-50%)',
-              width: 16,
-              height: 16,
-              backgroundColor: 'transparent',
-              border: 'none',
-              borderRadius: '50%',
-            }}
-          />
         </>
       ) : (
         <>
@@ -103,11 +89,6 @@ export function TriangleNode({ data }: TriangleNodeProps) {
           <Handle
             type="target"
             position={Position.Top}
-            style={{ opacity: 0, cursor: 'default' }}
-          />
-          <Handle
-            type="target"
-            position={Position.Left}
             style={{ opacity: 0, cursor: 'default' }}
           />
           <Handle
