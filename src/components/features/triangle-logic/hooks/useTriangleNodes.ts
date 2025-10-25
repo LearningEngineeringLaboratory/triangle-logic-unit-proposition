@@ -29,7 +29,7 @@ export function useTriangleNodes({ currentStep, options, setNodes }: UseTriangle
         id: 'antecedent',
         type: 'triangleNode',
         position: { x: 100, y: step1YPosition },
-        draggable: false, // Step1ではドラッグ不可
+        draggable: true, // Step1でもドラッグ可能
         data: {
           options,
           value: '',
@@ -45,7 +45,7 @@ export function useTriangleNodes({ currentStep, options, setNodes }: UseTriangle
         id: 'consequent',
         type: 'triangleNode',
         position: { x: 400, y: step1YPosition },
-        draggable: false, // Step1ではドラッグ不可
+        draggable: true, // Step1でもドラッグ可能
         data: {
           options,
           value: '',
