@@ -19,10 +19,6 @@ interface TriangleNodeProps {
 export function TriangleNode({ data }: TriangleNodeProps) {
   const { options, value, onValueChange, isReadOnly = false, nodeId, showHandles = true } = data
 
-  console.log('TriangleNode render:', { nodeId, showHandles, value, isReadOnly })
-  console.log('TriangleNode showHandles value:', showHandles, 'type:', typeof showHandles)
-  console.log('TriangleNode showHandles condition:', showHandles ? 'SHOWING HANDLES' : 'HIDING HANDLES')
-
   return (
     <div className="relative">
       {/* ノード全体を入力用ハンドルとして機能させる */}

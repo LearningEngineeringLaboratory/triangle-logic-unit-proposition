@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react'
+import { useEffect } from 'react'
 import { Node } from '@xyflow/react'
 
 interface UseNodeUpdatesProps {
@@ -25,44 +25,46 @@ export function useNodeUpdates({
   onPremiseChange,
 }: UseNodeUpdatesProps) {
   // ノードの状態を更新
-  const updateNodes = useCallback(() => {
-    console.log('useNodeUpdates updateNodes called:', { currentStep, antecedentValue, consequentValue })
-    setNodes(prevNodes => {
-      const updatedNodes = prevNodes.map(node => {
+  useEffect(() => {
+    if (nodes.length === 0) return
+
+    setNodes(prevNodes => 
+      prevNodes.map(node => {
+        // Step1ノード（前件）の更新
         if (node.id === 'antecedent') {
-          // Step1のノード位置をStep2以降では上に移動
           const step1YPosition = currentStep >= 2 ? 0 : 100
           return {
             ...node,
             position: { x: 100, y: step1YPosition },
-            // Step1のノードは常に座標を固定（draggable: false）
             draggable: false,
             data: {
               ...node.data,
               value: antecedentValue,
               isReadOnly: currentStep > 1,
-              showHandles: currentStep >= 2, // Step2以降でハンドル表示
+              showHandles: currentStep >= 2,
               onValueChange: onAntecedentChange || (() => {}),
             }
           }
         }
+        
+        // Step1ノード（後件）の更新
         if (node.id === 'consequent') {
-          // Step1のノード位置をStep2以降では上に移動
           const step1YPosition = currentStep >= 2 ? 0 : 100
           return {
             ...node,
             position: { x: 400, y: step1YPosition },
-            // Step1のノードは常に座標を固定（draggable: false）
             draggable: false,
             data: {
               ...node.data,
               value: consequentValue,
               isReadOnly: currentStep > 1,
-              showHandles: currentStep >= 2, // Step2以降でハンドル表示
+              showHandles: currentStep >= 2,
               onValueChange: onConsequentChange || (() => {}),
             }
           }
         }
+        
+        // Step2ノード（所与命題）の更新
         if (node.id === 'premise') {
           return {
             ...node,
@@ -74,37 +76,19 @@ export function useNodeUpdates({
             }
           }
         }
+        
         return node
       })
-      
-      // デバッグ用ログ
-      console.log('Updating nodes:', {
-        antecedentValue,
-        consequentValue,
-        premiseValue,
-        currentStep,
-        updatedNodes: updatedNodes.map(n => ({ id: n.id, value: n.data.value }))
-      })
-      
-      return updatedNodes
-    })
+    )
   }, [
+    nodes.length,
     setNodes,
+    currentStep,
     antecedentValue,
     consequentValue,
     premiseValue,
-    currentStep,
     onAntecedentChange,
     onConsequentChange,
     onPremiseChange
   ])
-
-  // 値が変更されたときにノードを更新
-  useEffect(() => {
-    if (nodes.length > 0) {
-      updateNodes()
-    }
-  }, [updateNodes, nodes.length])
-
-  return { updateNodes }
 }

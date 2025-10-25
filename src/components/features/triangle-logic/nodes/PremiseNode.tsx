@@ -18,8 +18,6 @@ interface PremiseNodeProps {
 export function PremiseNode({ data }: PremiseNodeProps) {
   const { value, nodeId, showHandles = true, onDelete } = data
 
-  console.log('PremiseNode render:', { nodeId, showHandles, value })
-
   return (
     <div className="relative">
       {/* ノード全体を入力用ハンドルとして機能させる */}

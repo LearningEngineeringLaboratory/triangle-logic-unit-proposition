@@ -1,4 +1,4 @@
-import { useMemo, useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { Node } from '@xyflow/react'
 
 interface UseTriangleNodesProps {
@@ -17,48 +17,45 @@ export function useTriangleNodes({ currentStep, options, setNodes }: UseTriangle
   // 動的に追加される所与命題ノードの状態
   const [premiseNodes, setPremiseNodes] = useState<PremiseNode[]>([])
 
-  const initialNodes: Node[] = useMemo(() => {
-    const nodes: Node[] = []
-    
+  // Step1の基本ノードを初期化
+  useEffect(() => {
     if (currentStep >= 1) {
-      // Step1のノード位置をStep2以降では上に移動
-      const step1YPosition = currentStep >= 2 ? 0 : 100 // Step2以降は上に100px移動
+      const step1YPosition = currentStep >= 2 ? 0 : 100
       
-      // Step1: 前件ノード（左上）
-      nodes.push({
-        id: 'antecedent',
-        type: 'triangleNode',
-        position: { x: 100, y: step1YPosition },
-        draggable: false, // Step1ではドラッグ不可
-        data: {
-          options,
-          value: '',
-          onValueChange: () => {},
-          isReadOnly: false,
-          nodeId: 'antecedent',
-          showHandles: false, // Step1ではハンドル非表示
+      const baseNodes: Node[] = [
+        {
+          id: 'antecedent',
+          type: 'triangleNode',
+          position: { x: 100, y: step1YPosition },
+          draggable: false,
+          data: {
+            options,
+            value: '',
+            onValueChange: () => {},
+            isReadOnly: false,
+            nodeId: 'antecedent',
+            showHandles: false,
+          },
         },
-      })
+        {
+          id: 'consequent',
+          type: 'triangleNode',
+          position: { x: 400, y: step1YPosition },
+          draggable: false,
+          data: {
+            options,
+            value: '',
+            onValueChange: () => {},
+            isReadOnly: false,
+            nodeId: 'consequent',
+            showHandles: false,
+          },
+        },
+      ]
 
-      // Step1: 後件ノード（右上）
-      nodes.push({
-        id: 'consequent',
-        type: 'triangleNode',
-        position: { x: 400, y: step1YPosition },
-        draggable: false, // Step1ではドラッグ不可
-        data: {
-          options,
-          value: '',
-          onValueChange: () => {},
-          isReadOnly: false,
-          nodeId: 'consequent',
-          showHandles: false, // Step1ではハンドル非表示
-        },
-      })
+      setNodes(baseNodes)
     }
-
-    return nodes
-  }, [currentStep, options])
+  }, [currentStep, options, setNodes])
 
   // 所与命題ノードを削除する関数
   const removePremiseNode = useCallback((nodeId: string) => {
@@ -105,9 +102,7 @@ export function useTriangleNodes({ currentStep, options, setNodes }: UseTriangle
   }, [premiseNodes.length])
 
   return { 
-    initialNodes, 
     addPremiseNode, 
-    removePremiseNode,
-    premiseNodes 
+    removePremiseNode 
   }
 }
