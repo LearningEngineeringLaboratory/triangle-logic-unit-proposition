@@ -2,7 +2,7 @@ import { Position, InternalNode } from "@xyflow/react";
 
 // this helper function returns the intersection point
 // of the line between the center of the intersectionNode and the target node
-function getNodeIntersection(intersectionNode: InternalNode, targetNode: InternalNode, offset = 8) {
+function getNodeIntersection(intersectionNode: InternalNode, targetNode: InternalNode, offset = 16) {
   const { width: intersectionNodeWidth, height: intersectionNodeHeight } =
     intersectionNode.measured || { width: 0, height: 0 };
   const intersectionNodePosition = intersectionNode.internals.positionAbsolute;

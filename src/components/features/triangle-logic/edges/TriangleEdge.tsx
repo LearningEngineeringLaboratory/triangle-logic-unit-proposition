@@ -55,14 +55,14 @@ export function TriangleEdge({ id, source, target, style, data }: TriangleEdgePr
         </marker>
         <marker
           id={`arrow-${id}`}
-          markerWidth="6"
-          markerHeight="6"
-          refX="4"
-          refY="3"
+          markerWidth="8"
+          markerHeight="8"
+          refX="6"
+          refY="4"
           orient="auto"
           markerUnits="strokeWidth"
         >
-          <path d="M0,0.5 L0,5.5 L5,3 z" fill={isActive ? '#3b82f6' : '#ef4444'} />
+          <path d="M0,0.5 L0,7.5 L6,4 z" fill={isActive ? '#3b82f6' : '#ef4444'} />
         </marker>
       </defs>
       <path
