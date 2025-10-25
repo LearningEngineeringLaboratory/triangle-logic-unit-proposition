@@ -97,6 +97,16 @@ export function TriangleLogicFlow({
     onPremiseChange,
   })
 
+  // 接続の妥当性を検証（sourceハンドルからのみ接続可能）
+  const isValidConnection = useCallback(
+    (connection: Connection | Edge) => {
+      // sourceHandleが存在し、かつ'-right'で終わる（sourceハンドル）場合のみ許可
+      if (!connection.sourceHandle) return false
+      return connection.sourceHandle.endsWith('-right')
+    },
+    []
+  )
+
   // エッジ接続時の処理
   const onConnect = useCallback(
     (params: Connection) => {
@@ -179,6 +189,7 @@ export function TriangleLogicFlow({
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
+        isValidConnection={isValidConnection}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
         connectionMode={ConnectionMode.Loose}
