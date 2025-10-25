@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect } from 'react'
+import { useCallback, useEffect, useMemo, useRef } from 'react'
 import { useTheme } from 'next-themes'
 import {
   ReactFlow,
@@ -146,26 +146,45 @@ export function TriangleLogicFlow({
     [currentStep, links, onLinksChange]
   )
 
-  // ノードの値を取得してコールバックを呼び出す
-  useEffect(() => {
-    if (onGetNodeValues && nodes.length > 0) {
-      const antecedentNode = nodes.find(node => node.id === 'antecedent')
-      const consequentNode = nodes.find(node => node.id === 'consequent')
-      const premiseNodes = nodes.filter(node => node.id.startsWith('premise-'))
-      
-      const currentValues = {
-        antecedent: (antecedentNode?.data?.value as string) || '',
-        consequent: (consequentNode?.data?.value as string) || '',
-        premiseNodes: premiseNodes.map(node => ({
-          id: node.id,
-          value: (node.data?.value as string) || ''
-        }))
-      }
-      
-      // 値が変更された場合のみコールバックを呼び出す
-      onGetNodeValues(currentValues)
+  // ノードの値をメモ化
+  const nodeValues = useMemo(() => {
+    if (nodes.length === 0) return null
+    
+    const antecedentNode = nodes.find(node => node.id === 'antecedent')
+    const consequentNode = nodes.find(node => node.id === 'consequent')
+    const premiseNodes = nodes.filter(node => node.id.startsWith('premise-'))
+    
+    return {
+      antecedent: (antecedentNode?.data?.value as string) || '',
+      consequent: (consequentNode?.data?.value as string) || '',
+      premiseNodes: premiseNodes.map(node => ({
+        id: node.id,
+        value: (node.data?.value as string) || ''
+      }))
     }
   }, [nodes])
+
+  // 前回の値を保持
+  const prevNodeValuesRef = useRef<string>('')
+  
+  // コールバックをrefで保持（無限ループ防止）
+  const onGetNodeValuesRef = useRef(onGetNodeValues)
+  useEffect(() => {
+    onGetNodeValuesRef.current = onGetNodeValues
+  }, [onGetNodeValues])
+
+  // ノードの値が変更された場合のみコールバックを呼び出す
+  useEffect(() => {
+    if (!onGetNodeValuesRef.current || !nodeValues) return
+    
+    // JSON文字列化して比較（深い比較）
+    const currentValuesStr = JSON.stringify(nodeValues)
+    
+    if (prevNodeValuesRef.current !== currentValuesStr) {
+      prevNodeValuesRef.current = currentValuesStr
+      onGetNodeValuesRef.current(nodeValues)
+    }
+  }, [nodeValues])
 
   // エッジを動的に生成（linksとactiveLinksの変更を監視）
   useEffect(() => {
