@@ -142,22 +142,22 @@ export function ProblemStepDisplay({
     <div className="flex flex-col h-full relative">
       {/* 段階的ステップ表示（親から与えられたスクロール領域内で自動スクロール）*/}
       <div className="flex-1 overflow-y-auto" ref={scrollContainerRef}>
-        <div className="space-y-4">
+        <div className="space-y-0">
           {/* 現在のステップ（最上部に表示） */}
-          <div className="p-6 rounded-2xl border-2 border-border shadow-lg bg-card" id={`current-step-${currentStepData.number}`}>
-            <div className="flex items-center gap-3 mb-3">
+          <div className="p-6" id={`current-step-${currentStepData.number}`}>
+            <div className="flex items-center gap-3 mb-4">
               <div className="flex items-center justify-center">
                 <Circle className="w-5 h-5 text-primary" />
               </div>
-              <h3 className="text-base font-semibold text-foreground">
+              <h3 className="text-lg font-semibold text-foreground">
                 Step {currentStepData.number}: {currentStepData.title}
               </h3>
             </div>
-            <p className="text-base leading-relaxed text-foreground whitespace-pre-line">
+            <p className="text-base leading-relaxed text-foreground whitespace-pre-line mb-6">
               {currentStepData.content}
             </p>
             {currentStepData.hint && (
-              <div className="mt-6 rounded-xl border-2 border-warning/30 bg-warning/10 p-4 shadow-sm">
+              <div className="mb-6 rounded-xl border-2 border-warning/30 bg-warning/10 p-4">
                 <div className="flex items-center gap-2 mb-2">
                   <AlertCircle className="h-5 w-5 text-warning" aria-hidden="true" />
                   <span className="text-base font-semibold text-warning">ヒント</span>
@@ -168,7 +168,7 @@ export function ProblemStepDisplay({
 
             {/* ステップ3の入力フィールド */}
             {currentStepData.number === 3 && (
-              <div className="mt-6">
+              <div className="mb-6">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-xl">
                   <div className="flex flex-col gap-2">
                     <span className="text-sm font-medium text-foreground">推論形式</span>
@@ -201,35 +201,37 @@ export function ProblemStepDisplay({
           </div>
 
           {/* 過去のステップ（逆順で表示：新しいものが上） */}
-          {visibleSteps.reverse().map((step) => {
+          {visibleSteps.reverse().map((step, index) => {
             const status = getStepStatus(step.number)
             const isCompleted = status === 'completed'
 
             return (
-              <div
-                key={step.number}
-                className="p-6 mb-6 rounded-2xl border border-border bg-muted/20 text-muted-foreground shadow-sm"
-              >
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="flex items-center gap-2">
-                    {isCompleted ? (
-                      <CheckCircle2 className="w-5 h-5 text-success" />
-                    ) : (
-                      <Circle className="w-5 h-5 text-muted-foreground" />
+              <div key={step.number}>
+                {/* ステップ間のボーダー */}
+                <div className="border-t border-border mx-6" />
+                
+                <div className="p-6">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="flex items-center gap-2">
+                      {isCompleted ? (
+                        <CheckCircle2 className="w-5 h-5 text-success" />
+                      ) : (
+                        <Circle className="w-5 h-5 text-muted-foreground" />
+                      )}
+                      <h3 className="text-lg font-semibold text-muted-foreground">
+                        Step {step.number}: {step.title}
+                      </h3>
+                    </div>
+                    {isCompleted && (
+                      <span className="ml-auto text-xs bg-success/10 text-success px-3 py-1 rounded-full border border-success/20 font-medium">
+                        完了
+                      </span>
                     )}
-                    <h3 className="text-base font-semibold">
-                      Step {step.number}: {step.title}
-                    </h3>
                   </div>
-                  {isCompleted && (
-                    <span className="ml-auto text-xs bg-success/10 text-success px-3 py-1 rounded-full border border-success/20 font-medium">
-                      完了
-                    </span>
-                  )}
+                  <p className="text-base leading-relaxed text-muted-foreground whitespace-pre-line">
+                    {step.content}
+                  </p>
                 </div>
-                <p className="text-sm leading-relaxed whitespace-pre-line">
-                  {step.content}
-                </p>
               </div>
             )
           })}
