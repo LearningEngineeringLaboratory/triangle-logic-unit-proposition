@@ -26,6 +26,7 @@ export function useNodeUpdates({
 }: UseNodeUpdatesProps) {
   // ノードの状態を更新
   const updateNodes = useCallback(() => {
+    console.log('useNodeUpdates updateNodes called:', { currentStep, antecedentValue, consequentValue })
     setNodes(prevNodes => {
       const updatedNodes = prevNodes.map(node => {
         if (node.id === 'antecedent') {

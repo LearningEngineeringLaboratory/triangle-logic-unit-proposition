@@ -21,6 +21,7 @@ export function TriangleNode({ data }: TriangleNodeProps) {
 
   console.log('TriangleNode render:', { nodeId, showHandles, value, isReadOnly })
   console.log('TriangleNode showHandles value:', showHandles, 'type:', typeof showHandles)
+  console.log('TriangleNode showHandles condition:', showHandles ? 'SHOWING HANDLES' : 'HIDING HANDLES')
 
   return (
     <div className="relative">
