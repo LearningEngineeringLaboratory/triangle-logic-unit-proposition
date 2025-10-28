@@ -227,11 +227,41 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
         isCorrect = uiFragment.inferenceType === problem.correct_answers.step3?.inference_type &&
                    uiFragment.validity === problem.correct_answers.step3?.validity
         break
-      case 4:
+      case 4: {
         // Step4の正誤判定（活性/非活性リンクの比較）
-        const correctActiveLinks = problem.correct_answers.step4?.links || []
-        isCorrect = JSON.stringify(uiFragment.links?.sort()) === JSON.stringify(correctActiveLinks.sort())
+        const correctActiveLinks4 = problem.correct_answers.step4?.links || []
+        
+        // UIリンクを実際の値に変換
+        const uiLinks4 = uiFragment.links || []
+        const getNodeValue4 = (nodeId: string) => {
+          if (nodeId === 'antecedent') return nodeValues.antecedent
+          if (nodeId === 'consequent') return nodeValues.consequent
+          if (nodeId.startsWith('premise-')) {
+            const premiseNode = nodeValues.premiseNodes.find(node => node.id === nodeId)
+            return premiseNode?.value || nodeId
+          }
+          return nodeId
+        }
+        
+        const uiLinksWithValues4 = uiLinks4.map((link: any) => ({
+          from: getNodeValue4(link.from),
+          to: getNodeValue4(link.to),
+          active: true // UIではすべてactiveとして扱う
+        }))
+        
+        // 正解リンクとUIリンクを比較（activeのみが正解）
+        const correctLinksActiveOnly4 = correctActiveLinks4.filter((link: any) => link.active)
+        
+        // リンクの存在と数を比較
+        const linksMatch4 = correctLinksActiveOnly4.every((correctLink: any) => 
+          uiLinksWithValues4.some((uiLink: any) => 
+            uiLink.from === correctLink.from && uiLink.to === correctLink.to
+          )
+        ) && correctLinksActiveOnly4.length === uiLinksWithValues4.length
+        
+        isCorrect = linksMatch4
         break
+      }
       case 5:
         // Step5の正誤判定（論証構成の比較）
         const correctPremises = problem.correct_answers.step5?.premises || []
@@ -246,7 +276,7 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
     // ログ送信（研究用）
     logClientCheck({
       problemId: problem.problem_id,
-      step: stepNumber as 1 | 2 | 3,
+      step: stepNumber as 1 | 2 | 3 | 4 | 5,
       isCorrect,
       payload: uiFragment as any,
     })
