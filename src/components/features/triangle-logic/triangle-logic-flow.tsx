@@ -133,7 +133,7 @@ export function TriangleLogicFlow({
   // エッジ接続時の処理
   const onConnect = useCallback(
     (params: Connection) => {
-      if (currentStep === 2 && params.source && params.target) {
+      if ((currentStep === 2 || currentStep === 4) && params.source && params.target) {
         // リンク状態を更新
         const newLink = {
           from: params.source,
@@ -226,7 +226,7 @@ export function TriangleLogicFlow({
     }
 
     if (currentStep === 3) {
-      // Step3: 表示のみ（削除不可）
+      // Step3: 表示のみ（削除不可、「ならば」ラベル表示）
       links.forEach((link, index) => {
         newEdges.push({
           id: `user-link-${index}`,
@@ -234,6 +234,7 @@ export function TriangleLogicFlow({
           target: link.to,
           type: 'triangleEdge',
           data: {
+            label: 'ならば',
             isActive: true,
             isDeletable: false,
           },
@@ -242,16 +243,23 @@ export function TriangleLogicFlow({
     }
 
     if (currentStep >= 4) {
-      // Step4: 活性/非活性リンク
-      activeLinks.forEach((link, index) => {
+      // Step4: エッジの追加/削除のみ可能（ノード操作は不可）
+      links.forEach((link, index) => {
+        // Step1の派生リンク（antecedent → consequent）は削除不可
+        const isDerivedLink = link.from === 'antecedent' && link.to === 'consequent'
+        
         newEdges.push({
-          id: `active-link-${index}`,
+          id: `user-link-${index}`,
           source: link.from,
           target: link.to,
           type: 'triangleEdge',
           data: {
-            isActive: link.active,
-            isDeletable: false,
+            isActive: true,
+            isDeletable: !isDerivedLink,
+            onDelete: isDerivedLink ? undefined : () => {
+              const newLinks = links.filter((_, i) => i !== index)
+              onLinksChange?.(newLinks)
+            },
           },
         })
       })

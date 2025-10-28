@@ -8,6 +8,7 @@ interface PremiseNodeData {
   value: string
   nodeId: string
   showHandles?: boolean
+  showDeleteButton?: boolean
   onDelete?: () => void
 }
 
@@ -16,7 +17,7 @@ interface PremiseNodeProps {
 }
 
 export function PremiseNode({ data }: PremiseNodeProps) {
-  const { value, nodeId, showHandles = true, onDelete } = data
+  const { value, nodeId, showHandles = true, showDeleteButton = true, onDelete } = data
 
   return (
     <div className="relative">
@@ -96,7 +97,7 @@ export function PremiseNode({ data }: PremiseNodeProps) {
           {value || "選択されていません"}
 
           {/* 削除ボタン */}
-          {onDelete && (
+          {showDeleteButton && onDelete && (
             <Button
               variant="destructive"
               size="sm"

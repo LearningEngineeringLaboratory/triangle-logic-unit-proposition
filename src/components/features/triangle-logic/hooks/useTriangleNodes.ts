@@ -73,7 +73,8 @@ export function useTriangleNodes({ currentStep, options, setNodes }: UseTriangle
         data: {
           value: premiseNode.value,
           nodeId: premiseNode.id,
-          showHandles: currentStep !== 3, // Step3ではハンドル非表示
+          showHandles: !(currentStep === 3 || currentStep === 5), // Step3とStep5ではハンドル非表示
+          showDeleteButton: !(currentStep === 3 || currentStep === 4 || currentStep === 5), // Step3とStep4では削除ボタン非表示
           onDelete: () => removePremiseNode(premiseNode.id), // 削除機能
         },
       }))

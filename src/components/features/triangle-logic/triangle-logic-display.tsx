@@ -26,6 +26,15 @@ interface TriangleLogicDisplayProps {
   validityValue?: string
   onImpossibleToggle?: (value: boolean) => void
   impossibleValue?: boolean
+  // Step5のprops
+  premise1Value?: string
+  premise2Value?: string
+  premise3Value?: string
+  premise4Value?: string
+  onPremise1Change?: (value: string) => void
+  onPremise2Change?: (value: string) => void
+  onPremise3Change?: (value: string) => void
+  onPremise4Change?: (value: string) => void
 }
 
 // ========================================
@@ -328,6 +337,121 @@ function TriangleStep3({
 }
 
 // ========================================
+// Step 5: 妥当性のある三項論証を構成
+// ========================================
+interface TriangleStep5Props {
+  options: string[]
+  antecedentValue: string
+  consequentValue: string
+  premiseValue: string
+  premise1Value?: string
+  premise2Value?: string
+  premise3Value?: string
+  premise4Value?: string
+  onPremise1Change?: (value: string) => void
+  onPremise2Change?: (value: string) => void
+  onPremise3Change?: (value: string) => void
+  onPremise4Change?: (value: string) => void
+}
+
+function TriangleStep5({
+  options,
+  antecedentValue,
+  consequentValue,
+  premiseValue,
+  premise1Value = '',
+  premise2Value = '',
+  premise3Value = '',
+  premise4Value = '',
+  onPremise1Change,
+  onPremise2Change,
+  onPremise3Change,
+  onPremise4Change
+}: TriangleStep5Props) {
+  // すべての選択肢を統合（重複を除去）
+  const allOptions = Array.from(new Set([
+    ...options,
+    antecedentValue,
+    consequentValue,
+    premiseValue
+  ])).filter(Boolean)
+
+  return (
+    <div className="relative w-full max-w-2xl mx-auto scale-[0.6] sm:scale-75 md:scale-90 lg:scale-100 origin-top">
+      <div className="flex flex-col gap-4 items-center justify-center py-8">
+        <div className="text-lg font-medium mb-4">妥当性のある三項論証を構成</div>
+        
+        {/* 第一条件文 */}
+        <div className="flex items-center gap-2 flex-wrap justify-center">
+          <span className="text-lg">【</span>
+          <Select value={premise1Value} onValueChange={onPremise1Change}>
+            <SelectTrigger className={`w-48 text-lg px-4 py-6 min-h-[70px] ${premise1Value ? '' : 'animate-glow-pulse rounded-md'}`}>
+              <SelectValue placeholder="選択" />
+            </SelectTrigger>
+            <SelectContent>
+              {allOptions.map((option) => (
+                <SelectItem key={option} value={option} className="text-lg py-3">
+                  {option}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <span className="text-lg font-medium">ならば</span>
+          <Select value={premise2Value} onValueChange={onPremise2Change}>
+            <SelectTrigger className={`w-48 text-lg px-4 py-6 min-h-[70px] ${premise2Value ? '' : 'animate-glow-pulse rounded-md'}`}>
+              <SelectValue placeholder="選択" />
+            </SelectTrigger>
+            <SelectContent>
+              {allOptions.map((option) => (
+                <SelectItem key={option} value={option} className="text-lg py-3">
+                  {option}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <span className="text-lg">】</span>
+        </div>
+
+        <div className="text-lg">。</div>
+
+        {/* 第二条件文 */}
+        <div className="flex items-center gap-2 flex-wrap justify-center">
+          <span className="text-lg">【</span>
+          <Select value={premise3Value} onValueChange={onPremise3Change}>
+            <SelectTrigger className={`w-48 text-lg px-4 py-6 min-h-[70px] ${premise3Value ? '' : 'animate-glow-pulse rounded-md'}`}>
+              <SelectValue placeholder="選択" />
+            </SelectTrigger>
+            <SelectContent>
+              {allOptions.map((option) => (
+                <SelectItem key={option} value={option} className="text-lg py-3">
+                  {option}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <span className="text-lg font-medium">ならば</span>
+          <Select value={premise4Value} onValueChange={onPremise4Change}>
+            <SelectTrigger className={`w-48 text-lg px-4 py-6 min-h-[70px] ${premise4Value ? '' : 'animate-glow-pulse rounded-md'}`}>
+              <SelectValue placeholder="選択" />
+            </SelectTrigger>
+            <SelectContent>
+              {allOptions.map((option) => (
+                <SelectItem key={option} value={option} className="text-lg py-3">
+                  {option}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <span className="text-lg">】</span>
+        </div>
+
+        <div className="text-lg">。</div>
+      </div>
+    </div>
+  )
+}
+
+// ========================================
 // メインコンポーネント
 // ========================================
 export function TriangleLogicDisplay({
@@ -347,7 +471,15 @@ export function TriangleLogicDisplay({
   inferenceTypeValue = '',
   validityValue = '',
   onImpossibleToggle,
-  impossibleValue = false
+  impossibleValue = false,
+  premise1Value = '',
+  premise2Value = '',
+  premise3Value = '',
+  premise4Value = '',
+  onPremise1Change,
+  onPremise2Change,
+  onPremise3Change,
+  onPremise4Change
 }: TriangleLogicDisplayProps) {
   return (
     <div className="w-full max-w-2xl mx-auto mb-8">
@@ -386,6 +518,23 @@ export function TriangleLogicDisplay({
             antecedentLinkDirection={antecedentLinkDirection}
             consequentLinkDirection={consequentLinkDirection}
             impossibleValue={impossibleValue}
+          />
+        )}
+
+        {currentStep === 5 && (
+          <TriangleStep5
+            options={options}
+            antecedentValue={antecedentValue}
+            consequentValue={consequentValue}
+            premiseValue={premiseValue}
+            premise1Value={premise1Value}
+            premise2Value={premise2Value}
+            premise3Value={premise3Value}
+            premise4Value={premise4Value}
+            onPremise1Change={onPremise1Change}
+            onPremise2Change={onPremise2Change}
+            onPremise3Change={onPremise3Change}
+            onPremise4Change={onPremise4Change}
           />
         )}
 
