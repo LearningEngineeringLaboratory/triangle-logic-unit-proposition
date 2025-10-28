@@ -209,15 +209,9 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
         
         const linksMatch = correctLinks.every((correctLink: any) => 
           uiLinksWithValues.some((uiLink: any) => 
-            (uiLink.from === correctLink.from && uiLink.to === correctLink.to) ||
-            (uiLink.from === correctLink.to && uiLink.to === correctLink.from)
+            uiLink.from === correctLink.from && uiLink.to === correctLink.to
           )
-        ) && uiLinksWithValues.every((uiLink: any) =>
-          correctLinks.some((correctLink: any) =>
-            (uiLink.from === correctLink.from && uiLink.to === correctLink.to) ||
-            (uiLink.from === correctLink.to && uiLink.to === correctLink.from)
-          )
-        )
+        ) && correctLinks.length === uiLinksWithValues.length
         
         console.log(`[debug-step2] correctPremise:`, correctPremise)
         console.log(`[debug-step2] nodeValues.premiseNodes:`, nodeValues.premiseNodes)

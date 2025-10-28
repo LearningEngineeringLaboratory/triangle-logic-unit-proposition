@@ -34,7 +34,6 @@ export function PremiseNode({ data }: PremiseNodeProps) {
           backgroundColor: 'transparent',
           border: 'none',
           transform: 'none',
-          cursor: 'crosshair',
         }}
       />
 
@@ -47,8 +46,7 @@ export function PremiseNode({ data }: PremiseNodeProps) {
             position={Position.Right}
             id={`${nodeId}-right`}
             style={{
-              right: 20,
-              top: 44,
+              top: 64,
               width: 20,
               height: 20,
               backgroundColor: 'transparent',

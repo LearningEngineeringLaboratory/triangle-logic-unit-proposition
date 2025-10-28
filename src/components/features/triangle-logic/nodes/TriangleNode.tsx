@@ -36,7 +36,6 @@ export function TriangleNode({ data }: TriangleNodeProps) {
             backgroundColor: 'transparent',
             border: 'none',
             transform: 'none',
-            cursor: 'crosshair',
           }}
         />
       )}
@@ -50,8 +49,7 @@ export function TriangleNode({ data }: TriangleNodeProps) {
             position={Position.Right}
             id={`${nodeId}-right`}
             style={{
-              right: 20,
-              top: 44,
+              top: 64,
               width: 20,
               height: 20,
               backgroundColor: 'transparent',

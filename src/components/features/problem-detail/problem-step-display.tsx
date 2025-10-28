@@ -144,7 +144,7 @@ export function ProblemStepDisplay({
       <div className="flex-1 overflow-y-auto" ref={scrollContainerRef}>
         <div className="space-y-0">
           {/* 現在のステップ（最上部に表示） */}
-          <div className="pd-6 pr-6" id={`current-step-${currentStepData.number}`}>
+          <div className="pd-6 px-2" id={`current-step-${currentStepData.number}`}>
             <div className="flex items-center gap-3 mb-4">
               <h3 className="text-lg font-semibold text-foreground">
                 Step {currentStepData.number}: {currentStepData.title}
@@ -205,9 +205,9 @@ export function ProblemStepDisplay({
             return (
               <div key={step.number}>
                 {/* ステップ間のボーダー */}
-                <div className="border-t border-border mr-6" />
+                <div className="border-t border-border px-2" />
                 
-                <div className="pr-6 py-6">
+                <div className="px-2 py-6">
                   <div className="flex items-center gap-3 mb-4">
                     <div className="flex items-center gap-2">
                       <h3 className="text-lg font-semibold text-muted-foreground/60">
