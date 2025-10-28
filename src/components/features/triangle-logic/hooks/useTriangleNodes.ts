@@ -69,11 +69,11 @@ export function useTriangleNodes({ currentStep, options, setNodes }: UseTriangle
         id: premiseNode.id,
         type: 'premiseNode',
         position: premiseNode.position,
-        draggable: true, // 自由に動かせる
+        draggable: currentStep !== 3, // Step3では移動不可
         data: {
           value: premiseNode.value,
           nodeId: premiseNode.id,
-          showHandles: true, // ハンドル表示
+          showHandles: currentStep !== 3, // Step3ではハンドル非表示
           onDelete: () => removePremiseNode(premiseNode.id), // 削除機能
         },
       }))

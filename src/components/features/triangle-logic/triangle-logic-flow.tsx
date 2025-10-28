@@ -205,8 +205,8 @@ export function TriangleLogicFlow({
       })
     }
 
-    if (currentStep >= 2) {
-      // Step2: ユーザー作成リンク
+    if (currentStep >= 2 && currentStep < 3) {
+      // Step2: ユーザー作成リンク（削除可能）
       links.forEach((link, index) => {
         newEdges.push({
           id: `user-link-${index}`,
@@ -220,6 +220,22 @@ export function TriangleLogicFlow({
               const filteredLinks = links.filter((_, i) => i !== index)
               onLinksChange?.(filteredLinks)
             },
+          },
+        })
+      })
+    }
+
+    if (currentStep === 3) {
+      // Step3: 表示のみ（削除不可）
+      links.forEach((link, index) => {
+        newEdges.push({
+          id: `user-link-${index}`,
+          source: link.from,
+          target: link.to,
+          type: 'triangleEdge',
+          data: {
+            isActive: true,
+            isDeletable: false,
           },
         })
       })
