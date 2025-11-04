@@ -1,6 +1,6 @@
 'use client'
 
-import { Handle, Position } from '@xyflow/react'
+import { Handle, Position, useConnection } from '@xyflow/react'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 interface TriangleNodeData {
@@ -18,6 +18,8 @@ interface TriangleNodeProps {
 
 export function TriangleNode({ data }: TriangleNodeProps) {
   const { options, value, onValueChange, isReadOnly = false, nodeId, showHandles = true } = data
+  const { inProgress } = useConnection()
+  const hideHandleVisual = inProgress === true
 
   return (
     <div className="relative">
@@ -56,6 +58,7 @@ export function TriangleNode({ data }: TriangleNodeProps) {
               border: 'none',
               borderRadius: 0,
               zIndex: 10,
+              opacity: hideHandleVisual ? 0 : 1,
             }}
           >
             {/* 右下向き矢印 */}
@@ -71,6 +74,7 @@ export function TriangleNode({ data }: TriangleNodeProps) {
                 transform: 'rotate(45deg)',
                 fontWeight: 'bold',
                 textShadow: '1px 1px 4px rgba(0, 0, 0, 0.3)',
+                opacity: hideHandleVisual ? 0 : 1,
               }}
             >
               →

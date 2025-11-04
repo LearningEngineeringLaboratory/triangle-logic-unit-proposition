@@ -1,6 +1,6 @@
 'use client'
 
-import { Handle, Position } from '@xyflow/react'
+import { Handle, Position, useConnection } from '@xyflow/react'
 import { Button } from '@/components/ui/button'
 import { X } from 'lucide-react'
 
@@ -18,6 +18,8 @@ interface PremiseNodeProps {
 
 export function PremiseNode({ data }: PremiseNodeProps) {
   const { value, nodeId, showHandles = true, showDeleteButton = true, onDelete } = data
+  const { inProgress } = useConnection()
+  const hideHandleVisual = inProgress === true
 
   return (
     <div className="relative">
@@ -54,6 +56,7 @@ export function PremiseNode({ data }: PremiseNodeProps) {
               border: 'none',
               borderRadius: 0,
               zIndex: 10,
+              opacity: hideHandleVisual ? 0 : 1,
             }}
           >
             {/* 右下向き矢印 */}
@@ -69,6 +72,7 @@ export function PremiseNode({ data }: PremiseNodeProps) {
                 transform: 'rotate(45deg)',
                 fontWeight: 'bold',
                 textShadow: '1px 1px 4px rgba(0, 0, 0, 0.3)',
+                opacity: hideHandleVisual ? 0 : 1,
               }}
             >
               →

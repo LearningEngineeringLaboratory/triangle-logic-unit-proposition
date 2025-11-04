@@ -69,7 +69,7 @@ export function useTriangleNodes({ currentStep, options, setNodes }: UseTriangle
         id: premiseNode.id,
         type: 'premiseNode',
         position: premiseNode.position,
-        draggable: currentStep !== 3, // Step3では移動不可
+        draggable: currentStep !== 3 && currentStep !== 5, // Step3とStep5では移動不可
         data: {
           value: premiseNode.value,
           nodeId: premiseNode.id,

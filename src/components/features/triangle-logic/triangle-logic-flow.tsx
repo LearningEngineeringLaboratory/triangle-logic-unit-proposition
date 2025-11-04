@@ -19,6 +19,7 @@ import {
 import { TriangleNode } from './nodes/TriangleNode'
 import { PremiseNode } from './nodes/PremiseNode'
 import { TriangleEdge } from './edges/TriangleEdge'
+import { TriangleConnectionLine } from './edges/TriangleConnectionLine'
 import { AddPremiseNodeButton } from './components/AddPremiseNodeButton'
 import { useTriangleNodes } from './hooks/useTriangleNodes'
 import { useNodeUpdates } from './hooks/useNodeUpdates'
@@ -360,7 +361,8 @@ export function TriangleLogicFlow({
           type: 'triangleEdge',
           data: {
             isActive,
-            label: link.from === 'antecedent' && link.to === 'consequent' ? 'ならば' : undefined,
+            // アクティブなエッジのみ中央に「ならば」を表示
+            label: isActive ? 'ならば' : undefined,
             // Step5ではすべての操作を無効化
             isToggleable: false,
             isDeletable: false,
@@ -385,6 +387,7 @@ export function TriangleLogicFlow({
         isValidConnection={isValidConnection}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
+        connectionLineComponent={TriangleConnectionLine}
         connectionMode={ConnectionMode.Strict}
         connectOnClick={false}
         fitView
