@@ -111,6 +111,29 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
     fetchData()
   }, [params])
 
+  // Step4に遷移したときに、Step2のリンクをStep4のリンクに初期化
+  useEffect(() => {
+    if (currentStep === 4 && problem && (problem.total_steps ?? 3) >= 4) {
+      const step2Links = steps.step2?.links || []
+      const step4Links = steps.step4?.links || []
+      
+      // Step4のリンクが空で、Step2のリンクがある場合、初期化
+      // Step2のリンクをactive: trueとして初期化
+      if (step4Links.length === 0 && step2Links.length > 0) {
+        const initialStep4Links = step2Links.map(link => ({
+          from: link.from,
+          to: link.to,
+          active: true, // 初期状態はすべてactive
+        }))
+        updateStep(4, { 
+          ...steps.step4, 
+          links: initialStep4Links,
+          isPassed: steps.step4?.isPassed || false,
+        })
+      }
+    }
+  }, [currentStep, problem, steps.step2, steps.step4, updateStep])
+
   // 次の問題への遷移
   const handleNextProblem = () => {
     if (nextProblem) {
@@ -231,8 +254,15 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
         // Step4の正誤判定（活性/非活性リンクの比較）
         const correctActiveLinks4 = problem.correct_answers.step4?.links || []
         
+        console.log(`[debug-step4] correctActiveLinks4:`, correctActiveLinks4)
+        console.log(`[debug-step4] uiFragment:`, uiFragment)
+        
         // UIリンクを実際の値に変換
         const uiLinks4 = uiFragment.links || []
+        
+        // active: trueのリンクのみを抽出
+        const activeUiLinks4 = uiLinks4.filter((link: any) => link.active !== false)
+        
         const getNodeValue4 = (nodeId: string) => {
           if (nodeId === 'antecedent') return nodeValues.antecedent
           if (nodeId === 'consequent') return nodeValues.consequent
@@ -243,10 +273,9 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
           return nodeId
         }
         
-        const uiLinksWithValues4 = uiLinks4.map((link: any) => ({
+        const uiLinksWithValues4 = activeUiLinks4.map((link: any) => ({
           from: getNodeValue4(link.from),
           to: getNodeValue4(link.to),
-          active: true // UIではすべてactiveとして扱う
         }))
         
         // 正解リンクとUIリンクを比較（activeのみが正解）
@@ -258,6 +287,11 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
             uiLink.from === correctLink.from && uiLink.to === correctLink.to
           )
         ) && correctLinksActiveOnly4.length === uiLinksWithValues4.length
+        
+        console.log(`[debug-step4] uiLinks4:`, uiLinks4)
+        console.log(`[debug-step4] uiLinksWithValues4:`, uiLinksWithValues4)
+        console.log(`[debug-step4] correctLinksActiveOnly4:`, correctLinksActiveOnly4)
+        console.log(`[debug-step4] linksMatch4:`, linksMatch4)
         
         isCorrect = linksMatch4
         break

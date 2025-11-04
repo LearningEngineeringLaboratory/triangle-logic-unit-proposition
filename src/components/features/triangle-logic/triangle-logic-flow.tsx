@@ -133,17 +133,26 @@ export function TriangleLogicFlow({
   // エッジ接続時の処理
   const onConnect = useCallback(
     (params: Connection) => {
-      if ((currentStep === 2 || currentStep === 4) && params.source && params.target) {
-        // リンク状態を更新
+      if (currentStep === 2 && params.source && params.target) {
+        // Step2: linksを更新
         const newLink = {
           from: params.source,
           to: params.target,
         }
         const newLinks = [...links, newLink]
         onLinksChange?.(newLinks)
+      } else if (currentStep === 4 && params.source && params.target) {
+        // Step4: activeLinksを更新（active: trueとして追加）
+        const newLink = {
+          from: params.source,
+          to: params.target,
+          active: true,
+        }
+        const newActiveLinks = [...activeLinks, newLink]
+        onActiveLinksChange?.(newActiveLinks)
       }
     },
-    [currentStep, links, onLinksChange]
+    [currentStep, links, activeLinks, onLinksChange, onActiveLinksChange]
   )
 
   // ノードの値をメモ化
@@ -244,9 +253,34 @@ export function TriangleLogicFlow({
 
     if (currentStep >= 4) {
       // Step4: エッジの追加/削除のみ可能（ノード操作は不可）
-      links.forEach((link, index) => {
-        // Step1の派生リンク（antecedent → consequent）は削除不可
+      // Step2のリンクも含めて表示（Step4に遷移時に初期化される）
+      const allLinks = [...links]
+      activeLinks.forEach(activeLink => {
+        // activeLinksに既に存在するかチェック（linksには含まれている可能性がある）
+        const exists = allLinks.some(link => 
+          link.from === activeLink.from && link.to === activeLink.to
+        )
+        if (!exists) {
+          // activeLinksにしかないリンクは追加（Step4で新規作成したエッジ）
+          allLinks.push({ from: activeLink.from, to: activeLink.to })
+        }
+      })
+      
+      allLinks.forEach((link, index) => {
+        // Step1の派生リンク（antecedent → consequent）は操作不可
         const isDerivedLink = link.from === 'antecedent' && link.to === 'consequent'
+        
+        // Step2のエッジか、Step4で新規作成したエッジかを判定
+        const isStep2Link = links.some(l => l.from === link.from && l.to === link.to)
+        const isStep4NewLink = !isStep2Link && !isDerivedLink
+        
+        // activeLinksからactive状態を取得
+        const activeLink = activeLinks.find(al => 
+          al.from === link.from && al.to === link.to
+        )
+        // Step2のエッジでactiveLinksに存在しない場合はtrue（初期化時に追加されているはず）
+        // Step4で新規作成したエッジでactiveLinksに存在しない場合もtrue
+        const isActive = activeLink ? activeLink.active : true
         
         newEdges.push({
           id: `user-link-${index}`,
@@ -254,19 +288,49 @@ export function TriangleLogicFlow({
           target: link.to,
           type: 'triangleEdge',
           data: {
-            isActive: true,
-            isDeletable: !isDerivedLink,
-            onDelete: isDerivedLink ? undefined : () => {
-              const newLinks = links.filter((_, i) => i !== index)
-              onLinksChange?.(newLinks)
-            },
+            isActive,
+            // Step1のエッジ：操作不可
+            // Step2のエッジ：active切り替えボタン
+            // Step4で新規作成したエッジ：削除ボタン
+            isToggleable: !isDerivedLink && isStep2Link,
+            isDeletable: isStep4NewLink,
+            onToggle: !isDerivedLink && isStep2Link ? () => {
+              // Step2のエッジのactive状態を切り替え
+              const existingLink = activeLinks.find(al => 
+                al.from === link.from && al.to === link.to
+              )
+              if (existingLink) {
+                // 既存のリンクのactive状態を切り替え
+                const newActiveLinks = activeLinks.map(al => 
+                  al.from === link.from && al.to === link.to
+                    ? { ...al, active: !al.active }
+                    : al
+                )
+                onActiveLinksChange?.(newActiveLinks)
+              } else {
+                // 新規にactive: falseとして追加
+                const newActiveLinks = [...activeLinks, {
+                  from: link.from,
+                  to: link.to,
+                  active: false,
+                }]
+                onActiveLinksChange?.(newActiveLinks)
+              }
+            } : undefined,
+            onDelete: isStep4NewLink ? () => {
+              // Step4で新規作成したエッジを削除
+              const newActiveLinks = activeLinks.filter(al => 
+                !(al.from === link.from && al.to === link.to)
+              )
+              onActiveLinksChange?.(newActiveLinks)
+            } : undefined,
           },
         })
       })
     }
 
     setEdges(newEdges as Edge[])
-  }, [currentStep, links, activeLinks, onLinksChange, setEdges])
+  }, [currentStep, links, activeLinks, onLinksChange, onActiveLinksChange, setEdges])
 
   return (
     <div className="w-full h-full rounded-2xl border-2 border-border bg-card overflow-hidden">

@@ -14,22 +14,22 @@ export function useProblemSteps(problem: ProblemDetail | null) {
     
     // Step1: 導出命題
     steps.step1 = {
-      isPassed: false,
-      antecedent: '',
-      consequent: '',
+        isPassed: false,
+          antecedent: '',
+          consequent: '',
     }
     
     // Step2: 所与命題とリンク
     steps.step2 = {
       isPassed: false,
-      premise: '',
+          premise: '',
       links: [],
     }
     
     // Step3: 推論形式と妥当性
     steps.step3 = {
       isPassed: false,
-      inferenceType: '',
+          inferenceType: '',
       validity: null,
     }
     

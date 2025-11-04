@@ -10,7 +10,9 @@ interface TriangleEdgeProps extends EdgeProps {
     label?: string
     isActive?: boolean
     isDeletable?: boolean
+    isToggleable?: boolean
     onDelete?: () => void
+    onToggle?: () => void
   }
 }
 
@@ -82,14 +84,14 @@ export function TriangleEdge({ id, source, target, style, data }: TriangleEdgePr
     labelY = y
   }
 
-  const { label, isActive = true, isDeletable = false, onDelete } = data || {}
+  const { label, isActive = true, isDeletable = false, isToggleable = false, onDelete, onToggle } = data || {}
 
   const edgeStyle = {
     ...style,
-    stroke: isActive ? '#3b82f6' : '#ef4444',
+    stroke: isActive ? '#3b82f6' : '#94a3b8',
     strokeWidth: isActive ? 3 : 2,
     strokeDasharray: isActive ? 'none' : '5,5',
-    opacity: isActive ? 1 : 0.6,
+    opacity: isActive ? 1 : 0.4,
     fill: 'none',
   }
 
@@ -140,6 +142,30 @@ export function TriangleEdge({ id, source, target, style, data }: TriangleEdgePr
           </div>
         </EdgeLabelRenderer>
       )}
+      {/* Step2のエッジ：active切り替えボタン */}
+      {isToggleable && onToggle && (
+        <EdgeLabelRenderer>
+          <div
+            className="nodrag nopan"
+            style={{
+              position: 'absolute',
+              transform: `translate(-50%, -50%) translate(${labelX}px, ${labelY}px)`,
+              pointerEvents: 'all',
+            }}
+          >
+            <Button
+              variant={isActive ? 'default' : 'outline'}
+              size="sm"
+              onClick={onToggle}
+              className="h-6 w-6 rounded-full p-0"
+              title={isActive ? '非表示にする' : '表示する'}
+            >
+              {isActive ? '●' : '○'}
+            </Button>
+          </div>
+        </EdgeLabelRenderer>
+      )}
+      {/* Step4で新規作成したエッジ：削除ボタン */}
       {isDeletable && onDelete && (
         <EdgeLabelRenderer>
           <div
