@@ -296,11 +296,37 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
         isCorrect = linksMatch4
         break
       }
-      case 5:
-        // Step5の正誤判定（論証構成の比較）
+      case 5: {
+        // Step5の正誤判定（論証構成の比較、順不同）
+        // 2つのpremiseの順序は入れ替え可能だが、各premiseのantecedentとconsequentの組み合わせは固定
         const correctPremises = problem.correct_answers.step5?.premises || []
-        isCorrect = JSON.stringify(uiFragment.premises?.sort()) === JSON.stringify(correctPremises.sort())
+        const userPremises = uiFragment.premises || []
+        
+        // 各premiseをJSON文字列に変換（順序は保持）
+        const normalizePremise = (premise: { antecedent: string; consequent: string }): string => {
+          return JSON.stringify(premise)
+        }
+        
+        // 2つのpremiseの順序を入れ替え可能にするため、配列をソート
+        const normalizedCorrect = correctPremises.map(normalizePremise).sort()
+        const normalizedUser = userPremises.map(normalizePremise).sort()
+        
+        // 各premiseが正しいかチェック（2つのpremiseの順序は問わない）
+        const premisesMatch = normalizedCorrect.length === normalizedUser.length &&
+          normalizedCorrect.length === 2 &&
+          normalizedCorrect.every((correctPremise: string) => 
+            normalizedUser.some((userPremise: string) => userPremise === correctPremise)
+          )
+        
+        console.log(`[debug-step5] correctPremises:`, correctPremises)
+        console.log(`[debug-step5] userPremises:`, userPremises)
+        console.log(`[debug-step5] normalizedCorrect:`, normalizedCorrect)
+        console.log(`[debug-step5] normalizedUser:`, normalizedUser)
+        console.log(`[debug-step5] premisesMatch:`, premisesMatch)
+        
+        isCorrect = premisesMatch
         break
+      }
     }
 
     console.log(`[check-step][client] step=${stepNumber} isCorrect=${isCorrect ? 'correct' : 'incorrect'}`)
@@ -358,6 +384,21 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
             validityValue={steps.step3?.validity === null ? '' : (steps.step3?.validity ? '妥当' : '非妥当')}
             onInferenceTypeChange={(value) => updateStep(3, { ...steps.step3, inferenceType: value })}
             onValidityChange={(value) => updateStep(3, { ...steps.step3, validity: value === '妥当' })}
+            step5Premises={steps.step5?.premises || []}
+            onStep5PremiseChange={(index, field, value) => {
+              const currentPremises = steps.step5?.premises || []
+              // 配列の長さを2に保つ
+              const newPremises = [...currentPremises]
+              // インデックスが範囲外の場合は空オブジェクトで初期化
+              if (!newPremises[index]) {
+                newPremises[index] = { antecedent: '', consequent: '' }
+              }
+              newPremises[index] = {
+                ...newPremises[index],
+                [field]: value,
+              }
+              updateStep(5, { ...steps.step5, premises: newPremises })
+            }}
             onRequestNext={handleAnswerCheck}
             stepsState={steps as any}
           />

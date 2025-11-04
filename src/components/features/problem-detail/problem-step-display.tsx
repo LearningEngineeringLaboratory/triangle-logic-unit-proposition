@@ -1,7 +1,7 @@
 'use client'
 
 import { ProblemDetail } from '@/lib/types'
-import { AlertCircle, CheckCircle2, Circle, ArrowUp } from 'lucide-react'
+import { AlertCircle, CheckCircle2, Circle, ArrowUp, BookOpen } from 'lucide-react'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Button } from '@/components/ui/button'
 import { useEffect, useRef, useState } from 'react'
@@ -14,6 +14,8 @@ interface ProblemStepDisplayProps {
   validityValue?: string
   onInferenceTypeChange?: (value: string) => void
   onValidityChange?: (value: string) => void
+  step5Premises?: Array<{ antecedent: string; consequent: string }>
+  onStep5PremiseChange?: (index: number, field: 'antecedent' | 'consequent', value: string) => void
   onRequestNext?: () => void | Promise<void>
   shakeNext?: unknown
   stepsState?: { [stepKey: string]: { isPassed: boolean } } // ステップの完了状態
@@ -27,6 +29,8 @@ export function ProblemStepDisplay({
   validityValue = '',
   onInferenceTypeChange,
   onValidityChange,
+  step5Premises = [],
+  onStep5PremiseChange,
   onRequestNext,
   shakeNext,
   stepsState = {}
@@ -203,6 +207,103 @@ export function ProblemStepDisplay({
                     </Select>
                   </div>
                 </div>
+              </div>
+            )}
+
+            {/* ステップ5の入力フィールド */}
+            {currentStepData.number === 5 && (
+              <div className="mb-6">
+                <fieldset className="border-2 border-primary/20 rounded-2xl px-4 pt-2 pb-3 mb-2 bg-primary/5">
+                  <legend className="px-2 flex items-center gap-2">
+                    <BookOpen className="w-3 h-3 text-primary" />
+                    <span className="text-sm font-semibold text-primary">論証</span>
+                  </legend>
+                  <div className="space-y-4 w-full max-w-3xl">
+                    {/* 一つの文章として表示 */}
+                    <div className="flex flex-wrap items-center gap-2 text-base leading-relaxed text-foreground font-serif tracking-wide">
+                      {/* 前提1 */}
+                      <div className="flex items-center gap-2">
+                        <Select
+                          value={step5Premises[0]?.antecedent || ''}
+                          onValueChange={(value) => onStep5PremiseChange?.(0, 'antecedent', value)}
+                        >
+                          <SelectTrigger className={`h-10 rounded-lg border-2 text-base min-w-[120px] font-sans ${step5Premises[0]?.antecedent ? '' : 'animate-glow-pulse'}`}>
+                            <SelectValue placeholder="選択" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {problem.options?.map((option, idx) => (
+                              <SelectItem key={idx} value={option}>
+                                {option}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <span className="text-base font-medium text-foreground font-serif">ならば</span>
+                        <Select
+                          value={step5Premises[0]?.consequent || ''}
+                          onValueChange={(value) => onStep5PremiseChange?.(0, 'consequent', value)}
+                        >
+                          <SelectTrigger className={`h-10 rounded-lg border-2 text-base min-w-[120px] font-sans ${step5Premises[0]?.consequent ? '' : 'animate-glow-pulse'}`}>
+                            <SelectValue placeholder="選択" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {problem.options?.map((option, idx) => (
+                              <SelectItem key={idx} value={option}>
+                                {option}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <span className="text-base text-foreground font-serif">。</span>
+                      </div>
+
+                      {/* 前提2 */}
+                      <div className="flex items-center gap-2">
+                        <Select
+                          value={step5Premises[1]?.antecedent || ''}
+                          onValueChange={(value) => onStep5PremiseChange?.(1, 'antecedent', value)}
+                        >
+                          <SelectTrigger className={`h-10 rounded-lg border-2 text-base min-w-[120px] font-sans ${step5Premises[1]?.antecedent ? '' : 'animate-glow-pulse'}`}>
+                            <SelectValue placeholder="選択" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {problem.options?.map((option, idx) => (
+                              <SelectItem key={idx} value={option}>
+                                {option}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <span className="text-base font-medium text-foreground font-serif">ならば</span>
+                        <Select
+                          value={step5Premises[1]?.consequent || ''}
+                          onValueChange={(value) => onStep5PremiseChange?.(1, 'consequent', value)}
+                        >
+                          <SelectTrigger className={`h-10 rounded-lg border-2 text-base min-w-[120px] font-sans ${step5Premises[1]?.consequent ? '' : 'animate-glow-pulse'}`}>
+                            <SelectValue placeholder="選択" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {problem.options?.map((option, idx) => (
+                              <SelectItem key={idx} value={option}>
+                                {option}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <span className="text-base text-foreground font-serif">。</span>
+                      </div>
+
+                      {/* したがって、結論 */}
+                      <span className="text-base text-foreground font-serif">
+                        <span className="font-medium">したがって、</span>
+                        {(stepsState.step1 as any)?.antecedent || '（前件）'}
+                        <span className="font-medium">ならば</span>
+                        {(stepsState.step1 as any)?.consequent || '（後件）'}
+                        。
+                      </span>
+                    </div>
+                  </div>
+                </fieldset>
               </div>
             )}
           </div>

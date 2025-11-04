@@ -41,7 +41,7 @@ export function useNodeUpdates({
               ...node.data,
               value: antecedentValue,
               isReadOnly: currentStep > 1,
-              showHandles: currentStep >= 2 && currentStep !== 3,
+              showHandles: currentStep >= 2 && currentStep !== 3 && currentStep !== 5,
               onValueChange: onAntecedentChange || (() => {}),
             }
           }
@@ -58,7 +58,7 @@ export function useNodeUpdates({
               ...node.data,
               value: consequentValue,
               isReadOnly: currentStep > 1,
-              showHandles: currentStep >= 2 && currentStep !== 3,
+              showHandles: currentStep >= 2 && currentStep !== 3 && currentStep !== 5,
               onValueChange: onConsequentChange || (() => {}),
             }
           }

@@ -251,7 +251,7 @@ export function TriangleLogicFlow({
       })
     }
 
-    if (currentStep >= 4) {
+    if (currentStep === 4) {
       // Step4: エッジの追加/削除のみ可能（ノード操作は不可）
       // Step2のリンクも含めて表示（Step4に遷移時に初期化される）
       const allLinks = [...links]
@@ -324,6 +324,48 @@ export function TriangleLogicFlow({
               )
               onActiveLinksChange?.(newActiveLinks)
             } : undefined,
+          },
+        })
+      })
+    }
+
+    if (currentStep >= 5) {
+      // Step5: 表示のみ（すべての操作を無効化）
+      // Step2のリンクも含めて表示（Step4に遷移時に初期化される）
+      const allLinks = [...links]
+      activeLinks.forEach(activeLink => {
+        // activeLinksに既に存在するかチェック（linksには含まれている可能性がある）
+        const exists = allLinks.some(link => 
+          link.from === activeLink.from && link.to === activeLink.to
+        )
+        if (!exists) {
+          // activeLinksにしかないリンクは追加（Step4で新規作成したエッジ）
+          allLinks.push({ from: activeLink.from, to: activeLink.to })
+        }
+      })
+      
+      allLinks.forEach((link, index) => {
+        // activeLinksからactive状態を取得
+        const activeLink = activeLinks.find(al => 
+          al.from === link.from && al.to === link.to
+        )
+        // Step2のエッジでactiveLinksに存在しない場合はtrue（初期化時に追加されているはず）
+        // Step4で新規作成したエッジでactiveLinksに存在しない場合もtrue
+        const isActive = activeLink ? activeLink.active : true
+        
+        newEdges.push({
+          id: `user-link-${index}`,
+          source: link.from,
+          target: link.to,
+          type: 'triangleEdge',
+          data: {
+            isActive,
+            label: link.from === 'antecedent' && link.to === 'consequent' ? 'ならば' : undefined,
+            // Step5ではすべての操作を無効化
+            isToggleable: false,
+            isDeletable: false,
+            onToggle: undefined,
+            onDelete: undefined,
           },
         })
       })
