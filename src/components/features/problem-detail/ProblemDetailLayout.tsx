@@ -18,14 +18,14 @@ export function ProblemDetailLayout({ problem, problemNumber, slots }: ProblemDe
   return (
     <div className="flex-1 bg-background overflow-hidden flex flex-col">
       {/* コンテンツ全体を3行グリッド（ヘッダー/中央/フッター）にして中央のみスクロール許容 */}
-      <div className="container mx-auto px-4 h-full flex flex-col gap-6">
+      <div className="container mx-auto p-6 h-full flex flex-col gap-6">
         {/* ヘッダー直下 全幅（固定行） */}
-        <div className="pt-6 flex-shrink-0">
+        <div className="flex-shrink-0">
           {slots.header}
         </div>
 
         {/* 中央行（flex-1）: 2カラム。中央行自体はoverflow-hiddenにして、左だけスクロール */}
-        <div className="flex-1 min-h-0 grid lg:grid-cols-[1fr_minmax(0,_560px)] gap-8 overflow-hidden">
+        <div className="flex-1 min-h-0 grid lg:grid-cols-[1fr_1fr] gap-8 overflow-hidden">
           {/* 左: ステップ（スクロールとフェードアウト効果は子コンポーネントで管理） */}
           <div className="h-full overflow-hidden">
             {slots.leftPanel}
@@ -37,7 +37,7 @@ export function ProblemDetailLayout({ problem, problemNumber, slots }: ProblemDe
         </div>
 
         {/* 下段 全幅: アクション（固定行） */}
-        <div className="border-t-2 border-border flex items-center py-4 flex-shrink-0">
+        <div className="flex items-center flex-shrink-0">
           {slots.footer}
         </div>
       </div>

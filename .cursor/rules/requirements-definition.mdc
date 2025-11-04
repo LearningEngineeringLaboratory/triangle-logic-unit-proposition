@@ -190,11 +190,11 @@ interface ContinueDialog {
 ```json
 {
   "step1": {
-    "antecedent": "Pである",
-    "consequent": "Rである"
+        "antecedent": "Pである",
+        "consequent": "Rである"
   },
   "step2": {
-    "premise": "Qである",
+        "premise": "Qである",
     "links": [
       { "from": "Pである", "to": "Qである" },
       { "from": "Qである", "to": "Rである" }
@@ -202,7 +202,7 @@ interface ContinueDialog {
   },
   "step3": {
     "inference_type": "演繹推論",
-    "validity": true
+        "validity": true
   },
   "step4": {
     "links": [

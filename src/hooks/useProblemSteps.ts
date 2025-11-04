@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useCallback } from 'react'
-import { ProblemDetail, StepsState, StepState } from '@/lib/types'
+import { ProblemDetail, StepsState, Step1State, Step2State, Step3State, Step4State, Step5State } from '@/lib/types'
 
 // ステップ管理用のカスタムフック
 export function useProblemSteps(problem: ProblemDetail | null) {
@@ -11,39 +11,55 @@ export function useProblemSteps(problem: ProblemDetail | null) {
   // ステップ状態の初期化
   const initializeSteps = useCallback((): StepsState => {
     const steps: StepsState = {}
-    for (let i = 1; i <= totalSteps; i++) {
-      steps[`step${i}`] = {
+    
+    // Step1: 導出命題
+    steps.step1 = {
         isPassed: false,
-        // 各ステップの初期値を設定
-        ...(i === 1 && {
           antecedent: '',
           consequent: '',
-        }),
-        ...(i === 2 && {
-          impossible: false,
+    }
+    
+    // Step2: 所与命題とリンク
+    steps.step2 = {
+      isPassed: false,
           premise: '',
-          linkDirections: {
-            antecedentLink: true,
-            consequentLink: true,
-          },
-        }),
-        ...(i === 3 && {
+      links: [],
+    }
+    
+    // Step3: 推論形式と妥当性
+    steps.step3 = {
+      isPassed: false,
           inferenceType: '',
-          validity: null as boolean | null,
-        }),
+      validity: null,
+    }
+    
+    // Step4: リンクの活性/非活性（5ステップの場合のみ）
+    if (totalSteps >= 4) {
+      steps.step4 = {
+        isPassed: false,
+        links: [],
       }
     }
+    
+    // Step5: 論証構成（5ステップの場合のみ）
+    if (totalSteps >= 5) {
+      steps.step5 = {
+        isPassed: false,
+        premises: [],
+      }
+    }
+    
     return steps
   }, [totalSteps])
 
   const [steps, setSteps] = useState<StepsState>(initializeSteps)
 
   // ステップの更新
-  const updateStep = useCallback((stepNumber: number, updates: Partial<StepState>) => {
+  const updateStep = useCallback((stepNumber: number, updates: Partial<Step1State | Step2State | Step3State | Step4State | Step5State>) => {
     setSteps(prev => ({
       ...prev,
-      [`step${stepNumber}`]: {
-        ...prev[`step${stepNumber}`],
+      [`step${stepNumber}` as keyof StepsState]: {
+        ...prev[`step${stepNumber}` as keyof StepsState],
         ...updates,
       },
     }))

@@ -1,7 +1,7 @@
 'use client'
 
 import { ProblemDetail } from '@/lib/types'
-import { AlertCircle, CheckCircle2, Circle, ArrowUp } from 'lucide-react'
+import { AlertCircle, CheckCircle2, Circle, ArrowUp, BookOpen } from 'lucide-react'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Button } from '@/components/ui/button'
 import { useEffect, useRef, useState } from 'react'
@@ -14,6 +14,8 @@ interface ProblemStepDisplayProps {
   validityValue?: string
   onInferenceTypeChange?: (value: string) => void
   onValidityChange?: (value: string) => void
+  step5Premises?: Array<{ antecedent: string; consequent: string }>
+  onStep5PremiseChange?: (index: number, field: 'antecedent' | 'consequent', value: string) => void
   onRequestNext?: () => void | Promise<void>
   shakeNext?: unknown
   stepsState?: { [stepKey: string]: { isPassed: boolean } } // ステップの完了状態
@@ -27,6 +29,8 @@ export function ProblemStepDisplay({
   validityValue = '',
   onInferenceTypeChange,
   onValidityChange,
+  step5Premises = [],
+  onStep5PremiseChange,
   onRequestNext,
   shakeNext,
   stepsState = {}
@@ -86,25 +90,35 @@ export function ProblemStepDisplay({
         steps.push({
           number: 1,
           title: '導出命題を構成',
-          content: 'この論証が導いている命題（導出命題）を構成しましょう。\n ２つのドロップダウンを選択してください。\n\n できたら、「答え合わせ」ボタンを押して、次のステップに進みましょう。',
+          content: 'この論証が導いている命題（導出命題）を構成しましょう。',
           hint: '「したがって」や「よって」、「とすると」などの接続詞がある命題に着目しましょう。'
         })
       } else if (i === 2) {
         steps.push({
           number: 2,
           title: '三角ロジックの構成',
-          content: 'この論証の前提となる命題（所与命題）を構成しましょう。\n\n 1. 前提のみで使用されている単位命題を選択\n 2. 論証が表す意味と同じになるように、リンクの向きを修正\n 3. 論証と同じ意味の三角ロジックを構成できない場合は「組み立て不可能」のトグルをONにする',
-          hint: '🔄ボタンをクリックすると、リンクの向きを反転させることができます。'
+          content: 'この論証の前提となる命題（所与命題）を構成しましょう。\n\n 1. 前提に必要な部品を追加\n 2. 論証が表す意味と同じになるように、リンクを接続',
         })
       } else if (i === 3) {
         steps.push({
           number: 3,
           title: '推論形式と妥当性の判別',
           content: '構成した三角ロジックをもとに、この論証の推論形式と妥当性を答えましょう。',
-          hint: 'リンクの向きの変更がない場合は演繹推論、リンクの向きの変更が1箇所の場合は仮説推論、リンクの向きの変更が2箇所の場合、もしくは三角ロジックを構成できない場合は非形式推論です。'
+        })
+      } else if (i === 4) {
+        steps.push({
+          number: 4,
+          title: '妥当性のある三角ロジックの構成',
+          content: '三角ロジックを修正して妥当性のある論証になるような三角ロジックを構成しましょう。',
+        })
+      } else if (i === 5) {
+        steps.push({
+          number: 5,
+          title: '妥当性のある三項論証を構成',
+          content: '修正した三角ロジックをもとに、妥当性のある三項論証を構成しましょう。',
         })
       } else {
-        // 4ステップ以上の場合（将来の拡張用）
+        // 6ステップ以上の場合（将来の拡張用）
         steps.push({
           number: i,
           title: `ステップ${i}`,
@@ -142,22 +156,19 @@ export function ProblemStepDisplay({
     <div className="flex flex-col h-full relative">
       {/* 段階的ステップ表示（親から与えられたスクロール領域内で自動スクロール）*/}
       <div className="flex-1 overflow-y-auto" ref={scrollContainerRef}>
-        <div className="space-y-4">
+        <div className="space-y-0">
           {/* 現在のステップ（最上部に表示） */}
-          <div className="p-6 rounded-2xl border-2 border-border shadow-lg bg-card" id={`current-step-${currentStepData.number}`}>
-            <div className="flex items-center gap-3 mb-3">
-              <div className="flex items-center justify-center">
-                <Circle className="w-5 h-5 text-primary" />
-              </div>
-              <h3 className="text-base font-semibold text-foreground">
+          <div className="pd-6 px-2" id={`current-step-${currentStepData.number}`}>
+            <div className="flex items-center gap-3 mb-4">
+              <h3 className="text-lg font-semibold text-foreground">
                 Step {currentStepData.number}: {currentStepData.title}
               </h3>
             </div>
-            <p className="text-base leading-relaxed text-foreground whitespace-pre-line">
+            <p className="text-base leading-relaxed text-foreground whitespace-pre-line mb-6">
               {currentStepData.content}
             </p>
             {currentStepData.hint && (
-              <div className="mt-6 rounded-xl border-2 border-warning/30 bg-warning/10 p-4 shadow-sm">
+              <div className="mb-6 rounded-xl border-2 border-warning/30 bg-warning/10 p-4">
                 <div className="flex items-center gap-2 mb-2">
                   <AlertCircle className="h-5 w-5 text-warning" aria-hidden="true" />
                   <span className="text-base font-semibold text-warning">ヒント</span>
@@ -168,7 +179,7 @@ export function ProblemStepDisplay({
 
             {/* ステップ3の入力フィールド */}
             {currentStepData.number === 3 && (
-              <div className="mt-6">
+              <div className="mb-6">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-xl">
                   <div className="flex flex-col gap-2">
                     <span className="text-sm font-medium text-foreground">推論形式</span>
@@ -198,38 +209,132 @@ export function ProblemStepDisplay({
                 </div>
               </div>
             )}
+
+            {/* ステップ5の入力フィールド */}
+            {currentStepData.number === 5 && (
+              <div className="mb-6">
+                <fieldset className="border-2 border-primary/20 rounded-2xl px-4 pt-2 pb-3 mb-2 bg-primary/5">
+                  <legend className="px-2 flex items-center gap-2">
+                    <BookOpen className="w-3 h-3 text-primary" />
+                    <span className="text-sm font-semibold text-primary">論証</span>
+                  </legend>
+                  <div className="space-y-4 w-full max-w-3xl">
+                    {/* 一つの文章として表示 */}
+                    <div className="flex flex-wrap items-center gap-2 text-base leading-relaxed text-foreground font-serif tracking-wide">
+                      {/* 前提1 */}
+                      <div className="flex items-center gap-2">
+                        <Select
+                          value={step5Premises[0]?.antecedent || ''}
+                          onValueChange={(value) => onStep5PremiseChange?.(0, 'antecedent', value)}
+                        >
+                          <SelectTrigger className={`h-10 rounded-lg border-2 text-base min-w-[120px] font-sans ${step5Premises[0]?.antecedent ? '' : 'animate-glow-pulse'}`}>
+                            <SelectValue placeholder="選択" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {problem.options?.map((option, idx) => (
+                              <SelectItem key={idx} value={option}>
+                                {option}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <span className="text-base font-medium text-foreground font-serif">ならば</span>
+                        <Select
+                          value={step5Premises[0]?.consequent || ''}
+                          onValueChange={(value) => onStep5PremiseChange?.(0, 'consequent', value)}
+                        >
+                          <SelectTrigger className={`h-10 rounded-lg border-2 text-base min-w-[120px] font-sans ${step5Premises[0]?.consequent ? '' : 'animate-glow-pulse'}`}>
+                            <SelectValue placeholder="選択" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {problem.options?.map((option, idx) => (
+                              <SelectItem key={idx} value={option}>
+                                {option}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <span className="text-base text-foreground font-serif">。</span>
+                      </div>
+
+                      {/* 前提2 */}
+                      <div className="flex items-center gap-2">
+                        <Select
+                          value={step5Premises[1]?.antecedent || ''}
+                          onValueChange={(value) => onStep5PremiseChange?.(1, 'antecedent', value)}
+                        >
+                          <SelectTrigger className={`h-10 rounded-lg border-2 text-base min-w-[120px] font-sans ${step5Premises[1]?.antecedent ? '' : 'animate-glow-pulse'}`}>
+                            <SelectValue placeholder="選択" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {problem.options?.map((option, idx) => (
+                              <SelectItem key={idx} value={option}>
+                                {option}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <span className="text-base font-medium text-foreground font-serif">ならば</span>
+                        <Select
+                          value={step5Premises[1]?.consequent || ''}
+                          onValueChange={(value) => onStep5PremiseChange?.(1, 'consequent', value)}
+                        >
+                          <SelectTrigger className={`h-10 rounded-lg border-2 text-base min-w-[120px] font-sans ${step5Premises[1]?.consequent ? '' : 'animate-glow-pulse'}`}>
+                            <SelectValue placeholder="選択" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {problem.options?.map((option, idx) => (
+                              <SelectItem key={idx} value={option}>
+                                {option}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <span className="text-base text-foreground font-serif">。</span>
+                      </div>
+
+                      {/* したがって、結論 */}
+                      <span className="text-base text-foreground font-serif">
+                        <span className="font-medium">したがって、</span>
+                        {(stepsState.step1 as any)?.antecedent || '（前件）'}
+                        <span className="font-medium">ならば</span>
+                        {(stepsState.step1 as any)?.consequent || '（後件）'}
+                        。
+                      </span>
+                    </div>
+                  </div>
+                </fieldset>
+              </div>
+            )}
           </div>
 
           {/* 過去のステップ（逆順で表示：新しいものが上） */}
-          {visibleSteps.reverse().map((step) => {
+          {visibleSteps.reverse().map((step, index) => {
             const status = getStepStatus(step.number)
             const isCompleted = status === 'completed'
 
             return (
-              <div
-                key={step.number}
-                className="p-6 mb-6 rounded-2xl border border-border bg-muted/20 text-muted-foreground shadow-sm"
-              >
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="flex items-center gap-2">
-                    {isCompleted ? (
-                      <CheckCircle2 className="w-5 h-5 text-success" />
-                    ) : (
-                      <Circle className="w-5 h-5 text-muted-foreground" />
+              <div key={step.number}>
+                {/* ステップ間のボーダー */}
+                <div className="border-t border-border px-2" />
+                
+                <div className="px-2 py-6">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-lg font-semibold text-muted-foreground/60">
+                        Step {step.number}: {step.title}
+                      </h3>
+                    </div>
+                    {isCompleted && (
+                      <span className="ml-auto text-xs bg-success/10 text-success px-3 py-1 rounded-full border border-success/20 font-medium">
+                        完了
+                      </span>
                     )}
-                    <h3 className="text-base font-semibold">
-                      Step {step.number}: {step.title}
-                    </h3>
                   </div>
-                  {isCompleted && (
-                    <span className="ml-auto text-xs bg-success/10 text-success px-3 py-1 rounded-full border border-success/20 font-medium">
-                      完了
-                    </span>
-                  )}
+                  <p className="text-base leading-relaxed text-muted-foreground/60 whitespace-pre-line">
+                    {step.content}
+                  </p>
                 </div>
-                <p className="text-sm leading-relaxed whitespace-pre-line">
-                  {step.content}
-                </p>
               </div>
             )
           })}

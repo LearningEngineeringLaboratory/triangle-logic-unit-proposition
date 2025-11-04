@@ -157,19 +157,37 @@ export function isStepCorrect(correctAnswers: any, stepNumber: 1 | 2 | 3, state:
   }
 
   if (stepNumber === 2) {
-    const impossible = Boolean(incoming?.impossible)
-    const correctImpossible = Boolean(correct?.impossible)
-    if (impossible) {
-      return correctImpossible === true
+    // Step2の正誤判定（ReactFlowベースの新しい構造）
+    const correctLinks = correct?.links || []
+    const correctPremise = correct?.premise
+    
+    // premiseの比較：Step2で追加したPremiseNodeの値と一致するか
+    const premiseMatch = incoming?.premise === correctPremise
+    
+    // linksの比較：Step2で追加したリンクの始点と終点が一致するか（順不同）
+    const uiLinks = incoming?.links || []
+    
+    // ノードIDから実際の値を取得する関数
+    const getNodeValue = (nodeId: string) => {
+      if (nodeId === 'antecedent') return incoming?.antecedent || ''
+      if (nodeId === 'consequent') return incoming?.consequent || ''
+      if (nodeId.startsWith('premise-')) return incoming?.premise || ''
+      return nodeId
     }
-    const incLinks = incoming?.link_directions || {}
-    const corLinks = correct?.link_directions || {}
-    return Boolean(
-      correctImpossible === false &&
-      incoming?.premise === correct?.premise &&
-      incLinks['antecedent-link'] === corLinks['antecedent-link'] &&
-      incLinks['consequent-link'] === corLinks['consequent-link']
-    )
+    
+    // UIのリンクを実際の値に変換
+    const uiLinksWithValues = uiLinks.map((link: any) => ({
+      from: getNodeValue(link.from),
+      to: getNodeValue(link.to)
+    }))
+    
+    const linksMatch = correctLinks.every((correctLink: any) => 
+      uiLinksWithValues.some((uiLink: any) => 
+        uiLink.from === correctLink.from && uiLink.to === correctLink.to
+      )
+    ) && correctLinks.length === uiLinksWithValues.length
+    
+    return Boolean(premiseMatch && linksMatch)
   }
 
   if (stepNumber === 3) {
@@ -191,7 +209,7 @@ export async function logClientCheck(params: {
   sessionId?: string
   userId?: string
   problemId?: string
-  step: 1 | 2 | 3
+  step: 1 | 2 | 3 | 4 | 5
   isCorrect: boolean
   payload?: unknown
 }) {
