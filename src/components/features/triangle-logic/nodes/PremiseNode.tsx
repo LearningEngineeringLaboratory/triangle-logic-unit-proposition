@@ -68,7 +68,7 @@ export function PremiseNode({ data }: PremiseNodeProps) {
                 alignItems: 'center',
                 justifyContent: 'center',
                 fontSize: '20px',
-                color: 'oklch(0.70 0.19 48)',
+                color: 'oklch(0.36 0.14 279)',
                 transform: 'rotate(45deg)',
                 fontWeight: 'bold',
                 textShadow: '1px 1px 4px rgba(0, 0, 0, 0.3)',
@@ -102,14 +102,15 @@ export function PremiseNode({ data }: PremiseNodeProps) {
 
           {/* 削除ボタン */}
           {showDeleteButton && onDelete && (
-            <Button
-              variant="destructive"
-              size="sm"
+            <div
+              role="button"
+              aria-label="ノードを削除"
               onClick={onDelete}
-              className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0 shadow-lg hover:shadow-xl"
+              className="absolute -top-1.5 -right-1.5 grid place-items-center rounded-full bg-destructive text-destructive-foreground cursor-pointer transition-transform duration-150 ease-out hover:scale-[1.08]"
+              style={{ width: '14px', height: '14px', lineHeight: 0 }}
             >
-              <X className="h-3 w-3" />
-            </Button>
+              <X strokeWidth={4} className="text-white" style={{ width: '10px', height: '10px' }} />
+            </div>
           )}
         </div>
       </div>

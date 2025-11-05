@@ -211,6 +211,10 @@ export function TriangleLogicFlow({
           label: 'ならば',
           isActive: true,
           isDeletable: false,
+          arrowType: 'triangle', // 三角形の矢印
+          strokeWidth: 8, // 太く
+          strokeColor: '#a5b4fc',
+          showCircleMarker: false, // 円マーカーを非表示
         },
       })
     }

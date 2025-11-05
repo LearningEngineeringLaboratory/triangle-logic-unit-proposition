@@ -32,8 +32,8 @@ export const TriangleConnectionLine = ({
         strokeWidth: 2,
       }
     : {
-        stroke: '#3b82f6',
-        markerFill: '#3b82f6',
+        stroke: 'oklch(0.36 0.14 279)',
+        markerFill: 'oklch(0.36 0.14 279)',
         strokeDasharray: undefined,
         opacity: 1,
         strokeWidth: 3,
@@ -99,14 +99,15 @@ export const TriangleConnectionLine = ({
         </marker>
         <marker
           id={`tlu-conn-arrow`}
-          markerWidth="6"
-          markerHeight="6"
-          refX="4"
-          refY="3"
+          markerWidth="8"
+          markerHeight="8"
+          refX="7"
+          refY="4"
           orient="auto"
           markerUnits="strokeWidth"
         >
-          <path d="M0,0.75 L0,5.25 L5,3 z" fill={colors.markerFill} />
+          {/* →形の矢印（矢印の先端のみ） */}
+          <path d="M7,4 L4.7,2 M7,4 L4.7,6" stroke={colors.markerFill} strokeWidth="1" strokeLinecap="round" fill="none" />
         </marker>
       </defs>
       <path

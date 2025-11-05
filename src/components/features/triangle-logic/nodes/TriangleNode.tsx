@@ -70,7 +70,7 @@ export function TriangleNode({ data }: TriangleNodeProps) {
                 alignItems: 'center',
                 justifyContent: 'center',
                 fontSize: '20px',
-                color: 'oklch(0.70 0.19 48)',
+                color: 'oklch(0.36 0.14 279)',
                 transform: 'rotate(45deg)',
                 fontWeight: 'bold',
                 textShadow: '1px 1px 4px rgba(0, 0, 0, 0.3)',
