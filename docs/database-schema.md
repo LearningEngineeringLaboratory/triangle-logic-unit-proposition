@@ -63,34 +63,27 @@
       "antecedent": "Pである",
       "consequent": "Rである"
     },
-    "step2": {
-      "premise": "Qである",
-      "links": [
-        { "from": "Pである", "to": "Qである" },
-        { "from": "Qである", "to": "Rである" }
-      ]
-    },
+    "step2": [
+      { "from": "Pである", "to": "Qである" },
+      { "from": "Qである", "to": "Rである" }
+    ],
     "step3": {
       "inference_type": "仮説推論",
       "validity": true
     },
-    "step4": {
-      "links": [
-        { "from": "Pである", "to": "Qである", "active": true },
-        { "from": "Qである", "to": "Rである", "active": true },
-        { "from": "Pである", "to": "Rである", "active": false }
-      ]
-    },
-    "step5": {
-      "premises": [
-        { "antecedent": "Pである", "consequent": "Qである" },
-        { "antecedent": "Qである", "consequent": "Rである" }
-      ]
-    }
+    "step4": [
+      { "from": "Pである", "to": "Qである", "active": true },
+      { "from": "Qである", "to": "Rである", "active": true },
+      { "from": "Pである", "to": "Rである", "active": false }
+    ],
+    "step5": [
+      { "antecedent": "Pである", "consequent": "Qである" },
+      { "antecedent": "Qである", "consequent": "Rである" }
+    ]
   }
   ```
   - **Step1**: 導出命題の前件・後件
-  - **Step2**: 所与命題とノード間のリンク（ReactFlow対応）
+  - **Step2**: 正解リンク配列のみ（premiseは正解判定に不要）
   - **Step3**: 推論形式と妥当性
   - **Step4**: リンクの活性/非活性（`active`フラグ: true=必要、false=不要）
   - **Step5**: 妥当性のある三項論証（常に2つの条件文）
@@ -198,7 +191,6 @@
     "is_passed": true
   },
   "step2": {
-    "premise": "Qである",
     "links": [
       { "from": "node1", "to": "node2" },
       { "from": "node2", "to": "node3" }
@@ -222,7 +214,6 @@
     "is_passed": true
   },
   "step2": {
-    "premise": "Sである",
     "links": [
       { "from": "node1", "to": "node3" }
     ],

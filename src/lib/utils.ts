@@ -30,21 +30,23 @@ export function mapUiToDbState(ui: UiStepsState) {
       db[stepKey].antecedent = step.antecedent
       db[stepKey].consequent = step.consequent
     } else if (stepNumber === '2') {
-      if (step.impossible) {
-        db[stepKey].impossible = true
-      } else {
-        db[stepKey].impossible = false
-        if (step.premise) db[stepKey].premise = step.premise
-        if (step.linkDirections) {
-          db[stepKey].link_directions = {
-            "antecedent-link": step.linkDirections.antecedentLink,
-            "consequent-link": step.linkDirections.consequentLink,
-          }
-        }
+      // Step2: linksのみを保存（premiseはUI表示用のみでDBには保存しない）
+      if (step.links) {
+        db[stepKey].links = step.links
       }
     } else if (stepNumber === '3') {
       db[stepKey].inference_type = step.inferenceType
       db[stepKey].validity = step.validity
+    } else if (stepNumber === '4') {
+      // Step4: linksのみを保存
+      if (step.links) {
+        db[stepKey].links = step.links
+      }
+    } else if (stepNumber === '5') {
+      // Step5: premisesのみを保存
+      if (step.premises) {
+        db[stepKey].premises = step.premises
+      }
     }
     // 将来的に4ステップ以上に対応する場合はここに追加
   })
@@ -72,22 +74,29 @@ export function mapDbToUiState(db: any): UiStepsState {
         consequent: stepData?.consequent ?? '',
       }
     } else if (stepNumber === '2') {
+      // Step2: linksのみを復元（premiseはUI表示用のみでDBからは復元しない）
       ui[stepKey] = {
         ...ui[stepKey],
-        impossible: !!stepData?.impossible,
-        premise: stepData?.premise ?? '',
-        linkDirections: stepData?.link_directions
-          ? {
-              antecedentLink: !!stepData.link_directions["antecedent-link"],
-              consequentLink: !!stepData.link_directions["consequent-link"],
-            }
-          : { antecedentLink: true, consequentLink: true },
+        premise: '', // UI表示用に初期化（復元不要のため常に空）
+        links: stepData?.links ?? [],
       }
     } else if (stepNumber === '3') {
       ui[stepKey] = {
         ...ui[stepKey],
         inferenceType: stepData?.inference_type ?? '',
         validity: stepData?.validity ?? null,
+      }
+    } else if (stepNumber === '4') {
+      // Step4: linksのみを復元
+      ui[stepKey] = {
+        ...ui[stepKey],
+        links: stepData?.links ?? [],
+      }
+    } else if (stepNumber === '5') {
+      // Step5: premisesのみを復元
+      ui[stepKey] = {
+        ...ui[stepKey],
+        premises: stepData?.premises ?? [],
       }
     }
     // 将来的に4ステップ以上に対応する場合はここに追加
@@ -157,37 +166,29 @@ export function isStepCorrect(correctAnswers: any, stepNumber: 1 | 2 | 3, state:
   }
 
   if (stepNumber === 2) {
-    // Step2の正誤判定（ReactFlowベースの新しい構造）
-    const correctLinks = correct?.links || []
-    const correctPremise = correct?.premise
-    
-    // premiseの比較：Step2で追加したPremiseNodeの値と一致するか
-    const premiseMatch = incoming?.premise === correctPremise
-    
-    // linksの比較：Step2で追加したリンクの始点と終点が一致するか（順不同）
+    // 新スキーマ: step2 はリンク配列のみ
+    const correctLinks: any[] = Array.isArray(correct) ? correct : (correct?.links || [])
     const uiLinks = incoming?.links || []
-    
-    // ノードIDから実際の値を取得する関数
+
     const getNodeValue = (nodeId: string) => {
       if (nodeId === 'antecedent') return incoming?.antecedent || ''
       if (nodeId === 'consequent') return incoming?.consequent || ''
-      if (nodeId.startsWith('premise-')) return incoming?.premise || ''
+      if (typeof nodeId === 'string' && nodeId.startsWith('premise-')) return incoming?.premise || ''
       return nodeId
     }
-    
-    // UIのリンクを実際の値に変換
+
     const uiLinksWithValues = uiLinks.map((link: any) => ({
       from: getNodeValue(link.from),
       to: getNodeValue(link.to)
     }))
-    
-    const linksMatch = correctLinks.every((correctLink: any) => 
-      uiLinksWithValues.some((uiLink: any) => 
+
+    const linksMatch = correctLinks.every((correctLink: any) =>
+      uiLinksWithValues.some((uiLink: any) =>
         uiLink.from === correctLink.from && uiLink.to === correctLink.to
       )
     ) && correctLinks.length === uiLinksWithValues.length
-    
-    return Boolean(premiseMatch && linksMatch)
+
+    return Boolean(linksMatch)
   }
 
   if (stepNumber === 3) {

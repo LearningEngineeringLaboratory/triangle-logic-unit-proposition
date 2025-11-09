@@ -50,8 +50,10 @@ export interface Step1State extends StepState {
 }
 
 // Step2: 所与命題とリンク
+// 注意: premiseはUI表示用のみ（ReactFlowでノード表示に必要）
+// DB保存時はlinksのみを保存し、premiseは保存しない（復元不要のため）
 export interface Step2State extends StepState {
-  premise: string
+  premise: string // UI表示用のみ、DBには保存しない
   links: Array<{ from: string; to: string }>
 }
 

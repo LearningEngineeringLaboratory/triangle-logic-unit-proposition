@@ -201,19 +201,12 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
                    uiFragment.consequent === problem.correct_answers.step1?.consequent
         break
       case 2:
-        // Step2の正誤判定（ReactFlowベースの新しい構造）
-        const correctLinks = problem.correct_answers.step2?.links || []
-        const correctPremise = problem.correct_answers.step2?.premise
-        
-        // premiseの比較：Step2で追加したPremiseNodeの値と一致するか
-        // nodeValuesから実際のノードの値を取得
-        const premiseMatch = nodeValues.premiseNodes.some(node => node.value === correctPremise)
-        
-        // linksの比較：Step2で追加したリンクの始点と終点が一致するか（順不同）
-        // ノードIDを実際の値に変換して比較
+        // Step2の正誤判定（新スキーマ：配列のリンクのみで比較）
+        const correctLinks = (problem.correct_answers.step2 as any[]) || []
+
+        // UIのリンク（ノードID）を実値に変換して比較
         const uiLinks = uiFragment.links || []
-        
-        // ノードIDから実際の値を取得する関数
+
         const getNodeValue = (nodeId: string) => {
           if (nodeId === 'antecedent') return nodeValues.antecedent
           if (nodeId === 'consequent') return nodeValues.consequent
@@ -223,28 +216,24 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
           }
           return nodeId
         }
-        
-        // UIのリンクを実際の値に変換
+
         const uiLinksWithValues = uiLinks.map((link: any) => ({
           from: getNodeValue(link.from),
           to: getNodeValue(link.to)
         }))
-        
-        const linksMatch = correctLinks.every((correctLink: any) => 
-          uiLinksWithValues.some((uiLink: any) => 
+
+        const linksMatch = correctLinks.every((correctLink: any) =>
+          uiLinksWithValues.some((uiLink: any) =>
             uiLink.from === correctLink.from && uiLink.to === correctLink.to
           )
         ) && correctLinks.length === uiLinksWithValues.length
-        
-        console.log(`[debug-step2] correctPremise:`, correctPremise)
-        console.log(`[debug-step2] nodeValues.premiseNodes:`, nodeValues.premiseNodes)
-        console.log(`[debug-step2] premiseMatch:`, premiseMatch)
+
         console.log(`[debug-step2] correctLinks:`, correctLinks)
         console.log(`[debug-step2] uiLinks:`, uiLinks)
         console.log(`[debug-step2] uiLinksWithValues:`, uiLinksWithValues)
         console.log(`[debug-step2] linksMatch:`, linksMatch)
-        
-        isCorrect = premiseMatch && linksMatch
+
+        isCorrect = linksMatch
         break
       case 3:
         isCorrect = uiFragment.inferenceType === problem.correct_answers.step3?.inference_type &&
@@ -252,7 +241,7 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
         break
       case 4: {
         // Step4の正誤判定（活性/非活性リンクの比較）
-        const correctActiveLinks4 = problem.correct_answers.step4?.links || []
+        const correctActiveLinks4 = (problem.correct_answers.step4 as any[]) || []
         
         console.log(`[debug-step4] correctActiveLinks4:`, correctActiveLinks4)
         console.log(`[debug-step4] uiFragment:`, uiFragment)
@@ -299,7 +288,7 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
       case 5: {
         // Step5の正誤判定（論証構成の比較、順不同）
         // 2つのpremiseの順序は入れ替え可能だが、各premiseのantecedentとconsequentの組み合わせは固定
-        const correctPremises = problem.correct_answers.step5?.premises || []
+        const correctPremises = (problem.correct_answers.step5 as any[]) || []
         const userPremises = uiFragment.premises || []
         
         // 各premiseをJSON文字列に変換（順序は保持）

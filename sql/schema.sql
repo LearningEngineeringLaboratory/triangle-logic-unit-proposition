@@ -331,7 +331,10 @@ VALUES (
         '["Pである", "Qである", "Rである"]',
         '{
           "step1": {"antecedent": "Pである", "consequent": "Rである"},
-          "step2": {"premise": "Qである", "link_directions": {"antecedent-link": true, "consequent-link": true}, "impossible": false},
+          "step2": [
+            {"from": "Pである", "to": "Qである"},
+            {"from": "Qである", "to": "Rである"}
+          ],
           "step3": {"inference_type": "演繹推論", "validity": true}
         }',
         '1.0.0'
@@ -352,7 +355,7 @@ VALUES (
         '["Pである", "Qである", "Rである", "Sである"]',
         '{
           "step1": {"antecedent": "Rである", "consequent": "Sである"},
-          "step2": {"impossible": true},
+          "step2": [],
           "step3": {"inference_type": "非形式推論", "validity": false}
         }',
         '1.0.0'
