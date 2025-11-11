@@ -202,7 +202,9 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
         break
       case 2:
         // Step2の正誤判定（新スキーマ：配列のリンクのみで比較）
-        const correctLinks = (problem.correct_answers.step2 as any[]) || []
+        // 旧データ（オブジェクトや未定義）に対しては空配列として扱う
+        const rawStep2 = (problem.correct_answers as any)?.step2
+        const correctLinks = Array.isArray(rawStep2) ? rawStep2 : []
 
         // UIのリンク（ノードID）を実値に変換して比較
         const uiLinks = uiFragment.links || []
@@ -237,11 +239,13 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
         break
       case 3:
         isCorrect = uiFragment.inferenceType === problem.correct_answers.step3?.inference_type &&
-                   uiFragment.validity === problem.correct_answers.step3?.validity
+                   uiFragment.validity === problem.correct_answers.step3?.validity &&
+                   uiFragment.verification === problem.correct_answers.step3?.verification
         break
       case 4: {
         // Step4の正誤判定（活性/非活性リンクの比較）
-        const correctActiveLinks4 = (problem.correct_answers.step4 as any[]) || []
+        const rawStep4 = (problem.correct_answers as any)?.step4
+        const correctActiveLinks4 = Array.isArray(rawStep4) ? rawStep4 : []
         
         console.log(`[debug-step4] correctActiveLinks4:`, correctActiveLinks4)
         console.log(`[debug-step4] uiFragment:`, uiFragment)
@@ -288,7 +292,8 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
       case 5: {
         // Step5の正誤判定（論証構成の比較、順不同）
         // 2つのpremiseの順序は入れ替え可能だが、各premiseのantecedentとconsequentの組み合わせは固定
-        const correctPremises = (problem.correct_answers.step5 as any[]) || []
+        const rawStep5 = (problem.correct_answers as any)?.step5
+        const correctPremises = Array.isArray(rawStep5) ? rawStep5 : []
         const userPremises = uiFragment.premises || []
         
         // 各premiseをJSON文字列に変換（順序は保持）
@@ -371,8 +376,10 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
             shakeNext={shakeToken}
             inferenceTypeValue={steps.step3?.inferenceType || ''}
             validityValue={steps.step3?.validity === null ? '' : (steps.step3?.validity ? '妥当' : '非妥当')}
+            verificationValue={steps.step3?.verification === null ? '' : (steps.step3?.verification ? '高い' : '低い')}
             onInferenceTypeChange={(value) => updateStep(3, { ...steps.step3, inferenceType: value })}
             onValidityChange={(value) => updateStep(3, { ...steps.step3, validity: value === '妥当' })}
+            onVerificationChange={(value) => updateStep(3, { ...steps.step3, verification: value === '高い' })}
             step5Premises={steps.step5?.premises || []}
             onStep5PremiseChange={(index, field, value) => {
               const currentPremises = steps.step5?.premises || []

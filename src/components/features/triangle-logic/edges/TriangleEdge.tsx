@@ -58,8 +58,8 @@ export function TriangleEdge({ id, source, target, style, data }: TriangleEdgePr
     // 双方向エッジの場合はベジェ曲線で弧を描画（重なりを確実に回避）
     const midX = (sx + adjustedTx) / 2
     const midY = (sy + adjustedTy) / 2
-    const controlOffset = 80 // 弧の高さを大きくして重なりを回避
-    const nodeOffset = 4 // ノード端からのオフセット
+    // const controlOffset = 80 // 弧の高さを大きくして重なりを回避
+    const nodeOffset = 2 // ノード端からのオフセット
 
     // 現在のエッジが上向きか下向きかを決定（IDで判定）
     const reverseEdge = edges.find(edge => edge.source === target && edge.target === source)

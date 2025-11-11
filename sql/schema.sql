@@ -335,7 +335,7 @@ VALUES (
             {"from": "Pである", "to": "Qである"},
             {"from": "Qである", "to": "Rである"}
           ],
-          "step3": {"inference_type": "演繹推論", "validity": true}
+          "step3": {"inference_type": "演繹推論", "validity": true, "verification": true}
         }',
         '1.0.0'
     );
@@ -356,7 +356,7 @@ VALUES (
         '{
           "step1": {"antecedent": "Rである", "consequent": "Sである"},
           "step2": [],
-          "step3": {"inference_type": "非形式推論", "validity": false}
+          "step3": {"inference_type": "非形式推論", "validity": false, "verification": false}
         }',
         '1.0.0'
     );

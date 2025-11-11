@@ -19,7 +19,8 @@
       },
       "step3": {
         "inference_type": "演繹推論",
-        "validity": true
+        "validity": true,
+        "verification": true
       }
     },
     "version": "1.0.0"
@@ -39,7 +40,8 @@
       },
       "step3": {
         "inference_type": "非形式推論",
-        "validity": false
+        "validity": false,
+        "verification": false
       }
     },
     "version": "1.0.0"
@@ -64,7 +66,8 @@
       },
       "step3": {
         "inference_type": "演繹推論",
-        "validity": true
+        "validity": true,
+        "verification": true
       }
     },
     "version": "1.0.0"
@@ -89,7 +92,8 @@
       },
       "step3": {
         "inference_type": "仮説推論",
-        "validity": false
+        "validity": false,
+        "verification": true
       }
     },
     "version": "1.0.0"
@@ -114,7 +118,8 @@
       },
       "step3": {
         "inference_type": "仮説推論",
-        "validity": false
+        "validity": false,
+        "verification": true
       }
     },
     "version": "1.0.0"
@@ -134,7 +139,8 @@
       },
       "step3": {
         "inference_type": "非形式推論",
-        "validity": false
+        "validity": false,
+        "verification": false
       }
     },
     "version": "1.0.0"
@@ -159,7 +165,8 @@
       },
       "step3": {
         "inference_type": "非形式推論",
-        "validity": false
+        "validity": false,
+        "verification": false
       }
     },
     "version": "1.0.0"

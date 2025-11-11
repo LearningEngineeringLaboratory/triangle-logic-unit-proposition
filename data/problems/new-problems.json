@@ -1,0 +1,30 @@
+[
+  {
+    "problem_id": "TLU-EXAMPLE-v1.0.0",
+    "argument": "ここに論証文を記述してください。例：PであるならばQである。また，QであるならばRである。したがって，PであるならばRである。",
+    "options": [
+      "選択肢1",
+      "選択肢2",
+      "選択肢3"
+    ],
+    "correct_answers": {
+      "step1": {
+        "antecedent": "前件を記述",
+        "consequent": "後件を記述"
+      },
+      "step2": [
+        {
+          "from": "始点の単位命題",
+          "to": "終点の単位命題"
+        }
+      ],
+      "step3": {
+        "inference_type": "演繹推論",
+        "validity": true,
+        "verification": true
+      }
+    },
+    "version": "1.0.0"
+  }
+]
+

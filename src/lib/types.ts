@@ -57,10 +57,11 @@ export interface Step2State extends StepState {
   links: Array<{ from: string; to: string }>
 }
 
-// Step3: 推論形式と妥当性
+// Step3: 推論形式と妥当性と検証価値
 export interface Step3State extends StepState {
   inferenceType: string
   validity: boolean | null
+  verification: boolean | null // true=高い, false=低い
 }
 
 // Step4: リンクの活性/非活性

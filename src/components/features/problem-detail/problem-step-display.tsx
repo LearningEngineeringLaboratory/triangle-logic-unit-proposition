@@ -12,8 +12,10 @@ interface ProblemStepDisplayProps {
   onStepChange: (step: number) => void
   inferenceTypeValue?: string
   validityValue?: string
+  verificationValue?: string
   onInferenceTypeChange?: (value: string) => void
   onValidityChange?: (value: string) => void
+  onVerificationChange?: (value: string) => void
   step5Premises?: Array<{ antecedent: string; consequent: string }>
   onStep5PremiseChange?: (index: number, field: 'antecedent' | 'consequent', value: string) => void
   onRequestNext?: () => void | Promise<void>
@@ -27,8 +29,10 @@ export function ProblemStepDisplay({
   onStepChange,
   inferenceTypeValue = '',
   validityValue = '',
+  verificationValue = '',
   onInferenceTypeChange,
   onValidityChange,
+  onVerificationChange,
   step5Premises = [],
   onStep5PremiseChange,
   onRequestNext,
@@ -180,7 +184,7 @@ export function ProblemStepDisplay({
             {/* ステップ3の入力フィールド */}
             {currentStepData.number === 3 && (
               <div className="mb-6">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-xl">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full max-w-3xl">
                   <div className="flex flex-col gap-2">
                     <span className="text-sm font-medium text-foreground">推論形式</span>
                     <Select value={inferenceTypeValue} onValueChange={onInferenceTypeChange ?? (() => { })}>
@@ -203,6 +207,18 @@ export function ProblemStepDisplay({
                       <SelectContent>
                         <SelectItem value="妥当">妥当</SelectItem>
                         <SelectItem value="非妥当">非妥当</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <span className="text-sm font-medium text-foreground">検証価値</span>
+                    <Select value={verificationValue} onValueChange={onVerificationChange ?? (() => { })}>
+                      <SelectTrigger className={`w-full h-12 rounded-xl border-2 text-base ${verificationValue ? '' : 'animate-glow-pulse'}`}>
+                        <SelectValue placeholder="選択してください" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="高い">高い</SelectItem>
+                        <SelectItem value="低い">低い</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>

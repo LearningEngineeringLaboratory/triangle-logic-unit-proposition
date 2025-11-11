@@ -26,11 +26,12 @@ export function useProblemSteps(problem: ProblemDetail | null) {
       links: [],
     }
     
-    // Step3: 推論形式と妥当性
+    // Step3: 推論形式と妥当性と検証価値
     steps.step3 = {
       isPassed: false,
           inferenceType: '',
       validity: null,
+      verification: null,
     }
     
     // Step4: リンクの活性/非活性（5ステップの場合のみ）

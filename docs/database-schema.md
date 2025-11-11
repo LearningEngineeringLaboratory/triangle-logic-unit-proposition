@@ -69,7 +69,8 @@
     ],
     "step3": {
       "inference_type": "仮説推論",
-      "validity": true
+      "validity": true,
+      "verification": true
     },
     "step4": [
       { "from": "Pである", "to": "Qである", "active": true },
@@ -96,6 +97,10 @@
 **Step3の妥当性選択肢**:
 - **true (妥当)**: 所与命題が真であれば導出命題が必ず真となる推論
 - **false (非妥当)**: 所与命題が真であっても導出命題が真とは言えない推論
+
+**Step3の検証価値選択肢**:
+- **true (高い)**: 導出命題に検証価値が高い
+- **false (低い)**: 導出命題に検証価値が低い
 
 ### 3. sessions テーブル
 
@@ -200,6 +205,7 @@
   "step3": {
     "inference_type": "演繹推論",
     "validity": true,
+    "verification": true,
     "is_passed": true
   }
 }
@@ -222,6 +228,7 @@
   "step3": {
     "inference_type": "非形式推論",
     "validity": false,
+    "verification": false,
     "is_passed": true
   },
   "step4": {
