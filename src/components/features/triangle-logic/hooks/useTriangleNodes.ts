@@ -5,6 +5,7 @@ interface UseTriangleNodesProps {
   currentStep: number
   options: string[]
   setNodes: (nodes: Node[] | ((prevNodes: Node[]) => Node[])) => void
+  onNodeDelete?: (nodeId: string) => void
 }
 
 interface PremiseNode {
@@ -13,7 +14,7 @@ interface PremiseNode {
   position: { x: number; y: number }
 }
 
-export function useTriangleNodes({ currentStep, options, setNodes }: UseTriangleNodesProps) {
+export function useTriangleNodes({ currentStep, options, setNodes, onNodeDelete }: UseTriangleNodesProps) {
   // 動的に追加される所与命題ノードの状態
   const [premiseNodes, setPremiseNodes] = useState<PremiseNode[]>([])
 
@@ -60,7 +61,9 @@ export function useTriangleNodes({ currentStep, options, setNodes }: UseTriangle
   // 所与命題ノードを削除する関数
   const removePremiseNode = useCallback((nodeId: string) => {
     setPremiseNodes(prev => prev.filter(node => node.id !== nodeId))
-  }, [])
+    // 外部の削除コールバックを呼び出す（リンクのクリーンアップなど）
+    onNodeDelete?.(nodeId)
+  }, [onNodeDelete])
 
   // premiseNodesが変更されたときにReactFlowのノードを更新
   useEffect(() => {

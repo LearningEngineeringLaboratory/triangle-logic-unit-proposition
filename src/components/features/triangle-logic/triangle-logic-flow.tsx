@@ -81,11 +81,31 @@ export function TriangleLogicFlow({
   const [nodes, setNodes, onNodesChange] = useNodesState([] as Node[])
   const [edges, setEdges, onEdgesChange] = useEdgesState([] as Edge[])
 
+  // ノード削除時にリンクも削除するコールバック
+  const handleNodeDelete = useCallback((nodeId: string) => {
+    // そのノードに関連するリンクを削除
+    if (currentStep === 2 && onLinksChange) {
+      const filteredLinks = links.filter(link => 
+        link.from !== nodeId && link.to !== nodeId
+      )
+      onLinksChange(filteredLinks)
+    }
+    
+    // Step4の場合もactiveLinksから削除
+    if (currentStep === 4 && onActiveLinksChange) {
+      const filteredActiveLinks = activeLinks.filter(link => 
+        link.from !== nodeId && link.to !== nodeId
+      )
+      onActiveLinksChange(filteredActiveLinks)
+    }
+  }, [currentStep, links, activeLinks, onLinksChange, onActiveLinksChange])
+
   // カスタムフックを使用してノード管理
   const { addPremiseNode, removePremiseNode } = useTriangleNodes({ 
     currentStep, 
     options, 
-    setNodes: setNodes as (nodes: Node[] | ((prevNodes: Node[]) => Node[])) => void
+    setNodes: setNodes as (nodes: Node[] | ((prevNodes: Node[]) => Node[])) => void,
+    onNodeDelete: handleNodeDelete
   })
 
   // ノードの状態更新
