@@ -6,6 +6,7 @@ interface UseTriangleNodesProps {
   options: string[]
   setNodes: (nodes: Node[] | ((prevNodes: Node[]) => Node[])) => void
   onNodeDelete?: (nodeId: string) => void
+  onNodePositionChange?: (nodeId: string, position: { x: number; y: number }) => void
 }
 
 interface PremiseNode {
@@ -14,7 +15,7 @@ interface PremiseNode {
   position: { x: number; y: number }
 }
 
-export function useTriangleNodes({ currentStep, options, setNodes, onNodeDelete }: UseTriangleNodesProps) {
+export function useTriangleNodes({ currentStep, options, setNodes, onNodeDelete, onNodePositionChange }: UseTriangleNodesProps) {
   // 動的に追加される所与命題ノードの状態
   const [premiseNodes, setPremiseNodes] = useState<PremiseNode[]>([])
 
@@ -65,24 +66,48 @@ export function useTriangleNodes({ currentStep, options, setNodes, onNodeDelete 
     onNodeDelete?.(nodeId)
   }, [onNodeDelete])
 
+  // ノードの位置を更新する関数
+  const updateNodePosition = useCallback((nodeId: string, position: { x: number; y: number }) => {
+    setPremiseNodes(prev => 
+      prev.map(node => 
+        node.id === nodeId ? { ...node, position } : node
+      )
+    )
+    onNodePositionChange?.(nodeId, position)
+  }, [onNodePositionChange])
+
   // premiseNodesが変更されたときにReactFlowのノードを更新
   useEffect(() => {
     if (currentStep >= 2) {
-      const premiseNodeElements: Node[] = premiseNodes.map((premiseNode) => ({
-        id: premiseNode.id,
-        type: 'premiseNode',
-        position: premiseNode.position,
-        draggable: currentStep !== 3 && currentStep !== 5, // Step3とStep5では移動不可
-        data: {
-          value: premiseNode.value,
-          nodeId: premiseNode.id,
-          showHandles: !(currentStep === 3 || currentStep === 5), // Step3とStep5ではハンドル非表示
-          showDeleteButton: !(currentStep === 3 || currentStep === 4 || currentStep === 5), // Step3とStep4では削除ボタン非表示
-          onDelete: () => removePremiseNode(premiseNode.id), // 削除機能
-        },
-      }))
-
       setNodes(prevNodes => {
+        // 既存のpremiseNodeを取得
+        const existingPremiseNodes = prevNodes.filter(node => node.id.startsWith('premise-'))
+        
+        // premiseNodesから新しいノード要素を作成
+        const premiseNodeElements: Node[] = premiseNodes.map((premiseNode) => {
+          // 既存のノードを検索
+          const existingNode = existingPremiseNodes.find(n => n.id === premiseNode.id)
+          
+          // 既存のノードがあり、位置が異なる場合は既存の位置を優先（ドラッグで移動した位置を保持）
+          const position = existingNode && existingNode.position 
+            ? existingNode.position 
+            : premiseNode.position
+          
+          return {
+            id: premiseNode.id,
+            type: 'premiseNode',
+            position,
+            draggable: currentStep !== 3 && currentStep !== 5, // Step3とStep5では移動不可
+            data: {
+              value: premiseNode.value,
+              nodeId: premiseNode.id,
+              showHandles: !(currentStep === 3 || currentStep === 5), // Step3とStep5ではハンドル非表示
+              showDeleteButton: !(currentStep === 3 || currentStep === 4 || currentStep === 5), // Step3とStep4では削除ボタン非表示
+              onDelete: () => removePremiseNode(premiseNode.id), // 削除機能
+            },
+          }
+        })
+
         // 既存のpremiseNodeを削除して新しいものを追加
         const filteredNodes = prevNodes.filter(node => !node.id.startsWith('premise-'))
         return [...filteredNodes, ...premiseNodeElements]
@@ -107,6 +132,7 @@ export function useTriangleNodes({ currentStep, options, setNodes, onNodeDelete 
 
   return { 
     addPremiseNode, 
-    removePremiseNode 
+    removePremiseNode,
+    updateNodePosition
   }
 }

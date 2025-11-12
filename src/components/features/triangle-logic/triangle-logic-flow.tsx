@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useRef } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef } from 'react'
 import { useTheme } from 'next-themes'
 import {
   ReactFlow,
@@ -15,6 +15,7 @@ import {
   ConnectionMode,
   Node,
   Edge,
+  NodeChange,
 } from '@xyflow/react'
 import { TriangleNode } from './nodes/TriangleNode'
 import { PremiseNode } from './nodes/PremiseNode'
@@ -100,13 +101,47 @@ export function TriangleLogicFlow({
     }
   }, [currentStep, links, activeLinks, onLinksChange, onActiveLinksChange])
 
+  // ノード位置変更を検知してpremiseNodesの位置を更新
+  const handleNodePositionChange = useCallback((nodeId: string, position: { x: number; y: number }) => {
+    // このコールバックはuseTriangleNodes内でpremiseNodesの位置を更新するために使用される
+  }, [])
+
   // カスタムフックを使用してノード管理
-  const { addPremiseNode, removePremiseNode } = useTriangleNodes({ 
+  const { addPremiseNode, removePremiseNode, updateNodePosition } = useTriangleNodes({ 
     currentStep, 
     options, 
     setNodes: setNodes as (nodes: Node[] | ((prevNodes: Node[]) => Node[])) => void,
-    onNodeDelete: handleNodeDelete
+    onNodeDelete: handleNodeDelete,
+    onNodePositionChange: handleNodePositionChange
   })
+
+  // onNodesChangeをラップして、premiseノードの位置変更を検知
+  const handleNodesChange = useCallback((changes: NodeChange[]) => {
+    // ReactFlowの変更を適用
+    onNodesChange(changes)
+    
+    // premiseノードの位置変更を検知して更新（ドラッグ中は無視）
+    if (currentStep >= 2) {
+      changes.forEach((change) => {
+        // 位置変更の場合、change.type === 'position' で、changeには position プロパティがある
+        if (change.type === 'position' && change.id && change.id.startsWith('premise-')) {
+          // NodeChangeの型定義に基づいて、positionプロパティにアクセス
+          const positionChange = change as { type: 'position'; id: string; position: { x: number; y: number }; dragging?: boolean }
+          // ドラッグ中（dragging: true）の位置変更は無視し、ドラッグ終了時（dragging !== true）のみ更新
+          if (positionChange.position && positionChange.dragging !== true) {
+            updateNodePosition(positionChange.id, positionChange.position)
+          }
+        }
+      })
+    }
+  }, [onNodesChange, currentStep, updateNodePosition])
+
+  // ノードのドラッグ終了時に位置を更新
+  const handleNodeDragStop = useCallback((_event: React.MouseEvent, node: Node) => {
+    if (currentStep >= 2 && node.id.startsWith('premise-') && node.position) {
+      updateNodePosition(node.id, node.position)
+    }
+  }, [currentStep, updateNodePosition])
 
   // ノードの状態更新
   useNodeUpdates({
@@ -405,8 +440,9 @@ export function TriangleLogicFlow({
       <ReactFlow
         nodes={nodes}
         edges={edges}
-        onNodesChange={onNodesChange}
+        onNodesChange={handleNodesChange}
         onEdgesChange={onEdgesChange}
+        onNodeDragStop={handleNodeDragStop}
         onConnect={onConnect}
         isValidConnection={isValidConnection}
         nodeTypes={nodeTypes}
