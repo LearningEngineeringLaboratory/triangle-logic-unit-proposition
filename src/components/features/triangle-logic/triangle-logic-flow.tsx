@@ -436,7 +436,7 @@ export function TriangleLogicFlow({
   }, [currentStep, links, activeLinks, onLinksChange, onActiveLinksChange, setEdges])
 
   return (
-    <div className="w-full h-full rounded-2xl border-2 border-border bg-card overflow-hidden">
+    <div className="w-full h-full relative">
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -484,6 +484,7 @@ export function TriangleLogicFlow({
             />
           </div>
         )}
+
       </ReactFlow>
     </div>
   )

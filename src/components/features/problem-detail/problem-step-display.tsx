@@ -4,6 +4,7 @@ import { ProblemDetail } from '@/lib/types'
 import { AlertCircle, CheckCircle2, Circle, ArrowUp, BookOpen } from 'lucide-react'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Button } from '@/components/ui/button'
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import { useEffect, useRef, useState } from 'react'
 
 interface ProblemStepDisplayProps {
@@ -153,16 +154,16 @@ export function ProblemStepDisplay({
   }
 
   // 表示するステップをフィルタリング（現在のひとつ前まで）
-  const visibleSteps = steps.filter((_, index) => index < (currentStep - 1))
+  const visibleSteps = steps.filter((_, index) => index < (currentStep - 1)).reverse()
   const currentStepData = steps[currentStep - 1]
 
   return (
-    <div className="flex flex-col h-full relative">
+    <div className="flex flex-col min-h-full relative">
       {/* 段階的ステップ表示（親から与えられたスクロール領域内で自動スクロール）*/}
-      <div className="flex-1 overflow-y-auto" ref={scrollContainerRef}>
-        <div className="space-y-0">
+      <div className="flex-1" ref={scrollContainerRef}>
+        <div className="space-y-0 p-6 pt-8">
           {/* 現在のステップ（最上部に表示） */}
-          <div className="pd-6 px-2" id={`current-step-${currentStepData.number}`}>
+          <div className="px-2 pb-6" id={`current-step-${currentStepData.number}`}>
             <div className="flex items-center gap-3 mb-4">
               <h3 className="text-lg font-semibold text-foreground">
                 Step {currentStepData.number}: {currentStepData.title}
@@ -184,7 +185,7 @@ export function ProblemStepDisplay({
             {/* ステップ3の入力フィールド */}
             {currentStepData.number === 3 && (
               <div className="mb-6">
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full max-w-3xl">
+                <div className="flex flex-col gap-4 w-full max-w-3xl">
                   <div className="flex flex-col gap-2">
                     <span className="text-sm font-medium text-foreground">推論形式</span>
                     <Select value={inferenceTypeValue} onValueChange={onInferenceTypeChange ?? (() => { })}>
@@ -323,42 +324,50 @@ export function ProblemStepDisplay({
               </div>
             )}
           </div>
-
-          {/* 過去のステップ（逆順で表示：新しいものが上） */}
-          {visibleSteps.reverse().map((step, index) => {
-            const status = getStepStatus(step.number)
-            const isCompleted = status === 'completed'
-
-            return (
-              <div key={step.number}>
-                {/* ステップ間のボーダー */}
-                <div className="border-t border-border px-2" />
-                
-                <div className="px-2 py-6">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="flex items-center gap-2">
-                      <h3 className="text-lg font-semibold text-muted-foreground/60">
-                        Step {step.number}: {step.title}
-                      </h3>
-                    </div>
-                    {isCompleted && (
-                      <span className="ml-auto text-xs bg-success/10 text-success px-3 py-1 rounded-full border border-success/20 font-medium">
-                        完了
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-base leading-relaxed text-muted-foreground/60 whitespace-pre-line">
-                    {step.content}
-                  </p>
-                </div>
-              </div>
-            )
-          })}
         </div>
       </div>
 
-      {/* 下部フェードアウトグラデーション */}
-      <div className="absolute bottom-0 left-0 right-0 h-6 bg-gradient-to-t from-background via-background/50 to-transparent pointer-events-none" />
+      {/* 過去のステップ（Accordionで折りたたみ可能） */}
+      {visibleSteps.length > 0 && (
+        <div className="border-t border-border bg-background">
+          <Accordion type="single" collapsible className="w-full">
+            <AccordionItem value="previous-steps" className="border-none">
+              <AccordionTrigger className="text-sm font-medium text-muted-foreground hover:text-foreground py-4 px-6 hover:bg-muted/50 data-[state=open]:bg-muted/50 transition-colors rounded-none">
+                これまでのStepを確認する
+              </AccordionTrigger>
+              <AccordionContent className="px-6 pt-4 pb-6 bg-background">
+                <div className="space-y-0">
+                  {visibleSteps.map((step, index) => {
+                    const status = getStepStatus(step.number)
+                    const isCompleted = status === 'completed'
+
+                    return (
+                      <div key={step.number} className={index > 0 ? 'border-t border-border pt-6 mt-6' : ''}>
+                        <div className="flex items-center gap-3 mb-4">
+                          <div className="flex items-center gap-2">
+                            <h3 className="text-base font-semibold text-muted-foreground/70">
+                              Step {step.number}: {step.title}
+                            </h3>
+                          </div>
+                          {isCompleted && (
+                            <span className="ml-auto text-xs bg-success/10 text-success px-3 py-1.5 rounded-full border border-success/20 font-medium">
+                              完了
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-sm leading-relaxed text-muted-foreground/70 whitespace-pre-line">
+                          {step.content}
+                        </p>
+                      </div>
+                    )
+                  })}
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
+        </div>
+      )}
+
 
       {/* 最上部に戻るFAB */}
       <Button

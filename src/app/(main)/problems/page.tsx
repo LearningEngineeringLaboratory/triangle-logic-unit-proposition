@@ -5,9 +5,70 @@ import { Problem, ProblemSet } from '@/lib/types'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ProblemSetSelector } from '@/components/features/problem-list/problem-set-selector'
-import { Header } from '@/components/layout/Header'
+import { Button } from '@/components/ui/button'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { Moon, Sun, Monitor } from 'lucide-react'
+import { useTheme } from 'next-themes'
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
+
+// 問題選択画面用のヘッダー（ダークモード切り替え付き）
+function HeaderWithTheme() {
+  const { theme, setTheme } = useTheme()
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  return (
+    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="container mx-auto px-4">
+        <div className="flex h-14 items-center justify-between">
+          <h1 className="text-lg font-semibold tracking-tight">
+            単位命題三角ロジック演習システム
+          </h1>
+
+          {/* ダークモード切り替えメニュー */}
+          <div className="flex items-center">
+            {mounted && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm" className="h-9 w-9 px-0">
+                    {theme === "light" && <Sun className="h-4 w-4" />}
+                    {theme === "dark" && <Moon className="h-4 w-4" />}
+                    {theme === "system" && <Monitor className="h-4 w-4" />}
+                    {!theme && <Monitor className="h-4 w-4" />}
+                    <span className="sr-only">テーマを切り替え</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => setTheme("light")}>
+                    <Sun className="mr-2 h-4 w-4" />
+                    <span>ライト</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setTheme("dark")}>
+                    <Moon className="mr-2 h-4 w-4" />
+                    <span>ダーク</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setTheme("system")}>
+                    <Monitor className="mr-2 h-4 w-4" />
+                    <span>システム</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+          </div>
+        </div>
+      </div>
+    </header>
+  )
+}
 
 export default function ProblemsPage() {
   const [problems, setProblems] = useState<Problem[]>([])
@@ -35,7 +96,7 @@ export default function ProblemsPage() {
   if (isLoading) {
     return (
       <>
-        <Header title="問題一覧" />
+        <HeaderWithTheme />
         <div className="container mx-auto px-4 py-8">
           {/* 問題セットセレクターのSkeleton */}
           <div className="mb-8">
@@ -63,7 +124,7 @@ export default function ProblemsPage() {
 
   return (
     <>
-      <Header title="問題一覧" />
+      <HeaderWithTheme />
       <div className="container mx-auto px-4 py-8">
         <ProblemsListWithSetSelector 
           initialProblems={problems} 

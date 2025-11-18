@@ -1,6 +1,6 @@
 'use client'
 
-import { getProblem, getProblemSets, getNextProblemInSet, getCurrentProblemOrder } from '@/lib/problems'
+import { getProblem, getProblemSets, getNextProblemInSet, getCurrentProblemOrder, getProblemsBySet } from '@/lib/problems'
 import { ProblemSet, ProblemDetail } from '@/lib/types'
 import { notFound } from 'next/navigation'
 import { Button } from '@/components/ui/button'
@@ -18,6 +18,7 @@ import { useProblemSteps } from '@/hooks/useProblemSteps'
 import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { logClientCheck } from '@/lib/utils'
+import { Progress } from '@/components/ui/progress'
 
 interface ProblemDetailPageProps {
   params: Promise<{
@@ -34,6 +35,7 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
   const [selectedProblemSetId, setSelectedProblemSetId] = useState<string | null>(null)
   const [nextProblem, setNextProblem] = useState<any>(null)
   const [isLastProblem, setIsLastProblem] = useState(false)
+  const [totalProblems, setTotalProblems] = useState<number>(0)
   const [isClearOpen, setIsClearOpen] = useState(false)
   const [shakeToken, setShakeToken] = useState(0)
   const [feedbackVisible, setFeedbackVisible] = useState(false)
@@ -54,6 +56,7 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
     steps,
     currentStep,
     totalSteps,
+    completedSteps,
     updateStep,
     goToNextStep,
     goToStep,
@@ -86,6 +89,10 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
             setProblemNumber(currentOrder)
           }
 
+          // 問題セット内の全問題を取得して総数を計算
+          const problemsInSet = await getProblemsBySet(savedSetId)
+          setTotalProblems(problemsInSet.length)
+
           // 次の問題を取得
           const nextProblemData = await getNextProblemInSet(savedSetId, resolvedParams.id)
           if (nextProblemData) {
@@ -99,6 +106,7 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
           const match = resolvedParams.id.match(/TLU-(\d+)-/)
           const order = match ? parseInt(match[1]) : 1
           setProblemNumber(order)
+          setTotalProblems(0) // 問題セットが選択されていない場合は0
         }
       } catch (error) {
         console.error('Error fetching data:', error)
@@ -149,7 +157,7 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
   if (loading) {
     return (
       <div className="h-screen overflow-hidden flex flex-col">
-        <Header title="読み込み中..." />
+        <Header />
         
         <div className="flex-1 overflow-hidden flex flex-col">
           <div className="container mx-auto px-4 h-full flex flex-col gap-6">
@@ -361,43 +369,45 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
 
   return (
     <div className="h-screen overflow-hidden bg-background flex flex-col">
-      <Header title={`問題${problemNumber}`} />
+      <Header 
+        problemDisplay={<ProblemDisplay problem={problem} />}
+      />
       
       {/* メインコンテンツ */}
       <ProblemDetailLayout problem={problem} problemNumber={problemNumber} slots={{
-        header: (
-          <ProblemDisplay problem={problem} />
-        ),
+        header: null,
         leftPanel: (
-          <ProblemStepDisplay
-            problem={problem}
-            currentStep={currentStep}
-            onStepChange={goToStep}
-            shakeNext={shakeToken}
-            inferenceTypeValue={steps.step3?.inferenceType || ''}
-            validityValue={steps.step3?.validity === null ? '' : (steps.step3?.validity ? '妥当' : '非妥当')}
-            verificationValue={steps.step3?.verification === null ? '' : (steps.step3?.verification ? '高い' : '低い')}
-            onInferenceTypeChange={(value) => updateStep(3, { ...steps.step3, inferenceType: value })}
-            onValidityChange={(value) => updateStep(3, { ...steps.step3, validity: value === '妥当' })}
-            onVerificationChange={(value) => updateStep(3, { ...steps.step3, verification: value === '高い' })}
-            step5Premises={steps.step5?.premises || []}
-            onStep5PremiseChange={(index, field, value) => {
-              const currentPremises = steps.step5?.premises || []
-              // 配列の長さを2に保つ
-              const newPremises = [...currentPremises]
-              // インデックスが範囲外の場合は空オブジェクトで初期化
-              if (!newPremises[index]) {
-                newPremises[index] = { antecedent: '', consequent: '' }
-              }
-              newPremises[index] = {
-                ...newPremises[index],
-                [field]: value,
-              }
-              updateStep(5, { ...steps.step5, premises: newPremises })
-            }}
-            onRequestNext={handleAnswerCheck}
-            stepsState={steps as any}
-          />
+          <div className="h-full overflow-y-scroll bg-transparent scrollbar-gutter-stable">
+            <ProblemStepDisplay
+                problem={problem}
+                currentStep={currentStep}
+                onStepChange={goToStep}
+                shakeNext={shakeToken}
+                inferenceTypeValue={steps.step3?.inferenceType || ''}
+                validityValue={steps.step3?.validity === null ? '' : (steps.step3?.validity ? '妥当' : '非妥当')}
+                verificationValue={steps.step3?.verification === null ? '' : (steps.step3?.verification ? '高い' : '低い')}
+                onInferenceTypeChange={(value) => updateStep(3, { ...steps.step3, inferenceType: value })}
+                onValidityChange={(value) => updateStep(3, { ...steps.step3, validity: value === '妥当' })}
+                onVerificationChange={(value) => updateStep(3, { ...steps.step3, verification: value === '高い' })}
+                step5Premises={steps.step5?.premises || []}
+                onStep5PremiseChange={(index, field, value) => {
+                  const currentPremises = steps.step5?.premises || []
+                  // 配列の長さを2に保つ
+                  const newPremises = [...currentPremises]
+                  // インデックスが範囲外の場合は空オブジェクトで初期化
+                  if (!newPremises[index]) {
+                    newPremises[index] = { antecedent: '', consequent: '' }
+                  }
+                  newPremises[index] = {
+                    ...newPremises[index],
+                    [field]: value,
+                  }
+                  updateStep(5, { ...steps.step5, premises: newPremises })
+                }}
+                onRequestNext={handleAnswerCheck}
+                stepsState={steps as any}
+              />
+          </div>
         ),
         rightPanel: (
           <TriangleLogicFlow
@@ -417,13 +427,42 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
           />
         ),
         footer: (
-          <div className="w-full flex items-center justify-between">
-            <Link href="/problems">
-              <Button variant="outline" size="default">
-                <ArrowLeft className="w-5 h-5 mr-2" />
-                問題一覧に戻る
-              </Button>
+          <div className="w-full flex items-center justify-between gap-6">
+            <Link 
+              href="/problems"
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2 hover:underline"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              問題一覧に戻る
             </Link>
+            
+            {/* 問題番号と進捗（中央配置） */}
+            <div className="flex items-center gap-4 flex-1 justify-center max-w-md mx-auto">
+              {totalProblems > 0 && (
+                <>
+                  <div className="text-sm font-medium text-foreground whitespace-nowrap">
+                    問題{problemNumber}
+                  </div>
+                  <div className="flex-1">
+                    {(() => {
+                      // 完了した問題数（現在の問題より前の問題は完了と仮定）
+                      const completedProblems = problemNumber - 1
+                      // 現在の問題の進捗率（ステップ進捗を考慮）
+                      const currentProblemProgress = totalSteps > 0 ? completedSteps / totalSteps : 0
+                      // 全体の進捗率 = (完了した問題数 + 現在の問題の進捗) / 総問題数
+                      const overallProgress = ((completedProblems + currentProblemProgress) / totalProblems) * 100
+                      return <Progress value={overallProgress} className="h-2" />
+                    })()}
+                  </div>
+                </>
+              )}
+              {totalProblems === 0 && (
+                <div className="text-sm font-medium text-foreground">
+                  問題{problemNumber}
+                </div>
+              )}
+            </div>
+            
             <Button
               onClick={() => {
                 const maybePromise = handleAnswerCheck()

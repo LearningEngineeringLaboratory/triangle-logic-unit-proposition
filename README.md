@@ -19,6 +19,7 @@
 ![TypeScript](https://img.shields.io/badge/TypeScript-blue?style=flat-square&logo=typescript)
 ![TailwindCSS](https://img.shields.io/badge/TailwindCSS-38B2AC?style=flat-square&logo=tailwind-css)
 ![React](https://img.shields.io/badge/React-61DAFB?style=flat-square&logo=react)
+![React Flow](https://img.shields.io/badge/ReactFlow-000000?style=flat-square)
 
 ### UI/UX
 ![shadcn/ui](https://img.shields.io/badge/shadcn/ui-000000?style=flat-square)
@@ -70,33 +71,23 @@ npm run dev
 
 ```
 src/
-├── app/                    # Next.js App Router
-│   ├── (auth)/            # 認証関連ページ
-│   │   └── register/      # ユーザー登録ページ
-│   ├── (main)/            # メイン機能
-│   │   └── problems/      # 問題一覧・詳細ページ
-│   └── api/               # API エンドポイント
-│       ├── register/      # ユーザー登録API
-│       └── session/       # セッション管理API
-├── components/            # Reactコンポーネント
-│   ├── ui/               # shadcn/uiコンポーネント
-│   ├── triangle-logic/   # 単位命題三角ロジック専用
-│   └── forms/            # フォーム関連
-├── lib/                  # ユーティリティ・設定
-│   ├── supabase.ts       # Supabaseクライアント
-│   ├── problems.ts       # 問題データ取得
-│   └── types.ts          # TypeScript型定義
-└── hooks/                # カスタムReactフック
+├── app/                       # Next.js App Router
+│   ├── (main)/problems/       # 問題一覧・詳細ページ
+│   ├── api/log/               # 操作ログAPI
+│   ├── globals.css            # グローバルスタイル
+│   └── layout.tsx             # ルートレイアウト
+├── components/                # UIコンポーネント
+│   ├── features/
+│   │   ├── problem-detail/    # 問題詳細レイアウト・ステップUI
+│   │   └── triangle-logic/    # ReactFlowノード・エッジ・フロー
+│   ├── layout/                # 共通レイアウトコンポーネント
+│   ├── providers/             # Theme/SupabaseなどのProvider
+│   └── ui/                    # shadcn/ui ラッパー
+├── hooks/                     # カスタムReactフック
+└── lib/                       # ユーティリティ・設定
+    ├── problems.ts            # 問題データ取得
+    ├── supabase.ts            # クライアント用Supabaseクライアント
+    ├── supabase-server.ts     # サーバー用Supabaseクライアント
+    ├── types.ts               # 型定義
+    └── utils.ts               # 汎用ユーティリティ
 ```
-
-## 🎯 開発状況
-
-- [x] Next.js初期セットアップ
-- [x] Supabase接続設定
-- [x] データベーススキーマ設計
-- [x] ユーザー登録・セッション管理API
-- [x] 問題一覧ページ実装
-- [ ] 問題詳細ページ実装
-- [ ] 単位命題三角ロジックUI
-- [ ] ステップ型演習システム
-- [ ] 答え合わせ機能
