@@ -15,7 +15,7 @@ import {
 import { Moon, Sun, Monitor } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import Link from 'next/link'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 
 // 問題選択画面用のヘッダー（ダークモード切り替え付き）
 function HeaderWithTheme() {
@@ -141,12 +141,12 @@ interface ProblemsListWithSetSelectorProps {
 }
 
 function ProblemsListWithSetSelector({ initialProblems, problemSets }: ProblemsListWithSetSelectorProps) {
-  const [problems, setProblems] = useState<Problem[]>([])
+  const [problems, setProblems] = useState<Problem[]>(initialProblems)
   const [selectedSetId, setSelectedSetId] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [isInitialized, setIsInitialized] = useState(false)
 
-  const handleSetChange = async (setId: string | null) => {
+  const handleSetChange = useCallback(async (setId: string | null) => {
     setSelectedSetId(setId)
     setIsLoading(true)
     
@@ -162,15 +162,15 @@ function ProblemsListWithSetSelector({ initialProblems, problemSets }: ProblemsL
         const problemsFromSet = await getProblemsBySet(setId)
         setProblems(problemsFromSet)
       } else {
-        // セットが選択されていない場合は空の配列を表示
-        setProblems([])
+        // セットが選択されていない場合は初期問題を表示
+        setProblems(initialProblems)
       }
     } catch (error) {
       console.error('Error loading problems:', error)
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [initialProblems])
 
   // 初期化時にlocalStorageから選択状態を復元
   useEffect(() => {
@@ -182,7 +182,7 @@ function ProblemsListWithSetSelector({ initialProblems, problemSets }: ProblemsL
       }
       setIsInitialized(true)
     }
-  }, [problemSets, isInitialized])
+  }, [problemSets, isInitialized, handleSetChange])
 
   return (
     <>
@@ -217,9 +217,6 @@ interface ProblemCardProps {
 }
 
 function ProblemCard({ problem }: ProblemCardProps) {
-  const totalSteps = problem.correct_answers ? Object.keys(problem.correct_answers).length : 0
-  const done = problem.completed_steps || 0
-  const progress = totalSteps > 0 ? (done / totalSteps) * 100 : 0
   const problemNumber = problem.order_index || 1
 
   return (

@@ -3,6 +3,7 @@
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Trophy, Sparkles, ArrowRight } from 'lucide-react'
+import { Problem } from '@/lib/types'
 
 interface ClearDialogProps {
   isOpen: boolean
@@ -10,7 +11,7 @@ interface ClearDialogProps {
   isLastProblem: boolean
   onBackToProblems: () => void
   onNextProblem?: () => void
-  nextProblem?: any
+  nextProblem?: Problem | null
 }
 
 export function ClearDialog({

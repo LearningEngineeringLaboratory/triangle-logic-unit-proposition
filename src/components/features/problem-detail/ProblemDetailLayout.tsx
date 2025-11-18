@@ -1,11 +1,7 @@
 'use client'
 
 import { ReactNode } from 'react'
-import { ProblemDetail } from '@/lib/types'
-
 interface ProblemDetailLayoutProps {
-  problem: ProblemDetail
-  problemNumber: number
   slots: {
     header: ReactNode
     leftPanel: ReactNode
@@ -14,7 +10,7 @@ interface ProblemDetailLayoutProps {
   }
 }
 
-export function ProblemDetailLayout({ problem, problemNumber, slots }: ProblemDetailLayoutProps) {
+export function ProblemDetailLayout({ slots }: ProblemDetailLayoutProps) {
   return (
     <div className="flex-1 bg-background overflow-hidden flex flex-col">
       {/* コンテンツ全体を3行グリッド（ヘッダー/中央/フッター）にして中央のみスクロール許容 */}

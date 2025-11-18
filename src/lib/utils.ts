@@ -7,99 +7,104 @@ export function cn(...inputs: ClassValue[]) {
 
 // UI <-> DB マッピングユーティリティ（可変ステップ数対応）
 
-import { StepsState, StepState } from './types'
+import { StepsState, Step1State, Step2State, Step2Answer, Step3State, Step4State, Step5State, TriangleLink, CorrectAnswers } from './types'
 
-interface UiStepsState {
-  [stepKey: string]: StepState
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null
 }
 
-export function mapUiToDbState(ui: UiStepsState) {
-  const db: any = {}
+export function mapUiToDbState(ui: StepsState) {
+  const db: Record<string, unknown> = {}
   
-  // 各ステップを動的に処理
-  Object.keys(ui).forEach(stepKey => {
-    const step = ui[stepKey]
+  Object.entries(ui).forEach(([stepKey, step]) => {
+    if (!step) return
     const stepNumber = stepKey.replace('step', '')
     
-    db[stepKey] = {
+    const base: Record<string, unknown> = {
       is_passed: step.isPassed,
     }
     
-    // ステップ固有のフィールドをマッピング
     if (stepNumber === '1') {
-      db[stepKey].antecedent = step.antecedent
-      db[stepKey].consequent = step.consequent
+      const state = step as Step1State
+      base.antecedent = state.antecedent
+      base.consequent = state.consequent
     } else if (stepNumber === '2') {
-      // Step2: linksのみを保存（premiseはUI表示用のみでDBには保存しない）
-      if (step.links) {
-        db[stepKey].links = step.links
+      const state = step as Step2State
+      if (state.links?.length) {
+        base.links = state.links
       }
     } else if (stepNumber === '3') {
-      db[stepKey].inference_type = step.inferenceType
-      db[stepKey].validity = step.validity
+      const state = step as Step3State
+      base.inference_type = state.inferenceType
+      base.validity = state.validity
+      base.verification = state.verification
     } else if (stepNumber === '4') {
-      // Step4: linksのみを保存
-      if (step.links) {
-        db[stepKey].links = step.links
+      const state = step as Step4State
+      if (state.links?.length) {
+        base.links = state.links
       }
     } else if (stepNumber === '5') {
-      // Step5: premisesのみを保存
-      if (step.premises) {
-        db[stepKey].premises = step.premises
+      const state = step as Step5State
+      if (state.premises?.length) {
+        base.premises = state.premises
       }
     }
-    // 将来的に4ステップ以上に対応する場合はここに追加
+    
+    db[stepKey] = base
   })
 
   return db
 }
 
-export function mapDbToUiState(db: any): UiStepsState {
-  const ui: UiStepsState = {}
+export function mapDbToUiState(db: Record<string, unknown>): StepsState {
+  const ui: StepsState = {}
   
-  // 各ステップを動的に処理
-  Object.keys(db).forEach(stepKey => {
-    const stepData = db[stepKey]
+  Object.entries(db).forEach(([stepKey, rawValue]) => {
+    if (!isRecord(rawValue)) return
     const stepNumber = stepKey.replace('step', '')
     
-    ui[stepKey] = {
-      isPassed: !!stepData?.is_passed,
+    const base = {
+      isPassed: Boolean(rawValue.is_passed),
     }
     
-    // ステップ固有のフィールドをマッピング
-    if (stepNumber === '1') {
-      ui[stepKey] = {
-        ...ui[stepKey],
-        antecedent: stepData?.antecedent ?? '',
-        consequent: stepData?.consequent ?? '',
-      }
-    } else if (stepNumber === '2') {
-      // Step2: linksのみを復元（premiseはUI表示用のみでDBからは復元しない）
-      ui[stepKey] = {
-        ...ui[stepKey],
-        premise: '', // UI表示用に初期化（復元不要のため常に空）
-        links: stepData?.links ?? [],
-      }
-    } else if (stepNumber === '3') {
-      ui[stepKey] = {
-        ...ui[stepKey],
-        inferenceType: stepData?.inference_type ?? '',
-        validity: stepData?.validity ?? null,
-      }
-    } else if (stepNumber === '4') {
-      // Step4: linksのみを復元
-      ui[stepKey] = {
-        ...ui[stepKey],
-        links: stepData?.links ?? [],
-      }
-    } else if (stepNumber === '5') {
-      // Step5: premisesのみを復元
-      ui[stepKey] = {
-        ...ui[stepKey],
-        premises: stepData?.premises ?? [],
-      }
+    switch (stepNumber) {
+      case '1':
+        ui.step1 = {
+          ...base,
+          antecedent: String(rawValue.antecedent ?? ''),
+          consequent: String(rawValue.consequent ?? ''),
+        }
+        break
+      case '2':
+        ui.step2 = {
+          ...base,
+          premise: '',
+          links: Array.isArray(rawValue.links) ? (rawValue.links as TriangleLink[]) : [],
+        }
+        break
+      case '3':
+        ui.step3 = {
+          ...base,
+          inferenceType: String(rawValue.inference_type ?? ''),
+          validity: typeof rawValue.validity === 'boolean' ? rawValue.validity : null,
+          verification: typeof rawValue.verification === 'boolean' ? rawValue.verification : null,
+        }
+        break
+      case '4':
+        ui.step4 = {
+          ...base,
+          links: Array.isArray(rawValue.links) ? (rawValue.links as Step4State['links']) : [],
+        }
+        break
+      case '5':
+        ui.step5 = {
+          ...base,
+          premises: Array.isArray(rawValue.premises) ? (rawValue.premises as Step5State['premises']) : [],
+        }
+        break
+      default:
+        break
     }
-    // 将来的に4ステップ以上に対応する場合はここに追加
   })
 
   return ui
@@ -114,10 +119,9 @@ export function normalizeValidity(v: unknown): boolean | null {
   return null
 }
 
-export function normalizeStateFragment(stepNumber: 1 | 2 | 3, incoming: any) {
-  if (!incoming) return {}
+export function normalizeStateFragment(stepNumber: 1 | 2 | 3, incoming: unknown) {
+  if (!isRecord(incoming)) return {}
   if (stepNumber === 1) {
-    if ('antecedent' in incoming && 'consequent' in incoming) return incoming
     return incoming
   }
   if (stepNumber === 2) {
@@ -125,14 +129,14 @@ export function normalizeStateFragment(stepNumber: 1 | 2 | 3, incoming: any) {
       return incoming
     }
     if ('linkDirections' in incoming || 'impossible' in incoming) {
-      const links = incoming.linkDirections
+      const links = isRecord(incoming.linkDirections) ? incoming.linkDirections : undefined
       return {
-        impossible: !!incoming.impossible,
+        impossible: Boolean(incoming.impossible),
         premise: incoming.premise,
         link_directions: links
           ? {
-              'antecedent-link': !!links.antecedentLink,
-              'consequent-link': !!links.consequentLink,
+              'antecedent-link': Boolean((links as Record<string, unknown>).antecedentLink),
+              'consequent-link': Boolean((links as Record<string, unknown>).consequentLink),
             }
           : undefined,
       }
@@ -151,39 +155,53 @@ export function normalizeStateFragment(stepNumber: 1 | 2 | 3, incoming: any) {
     }
     return incoming
   }
+  return {}
 }
 
-export function isStepCorrect(correctAnswers: any, stepNumber: 1 | 2 | 3, state: any): boolean {
+export function isStepCorrect(correctAnswers: CorrectAnswers | undefined, stepNumber: 1 | 2 | 3, state: Step1State | Step2State | Step3State | undefined): boolean {
   // 新仕様: correct_answers.stepN に正解データをフラットに格納
-  const correct = correctAnswers?.[`step${stepNumber}`]
+  const correct = correctAnswers?.[`step${stepNumber}` as const]
   const incoming = normalizeStateFragment(stepNumber, state)
 
   if (stepNumber === 1) {
+    const fragment = incoming as Partial<Step1State>
+    const expected = correct as { antecedent?: string; consequent?: string } | undefined
     return Boolean(
-      incoming?.antecedent === correct?.antecedent &&
-      incoming?.consequent === correct?.consequent
+      fragment?.antecedent === expected?.antecedent &&
+      fragment?.consequent === expected?.consequent
     )
   }
 
   if (stepNumber === 2) {
+    const fragment = incoming as {
+      antecedent?: string
+      consequent?: string
+      premise?: string
+      links?: TriangleLink[]
+    }
+    const expected = correct as Step2Answer | TriangleLink[] | undefined
     // 新スキーマ: step2 はリンク配列のみ
-    const correctLinks: any[] = Array.isArray(correct) ? correct : (correct?.links || [])
-    const uiLinks = incoming?.links || []
+    const correctLinks: TriangleLink[] = Array.isArray(expected)
+      ? expected as TriangleLink[]
+      : Array.isArray(expected?.links)
+        ? expected.links ?? []
+        : []
+    const uiLinks = Array.isArray(fragment?.links) ? fragment?.links ?? [] : []
 
     const getNodeValue = (nodeId: string) => {
-      if (nodeId === 'antecedent') return incoming?.antecedent || ''
-      if (nodeId === 'consequent') return incoming?.consequent || ''
-      if (typeof nodeId === 'string' && nodeId.startsWith('premise-')) return incoming?.premise || ''
+      if (nodeId === 'antecedent') return String(fragment?.antecedent ?? '')
+      if (nodeId === 'consequent') return String(fragment?.consequent ?? '')
+      if (typeof nodeId === 'string' && nodeId.startsWith('premise-')) return String(fragment?.premise ?? '')
       return nodeId
     }
 
-    const uiLinksWithValues = uiLinks.map((link: any) => ({
+    const uiLinksWithValues = uiLinks.map(link => ({
       from: getNodeValue(link.from),
       to: getNodeValue(link.to)
     }))
 
-    const linksMatch = correctLinks.every((correctLink: any) =>
-      uiLinksWithValues.some((uiLink: any) =>
+    const linksMatch = correctLinks.every(correctLink =>
+      uiLinksWithValues.some(uiLink =>
         uiLink.from === correctLink.from && uiLink.to === correctLink.to
       )
     ) && correctLinks.length === uiLinksWithValues.length
@@ -192,15 +210,20 @@ export function isStepCorrect(correctAnswers: any, stepNumber: 1 | 2 | 3, state:
   }
 
   if (stepNumber === 3) {
+    const fragment = incoming as Partial<Step3State> & { inference_type?: string }
+    const expected = correct as { inference_type?: string; validity?: boolean; verification?: boolean } | undefined
     const left = {
-      inference_type: incoming?.inference_type,
-      validity: normalizeValidity(incoming?.validity),
+      inference_type: fragment?.inferenceType ?? fragment?.inference_type,
+      validity: normalizeValidity(fragment?.validity),
+      verification: typeof fragment?.verification === 'boolean' ? fragment.verification : undefined,
     }
     const right = {
-      inference_type: correct?.inference_type,
-      validity: normalizeValidity(correct?.validity),
+      inference_type: expected?.inference_type,
+      validity: normalizeValidity(expected?.validity),
+      verification: expected?.verification,
     }
-    return Boolean(left.inference_type === right.inference_type && left.validity === right.validity)
+    const verificationMatches = right.verification === undefined || left.verification === right.verification
+    return Boolean(left.inference_type === right.inference_type && left.validity === right.validity && verificationMatches)
   }
 
   return false
@@ -229,7 +252,7 @@ export async function logClientCheck(params: {
         client_ts: new Date().toISOString(),
       }),
     })
-  } catch (_) {
+  } catch {
     // 研究用途のため、失敗時は黙殺
   }
 }

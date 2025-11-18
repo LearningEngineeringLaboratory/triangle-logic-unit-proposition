@@ -1,6 +1,4 @@
 'use client'
-
-import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { RefreshCw } from 'lucide-react'
 import { Arrow } from './Arrow'
@@ -20,10 +18,6 @@ interface TriangleLogicDisplayProps {
   antecedentLinkDirection?: boolean
   consequentLinkDirection?: boolean
   currentStep: number
-  onInferenceTypeChange?: (value: string) => void
-  onValidityChange?: (value: string) => void
-  inferenceTypeValue?: string
-  validityValue?: string
   onImpossibleToggle?: (value: boolean) => void
   impossibleValue?: boolean
   // Step5のprops
@@ -238,7 +232,6 @@ function TriangleStep2({
 // Step 3: 推論形式と妥当性の判別（読み取り専用）
 // ========================================
 interface TriangleStep3Props {
-  options: string[]
   antecedentValue: string
   consequentValue: string
   premiseValue: string
@@ -248,7 +241,6 @@ interface TriangleStep3Props {
 }
 
 function TriangleStep3({
-  options,
   antecedentValue,
   consequentValue,
   premiseValue,
@@ -466,10 +458,6 @@ export function TriangleLogicDisplay({
   antecedentLinkDirection = true,
   consequentLinkDirection = true,
   currentStep,
-  onInferenceTypeChange,
-  onValidityChange,
-  inferenceTypeValue = '',
-  validityValue = '',
   onImpossibleToggle,
   impossibleValue = false,
   premise1Value = '',
@@ -511,7 +499,6 @@ export function TriangleLogicDisplay({
 
         {currentStep === 3 && (
           <TriangleStep3
-            options={options}
             antecedentValue={antecedentValue}
             consequentValue={consequentValue}
             premiseValue={premiseValue}
