@@ -1,15 +1,18 @@
-# データベーススキーマ設計書
+# データベーススキーマ設計書 v0.4
 
 ## 概要
 
 単位命題三角ロジック演習システムのデータベース設計書です。学習過程の詳細ログを収集・分析するための基盤として設計されています。
+
+**更新履歴**:
+- v0.4: ステップ構成の変更（5ステップ対応）、リンク情報のデータ構造変更
 
 ## テーブル一覧
 
 | テーブル名 | 用途 | 主要フィールド |
 |-----------|------|---------------|
 | `users` | ユーザー情報管理 | user_id, name, email |
-| `problems` | 問題データ管理 | problem_id, title, argument, options, total_steps, steps |
+| `problems` | 問題データ管理 | problem_id, argument, correct_answers, options, version |
 | `sessions` | セッション管理 | session_id, user_id, created_at, last_activity |
 | `attempts` | 試行記録管理 | attempt_id, session_id, user_id, problem_id, status |
 | `events` | 操作ログ管理 | event_id, session_id, user_id, attempt_id, kind, payload |
@@ -39,11 +42,9 @@
 | フィールド名 | データ型 | 制約 | 説明 |
 |-------------|----------|------|------|
 | problem_id | TEXT | PRIMARY KEY | 問題ID（例: TLU-A-v1.0.0） |
-| title | TEXT | NOT NULL | 問題タイトル |
-| argument | TEXT | NOT NULL | 論証文 |
-| options | JSONB |  | 単位命題の共通選択肢（全ステップ共通） |
-| total_steps | INTEGER | NOT NULL | 問題内のステップ数（可変対応） |
-| steps | JSONB | NOT NULL | ステップ情報の配列（JSONB形式） |
+| argument | TEXT | NOT NULL | 論証文（問題文） |
+| correct_answers | JSONB | NOT NULL | 各ステップの正解データ（JSONB形式） |
+| options | JSONB | NULL可 | 単位命題の共通選択肢（全ステップ共通） |
 | version | TEXT | NOT NULL | 問題バージョン |
 | created_at | TIMESTAMP WITH TIME ZONE | DEFAULT NOW() | 作成日時 |
 | updated_at | TIMESTAMP WITH TIME ZONE | DEFAULT NOW() | 更新日時 |
@@ -55,40 +56,38 @@
   ["Pである", "Qである", "Rである", "Sである"]
   ```
 
-- `steps`: ステップ情報の配列
+- `correct_answers`: 各ステップの正解データ
   ```json
   {
     "step1": {
-      "rubric": {
-        "correct_answer": {
-          "antecedent": "Pである",
-          "consequent": "Rである"
-        }
-      }
+      "antecedent": "Pである",
+      "consequent": "Rである"
     },
-    "step2": {
-      "rubric": {
-        "correct_answer": {
-          "premise": "Qである",
-          "link_directions": {
-            "antecedent-link": true,
-            "consequent-link": true
-          },
-          "impossible": false
-        }
-      }
-    },
+    "step2": [
+      { "from": "Pである", "to": "Qである" },
+      { "from": "Qである", "to": "Rである" }
+    ],
     "step3": {
-      "rubric": {
-        "correct_answer": {
-          "inference_type": "演繹推論",
-          "validity": true
-        }
-      }
-    }
+      "inference_type": "仮説推論",
+      "validity": true,
+      "verification": true
+    },
+    "step4": [
+      { "from": "Pである", "to": "Qである", "active": true },
+      { "from": "Qである", "to": "Rである", "active": true },
+      { "from": "Pである", "to": "Rである", "active": false }
+    ],
+    "step5": [
+      { "antecedent": "Pである", "consequent": "Qである" },
+      { "antecedent": "Qである", "consequent": "Rである" }
+    ]
   }
   ```
-  - **組立不可**: `step2.rubric.correct_answer.impossible` がtrueの場合は組み立て不可能
+  - **Step1**: 導出命題の前件・後件
+  - **Step2**: 正解リンク配列のみ（premiseは正解判定に不要）
+  - **Step3**: 推論形式と妥当性
+  - **Step4**: リンクの活性/非活性（`active`フラグ: true=必要、false=不要）
+  - **Step5**: 妥当性のある三項論証（常に2つの条件文）
 
 **Step3の推論形式選択肢**:
 - **演繹推論**: 形式推論であり、妥当な推論
@@ -98,6 +97,10 @@
 **Step3の妥当性選択肢**:
 - **true (妥当)**: 所与命題が真であれば導出命題が必ず真となる推論
 - **false (非妥当)**: 所与命題が真であっても導出命題が真とは言えない推論
+
+**Step3の検証価値選択肢**:
+- **true (高い)**: 導出命題に検証価値が高い
+- **false (低い)**: 導出命題に検証価値が低い
 
 ### 3. sessions テーブル
 
@@ -155,7 +158,10 @@
 - `continue_dialog_shown`: 継続確認ダイアログ表示（`user_id`, `problem_number`, `current_step`）
 - `continue_selected`: 継続方法選択（`user_id`, `choice`, `problem_number`, `current_step`）
 - `select_dropdown`: ドロップダウン選択（`control_id`, `value`）
-- `toggle_link_direction`: 矢印反転（`link_id`, `new_direction`）
+- `link_created`: リンク作成（`from_node`, `to_node`）
+- `link_deleted`: リンク削除（`from_node`, `to_node`）
+- `link_marked_inactive`: リンクを不要としてマーク（`link_id`, `active: false`）
+- `link_marked_active`: リンクを必要としてマーク（`link_id`, `active: true`）
 - `step_completed`: ステップ完了（`step`, `result`, `is_correct`）
 - `attempt_started`: 試行開始（`problem_id`）
 - `attempt_finished`: 試行終了（`problem_id`, `success`）
@@ -181,7 +187,7 @@
 
 **stateフィールドの例**:
 
-**通常の回答パターン**:
+**3ステップで完了する場合（演繹推論）**:
 ```json
 {
   "step1": {
@@ -190,37 +196,54 @@
     "is_passed": true
   },
   "step2": {
-    "premise": "Qである",
-    "link_directions": {
-      "antecedent-link": true,
-      "consequent-link": true
-    },
-    "impossible": false,
-    "is_passed": false
+    "links": [
+      { "from": "node1", "to": "node2" },
+      { "from": "node2", "to": "node3" }
+    ],
+    "is_passed": true
   },
   "step3": {
     "inference_type": "演繹推論",
     "validity": true,
-    "is_passed": false
+    "verification": true,
+    "is_passed": true
   }
 }
 ```
 
-**組立不可が正解の場合**:
+**5ステップまで進む場合（演繹推論以外）**:
 ```json
 {
   "step1": {
-    "antecedent": "Rである",
-    "consequent": "Sである",
+    "antecedent": "Pである",
+    "consequent": "Rである",
     "is_passed": true
   },
   "step2": {
-    "impossible": true,
+    "links": [
+      { "from": "node1", "to": "node3" }
+    ],
     "is_passed": true
   },
   "step3": {
     "inference_type": "非形式推論",
     "validity": false,
+    "verification": false,
+    "is_passed": true
+  },
+  "step4": {
+    "links": [
+      { "from": "node1", "to": "node3", "active": false },
+      { "from": "node1", "to": "node2", "active": true },
+      { "from": "node2", "to": "node3", "active": true }
+    ],
+    "is_passed": true
+  },
+  "step5": {
+    "premises": [
+      { "antecedent": "Pである", "consequent": "Qである" },
+      { "antecedent": "Qである", "consequent": "Rである" }
+    ],
     "is_passed": false
   }
 }
@@ -271,5 +294,7 @@
 5. **データ保持**: 研究用データの長期保存を考慮
 6. **統合状態管理**: `responses.state`で全ステップの状態を一元管理
 7. **問題番号管理**: `problem_number`で問題の順序を管理し、適切な進捗復帰を実現
-8. **可変ステップ対応**: JSONB構造により問題ごとに異なるステップ数に対応可能
+8. **可変ステップ対応**: JSONB構造により問題ごとに異なるステップ数に対応可能（3ステップまたは5ステップ）
 9. **ログ分析の簡素化**: テーブル統合によりJOINが不要で分析クエリが簡潔
+10. **リンク情報の管理**: Step2とStep4でリンク情報を分離して保持し、学習過程を詳細に記録
+11. **ReactFlow対応**: リンク構造はReactFlowのEdge形式に対応したデータ構造

@@ -5,74 +5,231 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-// UI <-> DB マッピングユーティリティ
+// UI <-> DB マッピングユーティリティ（可変ステップ数対応）
+
+import { StepsState, StepState } from './types'
 
 interface UiStepsState {
-  step1: { antecedent: string; consequent: string; isPassed: boolean }
-  step2: {
-    impossible: boolean
-    premise?: string
-    linkDirections?: { antecedentLink: boolean; consequentLink: boolean }
-    isPassed: boolean
-  }
-  step3: { inferenceType: string; validity: boolean | null; isPassed: boolean }
+  [stepKey: string]: StepState
 }
 
 export function mapUiToDbState(ui: UiStepsState) {
-  const db: any = {
-    step1: {
-      antecedent: ui.step1.antecedent,
-      consequent: ui.step1.consequent,
-      is_passed: ui.step1.isPassed,
-    },
-    step2: {
-      is_passed: ui.step2.isPassed,
-    },
-    step3: {
-      inference_type: ui.step3.inferenceType,
-      validity: ui.step3.validity,
-      is_passed: ui.step3.isPassed,
-    },
-  }
-
-  if (ui.step2.impossible) {
-    db.step2.impossible = true
-  } else {
-    db.step2.impossible = false
-    if (ui.step2.premise) db.step2.premise = ui.step2.premise
-    if (ui.step2.linkDirections) {
-      db.step2.link_directions = {
-        "antecedent-link": ui.step2.linkDirections.antecedentLink,
-        "consequent-link": ui.step2.linkDirections.consequentLink,
+  const db: any = {}
+  
+  // 各ステップを動的に処理
+  Object.keys(ui).forEach(stepKey => {
+    const step = ui[stepKey]
+    const stepNumber = stepKey.replace('step', '')
+    
+    db[stepKey] = {
+      is_passed: step.isPassed,
+    }
+    
+    // ステップ固有のフィールドをマッピング
+    if (stepNumber === '1') {
+      db[stepKey].antecedent = step.antecedent
+      db[stepKey].consequent = step.consequent
+    } else if (stepNumber === '2') {
+      // Step2: linksのみを保存（premiseはUI表示用のみでDBには保存しない）
+      if (step.links) {
+        db[stepKey].links = step.links
+      }
+    } else if (stepNumber === '3') {
+      db[stepKey].inference_type = step.inferenceType
+      db[stepKey].validity = step.validity
+    } else if (stepNumber === '4') {
+      // Step4: linksのみを保存
+      if (step.links) {
+        db[stepKey].links = step.links
+      }
+    } else if (stepNumber === '5') {
+      // Step5: premisesのみを保存
+      if (step.premises) {
+        db[stepKey].premises = step.premises
       }
     }
-  }
+    // 将来的に4ステップ以上に対応する場合はここに追加
+  })
 
   return db
 }
 
 export function mapDbToUiState(db: any): UiStepsState {
-  return {
-    step1: {
-      antecedent: db?.step1?.antecedent ?? '',
-      consequent: db?.step1?.consequent ?? '',
-      isPassed: !!db?.step1?.is_passed,
-    },
-    step2: {
-      impossible: !!db?.step2?.impossible,
-      premise: db?.step2?.premise ?? '',
-      linkDirections: db?.step2?.link_directions
-        ? {
-            antecedentLink: !!db.step2.link_directions["antecedent-link"],
-            consequentLink: !!db.step2.link_directions["consequent-link"],
-          }
-        : { antecedentLink: true, consequentLink: true },
-      isPassed: !!db?.step2?.is_passed,
-    },
-    step3: {
-      inferenceType: db?.step3?.inference_type ?? '',
-      validity: db?.step3?.validity ?? null,
-      isPassed: !!db?.step3?.is_passed,
-    },
+  const ui: UiStepsState = {}
+  
+  // 各ステップを動的に処理
+  Object.keys(db).forEach(stepKey => {
+    const stepData = db[stepKey]
+    const stepNumber = stepKey.replace('step', '')
+    
+    ui[stepKey] = {
+      isPassed: !!stepData?.is_passed,
+    }
+    
+    // ステップ固有のフィールドをマッピング
+    if (stepNumber === '1') {
+      ui[stepKey] = {
+        ...ui[stepKey],
+        antecedent: stepData?.antecedent ?? '',
+        consequent: stepData?.consequent ?? '',
+      }
+    } else if (stepNumber === '2') {
+      // Step2: linksのみを復元（premiseはUI表示用のみでDBからは復元しない）
+      ui[stepKey] = {
+        ...ui[stepKey],
+        premise: '', // UI表示用に初期化（復元不要のため常に空）
+        links: stepData?.links ?? [],
+      }
+    } else if (stepNumber === '3') {
+      ui[stepKey] = {
+        ...ui[stepKey],
+        inferenceType: stepData?.inference_type ?? '',
+        validity: stepData?.validity ?? null,
+      }
+    } else if (stepNumber === '4') {
+      // Step4: linksのみを復元
+      ui[stepKey] = {
+        ...ui[stepKey],
+        links: stepData?.links ?? [],
+      }
+    } else if (stepNumber === '5') {
+      // Step5: premisesのみを復元
+      ui[stepKey] = {
+        ...ui[stepKey],
+        premises: stepData?.premises ?? [],
+      }
+    }
+    // 将来的に4ステップ以上に対応する場合はここに追加
+  })
+
+  return ui
+}
+
+// ---- クライアント側答え合わせユーティリティ ----
+
+export function normalizeValidity(v: unknown): boolean | null {
+  if (typeof v === 'boolean') return v
+  if (v === '妥当') return true
+  if (v === '非妥当') return false
+  return null
+}
+
+export function normalizeStateFragment(stepNumber: 1 | 2 | 3, incoming: any) {
+  if (!incoming) return {}
+  if (stepNumber === 1) {
+    if ('antecedent' in incoming && 'consequent' in incoming) return incoming
+    return incoming
+  }
+  if (stepNumber === 2) {
+    if ('link_directions' in incoming || ('premise' in incoming && !('linkDirections' in incoming))) {
+      return incoming
+    }
+    if ('linkDirections' in incoming || 'impossible' in incoming) {
+      const links = incoming.linkDirections
+      return {
+        impossible: !!incoming.impossible,
+        premise: incoming.premise,
+        link_directions: links
+          ? {
+              'antecedent-link': !!links.antecedentLink,
+              'consequent-link': !!links.consequentLink,
+            }
+          : undefined,
+      }
+    }
+    return incoming
+  }
+  if (stepNumber === 3) {
+    if ('inference_type' in incoming || (typeof incoming?.validity === 'boolean' && !('inferenceType' in incoming))) {
+      return incoming
+    }
+    if ('inferenceType' in incoming || 'validity' in incoming) {
+      return {
+        inference_type: incoming.inferenceType,
+        validity: normalizeValidity(incoming.validity),
+      }
+    }
+    return incoming
+  }
+}
+
+export function isStepCorrect(correctAnswers: any, stepNumber: 1 | 2 | 3, state: any): boolean {
+  // 新仕様: correct_answers.stepN に正解データをフラットに格納
+  const correct = correctAnswers?.[`step${stepNumber}`]
+  const incoming = normalizeStateFragment(stepNumber, state)
+
+  if (stepNumber === 1) {
+    return Boolean(
+      incoming?.antecedent === correct?.antecedent &&
+      incoming?.consequent === correct?.consequent
+    )
+  }
+
+  if (stepNumber === 2) {
+    // 新スキーマ: step2 はリンク配列のみ
+    const correctLinks: any[] = Array.isArray(correct) ? correct : (correct?.links || [])
+    const uiLinks = incoming?.links || []
+
+    const getNodeValue = (nodeId: string) => {
+      if (nodeId === 'antecedent') return incoming?.antecedent || ''
+      if (nodeId === 'consequent') return incoming?.consequent || ''
+      if (typeof nodeId === 'string' && nodeId.startsWith('premise-')) return incoming?.premise || ''
+      return nodeId
+    }
+
+    const uiLinksWithValues = uiLinks.map((link: any) => ({
+      from: getNodeValue(link.from),
+      to: getNodeValue(link.to)
+    }))
+
+    const linksMatch = correctLinks.every((correctLink: any) =>
+      uiLinksWithValues.some((uiLink: any) =>
+        uiLink.from === correctLink.from && uiLink.to === correctLink.to
+      )
+    ) && correctLinks.length === uiLinksWithValues.length
+
+    return Boolean(linksMatch)
+  }
+
+  if (stepNumber === 3) {
+    const left = {
+      inference_type: incoming?.inference_type,
+      validity: normalizeValidity(incoming?.validity),
+    }
+    const right = {
+      inference_type: correct?.inference_type,
+      validity: normalizeValidity(correct?.validity),
+    }
+    return Boolean(left.inference_type === right.inference_type && left.validity === right.validity)
+  }
+
+  return false
+}
+
+export async function logClientCheck(params: {
+  sessionId?: string
+  userId?: string
+  problemId?: string
+  step: 1 | 2 | 3 | 4 | 5
+  isCorrect: boolean
+  payload?: unknown
+}) {
+  try {
+    await fetch('/api/log', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        session_id: params.sessionId,
+        user_id: params.userId,
+        problem_id: params.problemId,
+        step: params.step,
+        is_correct: params.isCorrect,
+        kind: 'check_step_client',
+        payload: params.payload ?? null,
+        client_ts: new Date().toISOString(),
+      }),
+    })
+  } catch (_) {
+    // 研究用途のため、失敗時は黙殺
   }
 }

@@ -37,11 +37,80 @@ export interface RestoreSessionResponse {
   isReturningUser: boolean
 }
 
+// ステップ関連の型定義（可変ステップ数対応）
+export interface StepState {
+  isPassed: boolean
+  [key: string]: any // 各ステップの固有フィールド
+}
+
+// Step1: 導出命題
+export interface Step1State extends StepState {
+  antecedent: string
+  consequent: string
+}
+
+// Step2: 所与命題とリンク
+// 注意: premiseはUI表示用のみ（ReactFlowでノード表示に必要）
+// DB保存時はlinksのみを保存し、premiseは保存しない（復元不要のため）
+export interface Step2State extends StepState {
+  premise: string // UI表示用のみ、DBには保存しない
+  links: Array<{ from: string; to: string }>
+}
+
+// Step3: 推論形式と妥当性と検証価値
+export interface Step3State extends StepState {
+  inferenceType: string
+  validity: boolean | null
+  verification: boolean | null // true=高い, false=低い
+}
+
+// Step4: リンクの活性/非活性
+export interface Step4State extends StepState {
+  links: Array<{ from: string; to: string; active: boolean }>
+}
+
+// Step5: 論証構成
+export interface Step5State extends StepState {
+  premises: Array<{ antecedent: string; consequent: string }>
+}
+
+export interface StepsState {
+  step1?: Step1State
+  step2?: Step2State
+  step3?: Step3State
+  step4?: Step4State
+  step5?: Step5State
+}
+
+// 問題の型定義（可変ステップ数対応）
 export interface Problem {
   problem_id: string
-  title: string
   argument: string
-  total_steps: number
+  correct_answers?: StepsState
   completed_steps?: number
+  order_index?: number // 問題セット内での順番
+  total_steps?: number // 総ステップ数（correct_answersから動的に計算）
+}
+
+export interface ProblemSet {
+  set_id: string
+  name: string
+  description?: string
+  version: string
+  is_active: boolean
+  created_at: string
+}
+
+export interface ProblemSetItem {
+  set_id: string
+  problem_id: string
+  order_index: number
+  created_at: string
+}
+
+// 問題詳細の型定義
+export interface ProblemDetail extends Problem {
+  correct_answers: StepsState
+  options?: string[]
 }
 

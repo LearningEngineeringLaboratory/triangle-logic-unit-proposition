@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+@import '@xyflow/react/dist/style.css';
 
 @custom-variant dark (&:is(.dark *));
 
@@ -25,6 +26,13 @@
   --color-input: var(--input);
   --color-border: var(--border);
   --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent: var(--accent);
   --color-muted-foreground: var(--muted-foreground);
@@ -41,75 +49,90 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
 }
 
 :root {
   --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
+  --background: oklch(0.99 0 0);
+  --foreground: oklch(0.15 0.02 260);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
+  --card-foreground: oklch(0.15 0.02 260);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.15 0.02 260);
+  --primary: oklch(0.5 0.2 260);
+  --primary-foreground: oklch(0.99 0 0);
+  --secondary: oklch(0.92 0.04 260);
+  --secondary-foreground: oklch(0.25 0.15 260);
+  --muted: oklch(0.96 0.01 260);
+  --muted-foreground: oklch(0.5 0.05 260);
+  --accent: oklch(0.88 0.08 260);
+  --accent-foreground: oklch(0.3 0.15 260);
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --destructive-foreground: oklch(0.99 0 0);
+  --success: oklch(0.65 0.2 145);
+  --success-foreground: oklch(0.99 0 0);
+  --warning: oklch(0.8 0.15 85);
+  --warning-foreground: oklch(0.2 0.05 85);
+  --info: oklch(0.7 0.15 240);
+  --info-foreground: oklch(0.99 0 0);
+  --border: oklch(0.9 0.02 260);
+  --input: oklch(0.9 0.02 260);
+  --ring: oklch(0.5 0.2 260);
+  --chart-1: oklch(0.55 0.2 260);
+  --chart-2: oklch(0.6 0.18 220);
+  --chart-3: oklch(0.65 0.16 300);
+  --chart-4: oklch(0.7 0.14 240);
+  --chart-5: oklch(0.6 0.15 280);
+  --sidebar: oklch(0.98 0.01 260);
+  --sidebar-foreground: oklch(0.15 0.02 260);
+  --sidebar-primary: oklch(0.5 0.2 260);
+  --sidebar-primary-foreground: oklch(0.99 0 0);
+  --sidebar-accent: oklch(0.92 0.04 260);
+  --sidebar-accent-foreground: oklch(0.25 0.15 260);
+  --sidebar-border: oklch(0.9 0.02 260);
+  --sidebar-ring: oklch(0.5 0.2 260);
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
+  --background: oklch(0.15 0.02 260);
+  --foreground: oklch(0.95 0.01 260);
+  --card: oklch(0.2 0.03 260);
+  --card-foreground: oklch(0.95 0.01 260);
+  --popover: oklch(0.2 0.03 260);
+  --popover-foreground: oklch(0.95 0.01 260);
+  --primary: oklch(0.65 0.2 260);
+  --primary-foreground: oklch(0.99 0 0);
+  --secondary: oklch(0.25 0.05 260);
+  --secondary-foreground: oklch(0.95 0.01 260);
+  --muted: oklch(0.25 0.04 260);
+  --muted-foreground: oklch(0.65 0.08 260);
+  --accent: oklch(0.35 0.1 260);
+  --accent-foreground: oklch(0.95 0.01 260);
   --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --destructive-foreground: oklch(0.99 0 0);
+  --success: oklch(0.7 0.2 145);
+  --success-foreground: oklch(0.99 0 0);
+  --warning: oklch(0.85 0.15 85);
+  --warning-foreground: oklch(0.2 0.05 85);
+  --info: oklch(0.75 0.15 240);
+  --info-foreground: oklch(0.99 0 0);
+  --border: oklch(0.3 0.05 260);
+  --input: oklch(0.3 0.05 260);
+  --ring: oklch(0.65 0.2 260);
+  --chart-1: oklch(0.6 0.2 260);
+  --chart-2: oklch(0.65 0.18 220);
+  --chart-3: oklch(0.7 0.16 300);
+  --chart-4: oklch(0.75 0.14 240);
+  --chart-5: oklch(0.65 0.15 280);
+  --sidebar: oklch(0.18 0.03 260);
+  --sidebar-foreground: oklch(0.95 0.01 260);
+  --sidebar-primary: oklch(0.65 0.2 260);
+  --sidebar-primary-foreground: oklch(0.99 0 0);
+  --sidebar-accent: oklch(0.25 0.05 260);
+  --sidebar-accent-foreground: oklch(0.95 0.01 260);
+  --sidebar-border: oklch(0.3 0.05 260);
+  --sidebar-ring: oklch(0.65 0.2 260);
 }
 
 @layer base {
@@ -118,5 +141,124 @@
   }
   body {
     @apply bg-background text-foreground;
+    background-image: 
+      url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E");
+    background-attachment: fixed;
+  }
+  .dark body {
+    background-image: 
+      url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
+  }
+  h1 {
+    @apply text-4xl font-bold leading-tight;
+  }
+  h2 {
+    @apply text-3xl font-bold leading-tight;
+  }
+  h3 {
+    @apply text-2xl font-semibold leading-tight;
+  }
+  h4 {
+    @apply text-xl font-semibold leading-snug;
+  }
+  p {
+    @apply leading-relaxed;
   }
 }
+
+@keyframes shake-x {
+  10%, 90% { transform: translateX(-2px) }
+  20%, 80% { transform: translateX(4px) }
+  30%, 50%, 70% { transform: translateX(-6px) }
+  40%, 60% { transform: translateX(6px) }
+}
+
+@utility animate-shake-x {
+  animation: shake-x 0.3s ease-in-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-shake-x { animation: none }
+}
+
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 oklch(0.5 0.2 260 / 0.45) }
+  50% { box-shadow: 0 0 0 2px oklch(0.5 0.2 260 / 0.25) }
+}
+
+@utility animate-glow-pulse {
+  animation: glow-pulse 2.6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-glow-pulse { animation: none }
+}
+
+/* ReactFlow Controls and Attribution Styling */
+.react-flow__controls {
+  border-radius: 12px !important;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1) !important;
+  border: 1px solid oklch(0.9 0.02 260) !important;
+  background: oklch(1 0 0) !important;
+}
+
+.react-flow__controls button {
+  border-radius: 8px !important;
+  border: none !important;
+  background: transparent !important;
+  color: oklch(0.15 0.02 260) !important;
+}
+
+.react-flow__controls button:hover {
+  background: oklch(0.96 0.01 260) !important;
+  color: oklch(0.5 0.2 260) !important;
+}
+
+.react-flow__attribution {
+  right: 8px !important;
+  top: 4px !important;
+  border-radius: 8px !important;
+  background: oklch(1 0 0 / 0.8) !important;
+  padding: 4px 8px !important;
+  font-size: 8px !important;
+  color: oklch(0.5 0.05 260) !important;
+  backdrop-filter: blur(4px) !important;
+}
+
+.dark .react-flow__controls {
+  background: oklch(0.2 0.03 260) !important;
+  border: 1px solid oklch(0.3 0.05 260) !important;
+}
+
+.dark .react-flow__controls button {
+  color: oklch(0.95 0.01 260) !important;
+}
+
+.dark .react-flow__controls button:hover {
+  background: oklch(0.25 0.04 260) !important;
+  color: oklch(0.65 0.2 260) !important;
+}
+
+.dark .react-flow__attribution {
+  background: oklch(0.2 0.03 260 / 0.8) !important;
+  color: oklch(0.65 0.08 260) !important;
+}
+
+/* PremiseNode ドラッグハンドル制御 */
+.react-flow__node-premiseNode {
+  pointer-events: none;
+}
+
+.react-flow__node-premiseNode .drag-handle {
+  pointer-events: auto;
+}
+
+.react-flow__node-premiseNode .drag-handle * {
+  pointer-events: none;
+}
+
+/* ハンドルは常にクリック可能 */
+.react-flow__handle {
+  pointer-events: auto !important;
+}
+
