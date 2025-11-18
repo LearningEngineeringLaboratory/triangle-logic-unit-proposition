@@ -38,9 +38,35 @@ export interface RestoreSessionResponse {
 }
 
 // ステップ関連の型定義（可変ステップ数対応）
+export interface TriangleLink {
+  from: string
+  to: string
+}
+
+export interface ActiveTriangleLink extends TriangleLink {
+  active?: boolean
+}
+
+export interface PremiseSelection {
+  antecedent: string
+  consequent: string
+}
+
+export interface Step2Answer {
+  premise?: string
+  links: TriangleLink[]
+}
+
+export interface Step4Answer {
+  links: ActiveTriangleLink[]
+}
+
+export interface Step5Answer {
+  premises: PremiseSelection[]
+}
+
 export interface StepState {
   isPassed: boolean
-  [key: string]: any // 各ステップの固有フィールド
 }
 
 // Step1: 導出命題
@@ -54,7 +80,7 @@ export interface Step1State extends StepState {
 // DB保存時はlinksのみを保存し、premiseは保存しない（復元不要のため）
 export interface Step2State extends StepState {
   premise: string // UI表示用のみ、DBには保存しない
-  links: Array<{ from: string; to: string }>
+  links: TriangleLink[]
 }
 
 // Step3: 推論形式と妥当性と検証価値
@@ -66,12 +92,12 @@ export interface Step3State extends StepState {
 
 // Step4: リンクの活性/非活性
 export interface Step4State extends StepState {
-  links: Array<{ from: string; to: string; active: boolean }>
+  links: ActiveTriangleLink[]
 }
 
 // Step5: 論証構成
 export interface Step5State extends StepState {
-  premises: Array<{ antecedent: string; consequent: string }>
+  premises: PremiseSelection[]
 }
 
 export interface StepsState {
@@ -86,10 +112,11 @@ export interface StepsState {
 export interface Problem {
   problem_id: string
   argument: string
-  correct_answers?: StepsState
+  correct_answers?: CorrectAnswers
   completed_steps?: number
   order_index?: number // 問題セット内での順番
   total_steps?: number // 総ステップ数（correct_answersから動的に計算）
+  options?: string[]
 }
 
 export interface ProblemSet {
@@ -110,7 +137,27 @@ export interface ProblemSetItem {
 
 // 問題詳細の型定義
 export interface ProblemDetail extends Problem {
-  correct_answers: StepsState
-  options?: string[]
+  correct_answers: CorrectAnswers
+}
+
+export interface CorrectAnswers {
+  step1?: {
+    antecedent: string
+    consequent: string
+  }
+  step2?: Step2Answer | TriangleLink[]
+  step3?: {
+    inference_type: string
+    validity: boolean
+    verification?: boolean
+  }
+  step4?: Step4Answer | ActiveTriangleLink[]
+  step5?: Step5Answer | PremiseSelection[]
+}
+
+export interface NodeValues {
+  antecedent: string
+  consequent: string
+  premiseNodes: Array<{ id: string; value: string }>
 }
 

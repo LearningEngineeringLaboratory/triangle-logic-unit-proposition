@@ -1,7 +1,7 @@
 'use client'
 
-import { getProblem, getProblemSets, getNextProblemInSet, getCurrentProblemOrder, getProblemsBySet } from '@/lib/problems'
-import { ProblemSet, ProblemDetail } from '@/lib/types'
+import { getProblem, getNextProblemInSet, getCurrentProblemOrder, getProblemsBySet } from '@/lib/problems'
+import { Problem, ProblemDetail, NodeValues, Step2State, Step4State, Step5State, TriangleLink, ActiveTriangleLink, PremiseSelection } from '@/lib/types'
 import { notFound } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -29,25 +29,22 @@ interface ProblemDetailPageProps {
 export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
   const router = useRouter()
   const [problem, setProblem] = useState<ProblemDetail | null>(null)
-  const [problemSets, setProblemSets] = useState<ProblemSet[]>([])
   const [problemNumber, setProblemNumber] = useState(1)
   const [loading, setLoading] = useState(true)
-  const [selectedProblemSetId, setSelectedProblemSetId] = useState<string | null>(null)
-  const [nextProblem, setNextProblem] = useState<any>(null)
+  const [nextProblem, setNextProblem] = useState<Problem | null>(null)
   const [isLastProblem, setIsLastProblem] = useState(false)
   const [totalProblems, setTotalProblems] = useState<number>(0)
   const [isClearOpen, setIsClearOpen] = useState(false)
-  const [shakeToken, setShakeToken] = useState(0)
   const [feedbackVisible, setFeedbackVisible] = useState(false)
   const [feedbackType, setFeedbackType] = useState<'success' | 'error'>('success')
-  const [nodeValues, setNodeValues] = useState<{ antecedent: string; consequent: string; premiseNodes: Array<{ id: string; value: string }> }>({
+  const [nodeValues, setNodeValues] = useState<NodeValues>({
     antecedent: '',
     consequent: '',
     premiseNodes: []
   })
 
   // ノードの値を更新するコールバック
-  const handleNodeValuesChange = useCallback((values: { antecedent: string; consequent: string; premiseNodes: Array<{ id: string; value: string }> }) => {
+  const handleNodeValuesChange = useCallback((values: NodeValues) => {
     setNodeValues(values)
   }, [])
 
@@ -59,30 +56,22 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
     completedSteps,
     updateStep,
     goToNextStep,
-    goToStep,
   } = useProblemSteps(problem)
 
   useEffect(() => {
     async function fetchData() {
       try {
         const resolvedParams = await params
-        const [problemData, problemSetsData] = await Promise.all([
-          getProblem(resolvedParams.id),
-          getProblemSets()
-        ])
+        const problemData = await getProblem(resolvedParams.id)
 
         if (!problemData) {
           notFound()
         }
 
         setProblem(problemData)
-        setProblemSets(problemSetsData)
-
         // 選択された問題セットを取得
         const savedSetId = localStorage.getItem('selectedProblemSetId')
         if (savedSetId) {
-          setSelectedProblemSetId(savedSetId)
-
           // 現在の問題の順番を取得
           const currentOrder = await getCurrentProblemOrder(savedSetId, resolvedParams.id)
           if (currentOrder !== null) {
@@ -196,44 +185,47 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
 
     const stepNumber = currentStep as 1 | 2 | 3 | 4 | 5
     const stepKey = `step${stepNumber}` as keyof typeof steps
-    const uiFragment = steps[stepKey]
+    const currentStateFragment = steps[stepKey]
     
-    if (!uiFragment) return
+    if (!currentStateFragment) return
 
     // 新しいステップ構造に合わせた正誤判定
     let isCorrect = false
     
+    const resolveNodeValue = (nodeId: string): string => {
+      if (nodeId === 'antecedent') return nodeValues.antecedent
+      if (nodeId === 'consequent') return nodeValues.consequent
+      if (nodeId.startsWith('premise-')) {
+        const premiseNode = nodeValues.premiseNodes.find(node => node.id === nodeId)
+        return premiseNode?.value ?? ''
+      }
+      return nodeId
+    }
+
     switch (stepNumber) {
-      case 1:
-        isCorrect = uiFragment.antecedent === problem.correct_answers.step1?.antecedent &&
-                   uiFragment.consequent === problem.correct_answers.step1?.consequent
+      case 1: {
+        const step1State = steps.step1
+        if (!step1State) break
+        isCorrect = step1State.antecedent === problem.correct_answers.step1?.antecedent &&
+                   step1State.consequent === problem.correct_answers.step1?.consequent
         break
-      case 2:
-        // Step2の正誤判定（新スキーマ：配列のリンクのみで比較）
-        // 旧データ（オブジェクトや未定義）に対しては空配列として扱う
-        const rawStep2 = (problem.correct_answers as any)?.step2
-        const correctLinks = Array.isArray(rawStep2) ? rawStep2 : []
+      }
+      case 2: {
+        const rawStep2 = problem.correct_answers.step2
+        const correctLinks: TriangleLink[] = Array.isArray(rawStep2)
+          ? rawStep2
+          : rawStep2?.links ?? []
 
-        // UIのリンク（ノードID）を実値に変換して比較
-        const uiLinks = uiFragment.links || []
+        const step2State = steps.step2 as Step2State | undefined
+        const uiLinks = step2State?.links ?? []
 
-        const getNodeValue = (nodeId: string) => {
-          if (nodeId === 'antecedent') return nodeValues.antecedent
-          if (nodeId === 'consequent') return nodeValues.consequent
-          if (nodeId.startsWith('premise-')) {
-            const premiseNode = nodeValues.premiseNodes.find(node => node.id === nodeId)
-            return premiseNode?.value || ''
-          }
-          return nodeId
-        }
-
-        const uiLinksWithValues = uiLinks.map((link: any) => ({
-          from: getNodeValue(link.from),
-          to: getNodeValue(link.to)
+        const uiLinksWithValues = uiLinks.map(link => ({
+          from: resolveNodeValue(link.from),
+          to: resolveNodeValue(link.to)
         }))
 
-        const linksMatch = correctLinks.every((correctLink: any) =>
-          uiLinksWithValues.some((uiLink: any) =>
+        const linksMatch = correctLinks.every(correctLink =>
+          uiLinksWithValues.some(uiLink =>
             uiLink.from === correctLink.from && uiLink.to === correctLink.to
           )
         ) && correctLinks.length === uiLinksWithValues.length
@@ -245,46 +237,49 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
 
         isCorrect = linksMatch
         break
-      case 3:
-        isCorrect = uiFragment.inferenceType === problem.correct_answers.step3?.inference_type &&
-                   uiFragment.validity === problem.correct_answers.step3?.validity &&
-                   uiFragment.verification === problem.correct_answers.step3?.verification
+      }
+      case 3: {
+        const step3State = steps.step3
+        if (!step3State) break
+        const expectedStep3 = problem.correct_answers.step3
+        if (!expectedStep3) break
+        const verificationMatches =
+          expectedStep3.verification === undefined ||
+          step3State.verification === expectedStep3.verification
+        isCorrect =
+          step3State.inferenceType === expectedStep3.inference_type &&
+          step3State.validity === expectedStep3.validity &&
+          verificationMatches
         break
+      }
       case 4: {
         // Step4の正誤判定（活性/非活性リンクの比較）
-        const rawStep4 = (problem.correct_answers as any)?.step4
-        const correctActiveLinks4 = Array.isArray(rawStep4) ? rawStep4 : []
+        const rawStep4 = problem.correct_answers.step4
+        const correctActiveLinks4: ActiveTriangleLink[] = Array.isArray(rawStep4)
+          ? rawStep4
+          : rawStep4?.links ?? []
+        const step4State = steps.step4 as Step4State | undefined
         
         console.log(`[debug-step4] correctActiveLinks4:`, correctActiveLinks4)
-        console.log(`[debug-step4] uiFragment:`, uiFragment)
+        console.log(`[debug-step4] uiFragment:`, step4State)
         
         // UIリンクを実際の値に変換
-        const uiLinks4 = uiFragment.links || []
+        const uiLinks4 = step4State?.links ?? []
         
         // active: trueのリンクのみを抽出
-        const activeUiLinks4 = uiLinks4.filter((link: any) => link.active !== false)
-        
-        const getNodeValue4 = (nodeId: string) => {
-          if (nodeId === 'antecedent') return nodeValues.antecedent
-          if (nodeId === 'consequent') return nodeValues.consequent
-          if (nodeId.startsWith('premise-')) {
-            const premiseNode = nodeValues.premiseNodes.find(node => node.id === nodeId)
-            return premiseNode?.value || nodeId
-          }
-          return nodeId
-        }
-        
-        const uiLinksWithValues4 = activeUiLinks4.map((link: any) => ({
-          from: getNodeValue4(link.from),
-          to: getNodeValue4(link.to),
+        const activeUiLinks4 = uiLinks4.filter(link => link.active !== false)
+
+        const uiLinksWithValues4 = activeUiLinks4.map(link => ({
+          from: resolveNodeValue(link.from),
+          to: resolveNodeValue(link.to),
         }))
         
         // 正解リンクとUIリンクを比較（activeのみが正解）
-        const correctLinksActiveOnly4 = correctActiveLinks4.filter((link: any) => link.active)
+        const correctLinksActiveOnly4 = correctActiveLinks4.filter(link => link.active)
         
         // リンクの存在と数を比較
-        const linksMatch4 = correctLinksActiveOnly4.every((correctLink: any) => 
-          uiLinksWithValues4.some((uiLink: any) => 
+        const linksMatch4 = correctLinksActiveOnly4.every(correctLink => 
+          uiLinksWithValues4.some(uiLink => 
             uiLink.from === correctLink.from && uiLink.to === correctLink.to
           )
         ) && correctLinksActiveOnly4.length === uiLinksWithValues4.length
@@ -300,9 +295,12 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
       case 5: {
         // Step5の正誤判定（論証構成の比較、順不同）
         // 2つのpremiseの順序は入れ替え可能だが、各premiseのantecedentとconsequentの組み合わせは固定
-        const rawStep5 = (problem.correct_answers as any)?.step5
-        const correctPremises = Array.isArray(rawStep5) ? rawStep5 : []
-        const userPremises = uiFragment.premises || []
+        const rawStep5 = problem.correct_answers.step5
+        const correctPremises: PremiseSelection[] = Array.isArray(rawStep5)
+          ? rawStep5
+          : rawStep5?.premises ?? []
+        const step5State = steps.step5 as Step5State | undefined
+        const userPremises = step5State?.premises ?? []
         
         // 各premiseをJSON文字列に変換（順序は保持）
         const normalizePremise = (premise: { antecedent: string; consequent: string }): string => {
@@ -313,12 +311,9 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
         const normalizedCorrect = correctPremises.map(normalizePremise).sort()
         const normalizedUser = userPremises.map(normalizePremise).sort()
         
-        // 各premiseが正しいかチェック（2つのpremiseの順序は問わない）
-        const premisesMatch = normalizedCorrect.length === normalizedUser.length &&
-          normalizedCorrect.length === 2 &&
-          normalizedCorrect.every((correctPremise: string) => 
-            normalizedUser.some((userPremise: string) => userPremise === correctPremise)
-          )
+        const premisesMatch =
+          normalizedCorrect.length === normalizedUser.length &&
+          normalizedCorrect.every(correctPremise => normalizedUser.includes(correctPremise))
         
         console.log(`[debug-step5] correctPremises:`, correctPremises)
         console.log(`[debug-step5] userPremises:`, userPremises)
@@ -332,7 +327,7 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
     }
 
     console.log(`[check-step][client] step=${stepNumber} isCorrect=${isCorrect ? 'correct' : 'incorrect'}`)
-    console.log(`[debug] uiFragment:`, uiFragment)
+    console.log(`[debug] stepState:`, currentStateFragment)
     console.log(`[debug] correct_answers:`, problem.correct_answers)
 
     // ログ送信（研究用）
@@ -340,13 +335,13 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
       problemId: problem.problem_id,
       step: stepNumber as 1 | 2 | 3 | 4 | 5,
       isCorrect,
-      payload: uiFragment as any,
+      payload: currentStateFragment,
     })
 
     if (isCorrect) {
       setFeedbackType('success')
       setFeedbackVisible(true)
-      updateStep(stepNumber, { ...uiFragment, isPassed: true })
+      updateStep(stepNumber, { ...currentStateFragment, isPassed: true })
       
       setTimeout(() => {
         setFeedbackVisible(false)
@@ -359,7 +354,6 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
     } else {
       setFeedbackType('error')
       setFeedbackVisible(true)
-      setShakeToken((t) => t + 1)
       
       setTimeout(() => {
         setFeedbackVisible(false)
@@ -374,15 +368,13 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
       />
       
       {/* メインコンテンツ */}
-      <ProblemDetailLayout problem={problem} problemNumber={problemNumber} slots={{
+      <ProblemDetailLayout slots={{
         header: null,
         leftPanel: (
           <div className="h-full overflow-y-scroll bg-transparent scrollbar-gutter-stable">
             <ProblemStepDisplay
                 problem={problem}
                 currentStep={currentStep}
-                onStepChange={goToStep}
-                shakeNext={shakeToken}
                 inferenceTypeValue={steps.step3?.inferenceType || ''}
                 validityValue={steps.step3?.validity === null ? '' : (steps.step3?.validity ? '妥当' : '非妥当')}
                 verificationValue={steps.step3?.verification === null ? '' : (steps.step3?.verification ? '高い' : '低い')}
@@ -404,8 +396,7 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
                   }
                   updateStep(5, { ...steps.step5, premises: newPremises })
                 }}
-                onRequestNext={handleAnswerCheck}
-                stepsState={steps as any}
+                stepsState={steps}
               />
           </div>
         ),

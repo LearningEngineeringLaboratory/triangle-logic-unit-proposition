@@ -24,6 +24,7 @@ import { TriangleConnectionLine } from './edges/TriangleConnectionLine'
 import { AddPremiseNodeButton } from './components/AddPremiseNodeButton'
 import { useTriangleNodes } from './hooks/useTriangleNodes'
 import { useNodeUpdates } from './hooks/useNodeUpdates'
+import { ActiveTriangleLink, NodeValues, TriangleLink } from '@/lib/types'
 
 // ========================================
 // ノードタイプとエッジタイプの定義
@@ -51,13 +52,13 @@ interface TriangleLogicFlowProps {
   // Step2 props
   premiseValue?: string
   onPremiseChange?: (value: string) => void
-  links?: Array<{ from: string; to: string }>
-  onLinksChange?: (links: Array<{ from: string; to: string }>) => void
+  links?: TriangleLink[]
+  onLinksChange?: (links: TriangleLink[]) => void
   // Step4 props
-  activeLinks?: Array<{ from: string; to: string; active: boolean }>
-  onActiveLinksChange?: (links: Array<{ from: string; to: string; active: boolean }>) => void
+  activeLinks?: ActiveTriangleLink[]
+  onActiveLinksChange?: (links: ActiveTriangleLink[]) => void
   // 答え合わせ用
-  onGetNodeValues?: (values: { antecedent: string; consequent: string; premiseNodes: Array<{ id: string; value: string }> }) => void
+  onGetNodeValues?: (values: NodeValues) => void
 }
 
 export function TriangleLogicFlow({
@@ -101,18 +102,12 @@ export function TriangleLogicFlow({
     }
   }, [currentStep, links, activeLinks, onLinksChange, onActiveLinksChange])
 
-  // ノード位置変更を検知してpremiseNodesの位置を更新
-  const handleNodePositionChange = useCallback((nodeId: string, position: { x: number; y: number }) => {
-    // このコールバックはuseTriangleNodes内でpremiseNodesの位置を更新するために使用される
-  }, [])
-
   // カスタムフックを使用してノード管理
-  const { addPremiseNode, removePremiseNode, updateNodePosition } = useTriangleNodes({ 
+  const { addPremiseNode, updateNodePosition } = useTriangleNodes({ 
     currentStep, 
     options, 
     setNodes: setNodes as (nodes: Node[] | ((prevNodes: Node[]) => Node[])) => void,
-    onNodeDelete: handleNodeDelete,
-    onNodePositionChange: handleNodePositionChange
+    onNodeDelete: handleNodeDelete
   })
 
   // onNodesChangeをラップして、premiseノードの位置変更を検知

@@ -1,5 +1,17 @@
 import { supabase } from '@/lib/supabase'
-import { Problem, ProblemSet, ProblemSetItem, ProblemDetail } from '@/lib/types'
+import { Problem, ProblemSet, ProblemDetail, CorrectAnswers } from '@/lib/types'
+
+interface ProblemRow {
+  problem_id: string
+  argument: string
+  correct_answers: CorrectAnswers | null
+  options: string[] | null
+}
+
+interface ProblemSetItemRow {
+  order_index: number
+  problems: ProblemRow
+}
 
 export async function getProblems(): Promise<Problem[]> {
   try {
@@ -20,10 +32,12 @@ export async function getProblems(): Promise<Problem[]> {
 
     // 進捗情報を取得（現在はセッション情報がないため、プレースホルダー）
     // TODO: セッション情報に基づいて実際の進捗を取得
-    const problemsWithProgress = problems.map(problem => {
+    const problemsWithProgress = problems.map((problem: ProblemRow) => {
       const totalSteps = problem.correct_answers ? Object.keys(problem.correct_answers).length : 3
       return {
         ...problem,
+        correct_answers: problem.correct_answers ?? {},
+        options: problem.options ?? [],
         total_steps: totalSteps,
         completed_steps: 0 // 仮の値
       }
@@ -57,9 +71,12 @@ export async function getProblem(problemId: string): Promise<ProblemDetail | nul
     const totalSteps = problem.correct_answers ? Object.keys(problem.correct_answers).length : 3
     
     return {
-      ...problem,
+      problem_id: problem.problem_id,
+      argument: problem.argument,
+      correct_answers: problem.correct_answers ?? {},
+      options: problem.options ?? [],
       total_steps: totalSteps,
-    } as ProblemDetail
+    }
   } catch (error) {
     console.error('Unexpected error in getProblem:', error)
     return null
@@ -109,13 +126,15 @@ export async function getProblemsBySet(setId: string): Promise<Problem[]> {
       return []
     }
 
-    return problems?.map((item: any) => {
+    const typedItems = (problems ?? []) as unknown as ProblemSetItemRow[]
+
+    return typedItems.map((item) => {
       const totalSteps = item.problems.correct_answers ? Object.keys(item.problems.correct_answers).length : 3
       return {
         problem_id: item.problems.problem_id,
         argument: item.problems.argument,
-        correct_answers: item.problems.correct_answers,
-        options: item.problems.options,
+        correct_answers: item.problems.correct_answers ?? {},
+        options: item.problems.options ?? [],
         order_index: item.order_index,
         total_steps: totalSteps,
         completed_steps: 0 // 仮の値
@@ -149,13 +168,15 @@ export async function getNextProblemInSet(setId: string, currentProblemId: strin
       return null
     }
 
-    const problemsList = problems?.map((item: any) => {
+    const typedItems = (problems ?? []) as unknown as ProblemSetItemRow[]
+
+    const problemsList = typedItems.map((item) => {
       const totalSteps = item.problems.correct_answers ? Object.keys(item.problems.correct_answers).length : 3
       return {
         problem_id: item.problems.problem_id,
         argument: item.problems.argument,
-        correct_answers: item.problems.correct_answers,
-        options: item.problems.options,
+        correct_answers: item.problems.correct_answers ?? {},
+        options: item.problems.options ?? [],
         order_index: item.order_index,
         total_steps: totalSteps,
         completed_steps: 0

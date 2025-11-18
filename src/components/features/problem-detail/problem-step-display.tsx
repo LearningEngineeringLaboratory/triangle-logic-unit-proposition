@@ -1,7 +1,7 @@
 'use client'
 
-import { ProblemDetail } from '@/lib/types'
-import { AlertCircle, CheckCircle2, Circle, ArrowUp, BookOpen } from 'lucide-react'
+import { PremiseSelection, ProblemDetail, StepsState } from '@/lib/types'
+import { AlertCircle, ArrowUp, BookOpen } from 'lucide-react'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Button } from '@/components/ui/button'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
@@ -10,24 +10,20 @@ import { useEffect, useRef, useState } from 'react'
 interface ProblemStepDisplayProps {
   problem: ProblemDetail
   currentStep: number
-  onStepChange: (step: number) => void
   inferenceTypeValue?: string
   validityValue?: string
   verificationValue?: string
   onInferenceTypeChange?: (value: string) => void
   onValidityChange?: (value: string) => void
   onVerificationChange?: (value: string) => void
-  step5Premises?: Array<{ antecedent: string; consequent: string }>
+  step5Premises?: PremiseSelection[]
   onStep5PremiseChange?: (index: number, field: 'antecedent' | 'consequent', value: string) => void
-  onRequestNext?: () => void | Promise<void>
-  shakeNext?: unknown
-  stepsState?: { [stepKey: string]: { isPassed: boolean } } // ステップの完了状態
+  stepsState?: StepsState // ステップの完了状態
 }
 
 export function ProblemStepDisplay({
   problem,
   currentStep,
-  onStepChange,
   inferenceTypeValue = '',
   validityValue = '',
   verificationValue = '',
@@ -36,25 +32,10 @@ export function ProblemStepDisplay({
   onVerificationChange,
   step5Premises = [],
   onStep5PremiseChange,
-  onRequestNext,
-  shakeNext,
   stepsState = {}
 }: ProblemStepDisplayProps) {
-  const [shouldShakeNext, setShouldShakeNext] = useState(false)
   const [showScrollTop, setShowScrollTop] = useState(false)
   const scrollContainerRef = useRef<HTMLDivElement | null>(null)
-
-  // 外部からのトリガーでshakeを発火（初回は発火させない）
-  const prevShakeTokenRef = useRef(shakeNext)
-  const currentStepRef = useRef<HTMLDivElement | null>(null)
-  useEffect(() => {
-    const prev = prevShakeTokenRef.current
-    if (prev !== shakeNext) {
-      setShouldShakeNext(true)
-      prevShakeTokenRef.current = shakeNext
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [shakeNext])
 
   // スクロール位置を監視してFABの表示/非表示を切り替え
   useEffect(() => {
@@ -138,12 +119,18 @@ export function ProblemStepDisplay({
 
   const totalSteps = problem?.total_steps || 3
   const steps = generateSteps(totalSteps)
+  const optionList = (problem?.options && problem.options.length > 0)
+    ? problem.options
+    : ['選択肢が設定されていません']
 
   // ステップの状態を判定する関数
   const getStepStatus = (stepNumber: number) => {
+    const stepKey = `step${stepNumber}` as keyof StepsState
+    const state = stepsState[stepKey]
+    
     if (stepNumber < currentStep) {
       // 過去のステップ：完了済みかどうか
-      return stepsState[`step${stepNumber}`]?.isPassed ? 'completed' : 'skipped'
+      return state?.isPassed ? 'completed' : 'skipped'
     } else if (stepNumber === currentStep) {
       // 現在のステップ
       return 'current'
@@ -156,6 +143,10 @@ export function ProblemStepDisplay({
   // 表示するステップをフィルタリング（現在のひとつ前まで）
   const visibleSteps = steps.filter((_, index) => index < (currentStep - 1)).reverse()
   const currentStepData = steps[currentStep - 1]
+
+  if (!currentStepData) {
+    return null
+  }
 
   return (
     <div className="flex flex-col min-h-full relative">
@@ -248,8 +239,8 @@ export function ProblemStepDisplay({
                             <SelectValue placeholder="選択" />
                           </SelectTrigger>
                           <SelectContent>
-                            {problem.options?.map((option, idx) => (
-                              <SelectItem key={idx} value={option}>
+                            {optionList.map((option) => (
+                              <SelectItem key={option} value={option}>
                                 {option}
                               </SelectItem>
                             ))}
@@ -264,8 +255,8 @@ export function ProblemStepDisplay({
                             <SelectValue placeholder="選択" />
                           </SelectTrigger>
                           <SelectContent>
-                            {problem.options?.map((option, idx) => (
-                              <SelectItem key={idx} value={option}>
+                            {optionList.map((option) => (
+                              <SelectItem key={option} value={option}>
                                 {option}
                               </SelectItem>
                             ))}
@@ -284,8 +275,8 @@ export function ProblemStepDisplay({
                             <SelectValue placeholder="選択" />
                           </SelectTrigger>
                           <SelectContent>
-                            {problem.options?.map((option, idx) => (
-                              <SelectItem key={idx} value={option}>
+                            {optionList.map((option) => (
+                              <SelectItem key={option} value={option}>
                                 {option}
                               </SelectItem>
                             ))}
@@ -300,8 +291,8 @@ export function ProblemStepDisplay({
                             <SelectValue placeholder="選択" />
                           </SelectTrigger>
                           <SelectContent>
-                            {problem.options?.map((option, idx) => (
-                              <SelectItem key={idx} value={option}>
+                            {optionList.map((option) => (
+                              <SelectItem key={option} value={option}>
                                 {option}
                               </SelectItem>
                             ))}
@@ -313,9 +304,9 @@ export function ProblemStepDisplay({
                       {/* したがって、結論 */}
                       <span className="text-base text-foreground font-serif">
                         <span className="font-medium">したがって、</span>
-                        {(stepsState.step1 as any)?.antecedent || '（前件）'}
+                        {stepsState.step1?.antecedent || '（前件）'}
                         <span className="font-medium">ならば</span>
-                        {(stepsState.step1 as any)?.consequent || '（後件）'}
+                        {stepsState.step1?.consequent || '（後件）'}
                         。
                       </span>
                     </div>
