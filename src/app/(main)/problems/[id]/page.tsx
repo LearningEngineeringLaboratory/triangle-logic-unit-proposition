@@ -418,7 +418,7 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
           />
         ),
         footer: (
-          <div className="w-full flex items-center justify-between gap-6">
+          <div className="w-full flex items-center justify-between gap-6 px-4">
             <Link 
               href="/problems"
               className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2 hover:underline"
