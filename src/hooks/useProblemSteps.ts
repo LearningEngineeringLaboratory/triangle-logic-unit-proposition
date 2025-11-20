@@ -22,7 +22,6 @@ export function useProblemSteps(problem: ProblemDetail | null) {
     // Step2: 所与命題とリンク
     steps.step2 = {
       isPassed: false,
-          premise: '',
       links: [],
     }
     
@@ -54,6 +53,11 @@ export function useProblemSteps(problem: ProblemDetail | null) {
   }, [totalSteps])
 
   const [steps, setSteps] = useState<StepsState>(initializeSteps)
+
+  // ステップ状態の復元
+  const restoreSteps = useCallback((restoredSteps: StepsState) => {
+    setSteps(restoredSteps)
+  }, [])
 
   // ステップの更新
   const updateStep = useCallback((stepNumber: number, updates: Partial<Step1State | Step2State | Step3State | Step4State | Step5State>) => {
@@ -111,5 +115,7 @@ export function useProblemSteps(problem: ProblemDetail | null) {
     goToStep,
     resetSteps,
     setSteps,
+    restoreSteps,
+    setCurrentStep,
   }
 }

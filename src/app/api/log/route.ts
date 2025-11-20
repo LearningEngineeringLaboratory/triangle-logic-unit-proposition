@@ -1,56 +1,178 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
+import { generateUlid } from '@/lib/session'
 
 interface LogBody {
   session_id?: string
   user_id?: string
+  attempt_id?: string
   problem_id?: string
   step?: 1 | 2 | 3 | 4 | 5
   is_correct?: boolean
   kind?: string
   payload?: unknown
   client_ts?: string
-}
-
-interface EventInsert {
-  session_id: string | null
-  user_id: string | null
-  problem_id: string | null
-  kind: string
-  payload: {
-    step?: 1 | 2 | 3 | 4 | 5
-    is_correct?: boolean
-    detail: unknown
-  }
-  client_ts: string
+  idempotency_key?: string
 }
 
 export async function POST(req: NextRequest) {
   try {
     const body = (await req.json()) as LogBody
-    const supabase = getSupabaseAdmin()
-    // 研究用の簡易ログ保存: eventsへappend（スキーマに合わせて調整）
-    const eventPayload: EventInsert = {
-      session_id: body.session_id ?? null,
-      user_id: body.user_id ?? null,
-      problem_id: body.problem_id ?? null,
-      kind: body.kind ?? 'check_step_client',
-      payload: {
-        step: body.step,
-        is_correct: body.is_correct,
-        detail: body.payload ?? null,
-      },
-      client_ts: body.client_ts ?? new Date().toISOString(),
+
+    // 必須パラメータのチェック
+    if (!body.session_id || !body.user_id) {
+      return NextResponse.json(
+        { success: false, error: 'session_id and user_id are required' },
+        { status: 400 }
+      )
     }
 
-    const { error } = await supabase.from('events').insert(eventPayload)
-    if (error) {
-      return NextResponse.json({ success: false, error: 'log_insert_failed' }, { status: 500 })
+    const supabase = getSupabaseAdmin()
+
+    // シーケンス番号を取得（セッション内で最大のseq + 1）
+    const { data: maxSeqData } = await supabase
+      .from('events')
+      .select('seq')
+      .eq('session_id', body.session_id)
+      .order('seq', { ascending: false })
+      .limit(1)
+      .single()
+
+    const nextSeq = maxSeqData?.seq ? maxSeqData.seq + 1 : 1
+
+    // attempt_idが指定されていない場合は、最新のattempt_idを取得（問題関連イベントの場合のみ）
+    let attemptId = body.attempt_id
+    if (!attemptId && body.problem_id) {
+      const { data: latestAttempt, error: attemptError } = await supabase
+        .from('attempts')
+        .select('attempt_id')
+        .eq('session_id', body.session_id)
+        .eq('user_id', body.user_id)
+        .eq('problem_id', body.problem_id)
+        .eq('status', 'in_progress')
+        .order('started_at', { ascending: false })
+        .limit(1)
+        .single()
+
+      if (!attemptError && latestAttempt) {
+        attemptId = latestAttempt.attempt_id
+      }
     }
-    return NextResponse.json({ success: true })
+
+    // 問題関連イベントでattempt_idが取得できない場合はエラー
+    if (!attemptId && body.problem_id) {
+      return NextResponse.json(
+        { success: false, error: 'attempt_id is required for problem-related events' },
+        { status: 400 }
+      )
+    }
+
+    // 問題非関連イベントの場合は、システム用のattempt_idを取得または作成
+    if (!attemptId) {
+      // システム用のattempt_idを取得（存在しない場合は作成）
+      const systemProblemId = 'SYSTEM'
+      const { data: systemAttempt, error: systemAttemptError } = await supabase
+        .from('attempts')
+        .select('attempt_id')
+        .eq('session_id', body.session_id)
+        .eq('user_id', body.user_id)
+        .eq('problem_id', systemProblemId)
+        .eq('status', 'in_progress')
+        .limit(1)
+        .single()
+
+      if (!systemAttemptError && systemAttempt) {
+        attemptId = systemAttempt.attempt_id
+      } else {
+        // システム用のattemptを作成
+        const systemAttemptId = generateUlid()
+        const { error: createSystemAttemptError } = await supabase
+          .from('attempts')
+          .insert({
+            attempt_id: systemAttemptId,
+            session_id: body.session_id,
+            user_id: body.user_id,
+            problem_id: systemProblemId,
+            started_at: new Date().toISOString(),
+            status: 'in_progress',
+          })
+
+        if (!createSystemAttemptError) {
+          attemptId = systemAttemptId
+        } else {
+          console.error('Failed to create system attempt:', createSystemAttemptError)
+          // フォールバック: 既存のattempt_idを取得（任意の1つ）
+          const { data: anyAttempt } = await supabase
+            .from('attempts')
+            .select('attempt_id')
+            .eq('session_id', body.session_id)
+            .eq('user_id', body.user_id)
+            .limit(1)
+            .single()
+
+          if (anyAttempt) {
+            attemptId = anyAttempt.attempt_id
+          } else {
+            return NextResponse.json(
+              { success: false, error: 'failed_to_get_attempt_id' },
+              { status: 500 }
+            )
+          }
+        }
+      }
+    }
+
+    // 冪等性キーの生成（指定されていない場合）
+    const idempotencyKey = body.idempotency_key || `${body.session_id}-${nextSeq}-${Date.now()}`
+
+    // イベントを挿入
+    const eventId = generateUlid()
+    const eventData = {
+      event_id: eventId,
+      session_id: body.session_id,
+      user_id: body.user_id,
+      attempt_id: attemptId,
+      seq: nextSeq,
+      kind: body.kind || 'unknown',
+      payload: body.payload || null,
+      client_ts: body.client_ts ? new Date(body.client_ts).toISOString() : null,
+      server_ts: new Date().toISOString(),
+      idempotency_key: idempotencyKey,
+    }
+    
+    console.log('[debug] Inserting event:', { kind: eventData.kind, session_id: eventData.session_id, user_id: eventData.user_id, attempt_id: eventData.attempt_id })
+    
+    const { error: insertError } = await supabase.from('events').insert(eventData)
+
+    if (insertError) {
+      // 重複エラーの場合は成功として扱う（冪等性）
+      if (insertError.code === '23505') {
+        // UNIQUE制約違反（idempotency_key）
+        console.log('[info] Duplicate event ignored:', idempotencyKey)
+        return NextResponse.json({ success: true, message: 'duplicate_ignored' })
+      }
+      console.error('[error] Event insert error:', insertError, 'Event data:', eventData)
+      return NextResponse.json(
+        { success: false, error: 'log_insert_failed', details: insertError.message },
+        { status: 500 }
+      )
+    }
+    
+    console.log('[success] Event inserted:', eventId)
+
+    // セッションの最終活動日時を更新
+    await supabase
+      .from('sessions')
+      .update({ last_activity: new Date().toISOString() })
+      .eq('session_id', body.session_id)
+
+    return NextResponse.json({ success: true, data: { event_id: eventId, seq: nextSeq } })
   } catch (err) {
-    console.error('log route error', err)
-    return NextResponse.json({ success: false, error: 'server_error' }, { status: 500 })
+    console.error('log route error:', err)
+    return NextResponse.json(
+      { success: false, error: 'server_error' },
+      { status: 500 }
+    )
   }
 }
 

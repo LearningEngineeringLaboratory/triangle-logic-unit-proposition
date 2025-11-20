@@ -50,8 +50,6 @@ interface TriangleLogicFlowProps {
   onAntecedentChange?: (value: string) => void
   onConsequentChange?: (value: string) => void
   // Step2 props
-  premiseValue?: string
-  onPremiseChange?: (value: string) => void
   links?: TriangleLink[]
   onLinksChange?: (links: TriangleLink[]) => void
   // Step4 props
@@ -68,8 +66,6 @@ export function TriangleLogicFlow({
   consequentValue = '',
   onAntecedentChange,
   onConsequentChange,
-  premiseValue = '',
-  onPremiseChange,
   links = [],
   onLinksChange,
   activeLinks = [],
@@ -145,10 +141,8 @@ export function TriangleLogicFlow({
     currentStep,
     antecedentValue,
     consequentValue,
-    premiseValue,
     onAntecedentChange,
     onConsequentChange,
-    onPremiseChange,
   })
 
   // 接続の妥当性を検証

@@ -11,20 +11,63 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuGroup,
 } from '@/components/ui/dropdown-menu'
-import { Moon, Sun, Monitor } from 'lucide-react'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import { Switch } from '@/components/ui/switch'
+import { Moon, Menu, RotateCcw, LogOut } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import Link from 'next/link'
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
+import { useSession } from '@/hooks/useSession'
+import { UserRegistrationDialog } from '@/components/features/auth/UserRegistrationDialog'
+import { Badge } from '@/components/ui/badge'
 
-// 問題選択画面用のヘッダー（ダークモード切り替え付き）
-function HeaderWithTheme() {
+// 問題選択画面用のヘッダー（ハンバーガーメニュー付き）
+interface HeaderWithThemeProps {
+  sessionInfo: { sessionId: string; userId: string; userName: string; userEmail: string } | null
+  onLogout: () => void
+  onResetAll: () => void
+  completedCount: number
+}
+
+function HeaderWithTheme({ sessionInfo, onLogout, onResetAll, completedCount }: HeaderWithThemeProps) {
   const { theme, setTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
+  const [showResetDialog, setShowResetDialog] = useState(false)
 
   useEffect(() => {
     setMounted(true)
-  }, [])
+    // デフォルトをライト設定に
+    if (!theme) {
+      setTheme("light")
+    }
+  }, [theme, setTheme])
+
+  const handleResetClick = () => {
+    setShowResetDialog(true)
+  }
+
+  const handleResetConfirm = () => {
+    setShowResetDialog(false)
+    onResetAll()
+  }
+
+  // トグル状態: darkモードがONかどうか
+  const isDarkMode = theme === "dark"
+  
+  const handleThemeToggle = (checked: boolean) => {
+    setTheme(checked ? "dark" : "light")
+  }
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -34,38 +77,95 @@ function HeaderWithTheme() {
             単位命題三角ロジック演習システム
           </h1>
 
-          {/* ダークモード切り替えメニュー */}
+          {/* ハンバーガーメニュー */}
           <div className="flex items-center">
             {mounted && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="sm" className="h-9 w-9 px-0">
-                    {theme === "light" && <Sun className="h-4 w-4" />}
-                    {theme === "dark" && <Moon className="h-4 w-4" />}
-                    {theme === "system" && <Monitor className="h-4 w-4" />}
-                    {!theme && <Monitor className="h-4 w-4" />}
-                    <span className="sr-only">テーマを切り替え</span>
+                    <Menu className="h-5 w-5" />
+                    <span className="sr-only">メニューを開く</span>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => setTheme("light")}>
-                    <Sun className="mr-2 h-4 w-4" />
-                    <span>ライト</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setTheme("dark")}>
-                    <Moon className="mr-2 h-4 w-4" />
-                    <span>ダーク</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setTheme("system")}>
-                    <Monitor className="mr-2 h-4 w-4" />
-                    <span>システム</span>
-                  </DropdownMenuItem>
+                <DropdownMenuContent align="end" className="w-56">
+                  {/* ログイン状況 */}
+                  {sessionInfo && (
+                    <>
+                      <DropdownMenuLabel>
+                        <div className="flex flex-col space-y-1">
+                          <p className="text-sm font-medium">{sessionInfo.userName}</p>
+                          <p className="text-xs text-muted-foreground">{sessionInfo.userEmail}</p>
+                        </div>
+                      </DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                    </>
+                  )}
+
+                  {/* クリア済みリセット */}
+                  {sessionInfo && completedCount > 0 && (
+                    <>
+                      <DropdownMenuGroup>
+                        <DropdownMenuItem onClick={handleResetClick}>
+                          <RotateCcw className="mr-2 h-4 w-4" />
+                          <span>全クリア済みをリセット ({completedCount})</span>
+                        </DropdownMenuItem>
+                      </DropdownMenuGroup>
+                      <DropdownMenuSeparator />
+                    </>
+                  )}
+
+                  {/* テーマ切り替え（ベータ版） */}
+                  <DropdownMenuGroup>
+                    <div className="flex items-center justify-between px-2 py-1.5">
+                      <div className="flex items-center gap-2">
+                        <Moon className="h-4 w-4" />
+                        <span className="text-sm">ダークモード（ベータ）</span>
+                      </div>
+                      <Switch
+                        checked={isDarkMode}
+                        onCheckedChange={handleThemeToggle}
+                        disabled={!mounted}
+                      />
+                    </div>
+                  </DropdownMenuGroup>
+
+                  {/* ログアウト */}
+                  {sessionInfo && (
+                    <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={onLogout} variant="destructive">
+                        <LogOut className="mr-2 h-4 w-4" />
+                        <span>ログアウト</span>
+                      </DropdownMenuItem>
+                    </>
+                  )}
                 </DropdownMenuContent>
               </DropdownMenu>
             )}
           </div>
         </div>
       </div>
+
+      {/* リセット確認ダイアログ */}
+      <Dialog open={showResetDialog} onOpenChange={setShowResetDialog}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>全クリア済みをリセット</DialogTitle>
+            <DialogDescription>
+              {completedCount}件のクリア済み問題をリセットしますか？この操作は取り消せません。
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowResetDialog(false)}>
+              キャンセル
+            </Button>
+            <Button variant="destructive" onClick={handleResetConfirm}>
+              <RotateCcw className="mr-2 h-4 w-4" />
+              リセット
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </header>
   )
 }
@@ -74,6 +174,29 @@ export default function ProblemsPage() {
   const [problems, setProblems] = useState<Problem[]>([])
   const [problemSets, setProblemSets] = useState<ProblemSet[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [completedCount, setCompletedCount] = useState(0)
+  const { sessionInfo, isLoading: isSessionLoading, needsRegistration, handleRegistrationSuccess, handleLogout } = useSession()
+
+  // 全クリア済みをリセット
+  const handleResetAll = useCallback(async () => {
+    if (!sessionInfo) return
+
+    try {
+      const res = await fetch('/api/response/reset-all', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      })
+      const data = await res.json()
+      
+      if (data.success) {
+        setCompletedCount(0)
+        // ページをリロードして状態を更新
+        window.location.reload()
+      }
+    } catch (err) {
+      console.error('Error resetting all completions:', err)
+    }
+  }, [sessionInfo])
 
   useEffect(() => {
     const loadData = async () => {
@@ -93,10 +216,15 @@ export default function ProblemsPage() {
     loadData()
   }, [])
 
-  if (isLoading) {
+  if (isLoading || isSessionLoading) {
     return (
       <>
-        <HeaderWithTheme />
+        <HeaderWithTheme 
+          sessionInfo={sessionInfo}
+          onLogout={handleLogout}
+          onResetAll={handleResetAll}
+          completedCount={completedCount}
+        />
         <div className="container mx-auto px-4 py-8">
           {/* 問題セットセレクターのSkeleton */}
           <div className="mb-8">
@@ -124,13 +252,23 @@ export default function ProblemsPage() {
 
   return (
     <>
-      <HeaderWithTheme />
+      <HeaderWithTheme 
+        sessionInfo={sessionInfo}
+        onLogout={handleLogout}
+        onResetAll={handleResetAll}
+        completedCount={completedCount}
+      />
       <div className="container mx-auto px-4 py-8">
         <ProblemsListWithSetSelector 
           initialProblems={problems} 
-          problemSets={problemSets} 
+          problemSets={problemSets}
+          onCompletedCountChange={setCompletedCount}
         />
       </div>
+      <UserRegistrationDialog
+        open={needsRegistration}
+        onSuccess={handleRegistrationSuccess}
+      />
     </>
   )
 }
@@ -138,13 +276,21 @@ export default function ProblemsPage() {
 interface ProblemsListWithSetSelectorProps {
   initialProblems: Problem[]
   problemSets: ProblemSet[]
+  onCompletedCountChange: (count: number) => void
 }
 
-function ProblemsListWithSetSelector({ initialProblems, problemSets }: ProblemsListWithSetSelectorProps) {
+function ProblemsListWithSetSelector({ initialProblems, problemSets, onCompletedCountChange }: ProblemsListWithSetSelectorProps) {
+  const onCompletedCountChangeRef = useRef(onCompletedCountChange)
+  
+  useEffect(() => {
+    onCompletedCountChangeRef.current = onCompletedCountChange
+  }, [onCompletedCountChange])
   const [problems, setProblems] = useState<Problem[]>(initialProblems)
   const [selectedSetId, setSelectedSetId] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [isInitialized, setIsInitialized] = useState(false)
+  const [completedProblemIds, setCompletedProblemIds] = useState<Set<string>>(new Set())
+  const { sessionInfo } = useSession()
 
   const handleSetChange = useCallback(async (setId: string | null) => {
     setSelectedSetId(setId)
@@ -184,6 +330,41 @@ function ProblemsListWithSetSelector({ initialProblems, problemSets }: ProblemsL
     }
   }, [problemSets, isInitialized, handleSetChange])
 
+  // クリア済み問題の状態を取得
+  useEffect(() => {
+    async function fetchCompletionStatus() {
+      if (!sessionInfo) {
+        setCompletedProblemIds(new Set<string>())
+        return
+      }
+
+      try {
+        const res = await fetch('/api/response/completion-status', {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' },
+        })
+        const data = await res.json()
+        
+        if (data.success && data.data) {
+          const completedIds = new Set<string>(
+            Array.isArray(data.data.completedProblemIds) 
+              ? data.data.completedProblemIds as string[]
+              : []
+          )
+          setCompletedProblemIds(completedIds)
+          onCompletedCountChangeRef.current(completedIds.size)
+        } else {
+          onCompletedCountChangeRef.current(0)
+        }
+      } catch (err) {
+        console.error('Error fetching completion status:', err)
+      }
+    }
+
+    fetchCompletionStatus()
+  }, [sessionInfo])
+
+
   return (
     <>
       <ProblemSetSelector
@@ -204,7 +385,11 @@ function ProblemsListWithSetSelector({ initialProblems, problemSets }: ProblemsL
       ) : (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {problems.map((problem: Problem) => (
-            <ProblemCard key={problem.problem_id} problem={problem} />
+            <ProblemCard 
+              key={problem.problem_id} 
+              problem={problem}
+              isCompleted={completedProblemIds.has(problem.problem_id)}
+            />
           ))}
         </div>
       )}
@@ -214,26 +399,42 @@ function ProblemsListWithSetSelector({ initialProblems, problemSets }: ProblemsL
 
 interface ProblemCardProps {
   problem: Problem
+  isCompleted: boolean
 }
 
-function ProblemCard({ problem }: ProblemCardProps) {
+function ProblemCard({ problem, isCompleted }: ProblemCardProps) {
   const problemNumber = problem.order_index || 1
 
   return (
-    <Link href={`/problems/${problem.problem_id}`} className="block">
-      <Card className="hover:shadow-md transition-shadow hover:ring-1 hover:ring-primary cursor-pointer">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-lg">問題{problemNumber}</CardTitle>
-            {/* <Badge variant={progress === 100 ? "default" : "secondary"}>
-              {done}/{totalSteps}
-            </Badge> */}
-          </div>
-        </CardHeader>
-        <CardContent>
-        {problem.argument}
-        </CardContent>
-      </Card>
-    </Link>
+    <div className="relative">
+      {isCompleted ? (
+        <Card className="bg-muted/50 border-muted-foreground/20 opacity-75">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-lg">問題{problemNumber}</CardTitle>
+              <Badge variant="default" className="bg-green-600">
+                クリア済み
+              </Badge>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <p className="text-muted-foreground">{problem.argument}</p>
+          </CardContent>
+        </Card>
+      ) : (
+        <Link href={`/problems/${problem.problem_id}`} className="block">
+          <Card className="hover:shadow-md transition-shadow hover:ring-1 hover:ring-primary cursor-pointer">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-lg">問題{problemNumber}</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {problem.argument}
+            </CardContent>
+          </Card>
+        </Link>
+      )}
+    </div>
   )
 }

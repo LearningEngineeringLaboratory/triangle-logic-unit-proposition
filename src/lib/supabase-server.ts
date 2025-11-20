@@ -11,6 +11,16 @@ export function getSupabaseAdmin(): SupabaseClient {
   }
   cached = createClient(supabaseUrl, serviceRoleKey, {
     auth: { persistSession: false, autoRefreshToken: false },
+    db: {
+      schema: 'public',
+    },
+    global: {
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'Prefer': 'return=representation',
+      },
+    },
   })
   return cached
 }

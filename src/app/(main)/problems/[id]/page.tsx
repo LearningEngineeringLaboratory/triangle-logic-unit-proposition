@@ -15,10 +15,13 @@ import { ClearDialog } from '@/components/features/problem-detail/ClearDialog'
 import { FeedbackDrawer } from '@/components/ui/feedback-drawer'
 import { Header } from '@/components/layout/Header'
 import { useProblemSteps } from '@/hooks/useProblemSteps'
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { logClientCheck } from '@/lib/utils'
 import { Progress } from '@/components/ui/progress'
+import { getUserIdClient } from '@/lib/session-client'
+import { logAttemptStarted, logAttemptFinished, logStepNavigation } from '@/lib/logging'
+import { useSession } from '@/hooks/useSession'
 
 const isObjectLike = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value)
@@ -121,6 +124,7 @@ interface ProblemDetailPageProps {
 
 export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
   const router = useRouter()
+  const { sessionInfo, isLoading: isSessionLoading } = useSession()
   const [problem, setProblem] = useState<ProblemDetail | null>(null)
   const [problemNumber, setProblemNumber] = useState(1)
   const [loading, setLoading] = useState(true)
@@ -135,6 +139,8 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
     consequent: '',
     premiseNodes: []
   })
+  const [attemptId, setAttemptId] = useState<string | null>(null)
+  const previousStepRef = useRef<number>(1)
 
   // ノードの値を更新するコールバック
   const handleNodeValuesChange = useCallback((values: NodeValues) => {
@@ -201,6 +207,59 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
     fetchData()
   }, [params])
 
+  // attemptを開始（sessionInfoが利用可能になったら実行）
+  useEffect(() => {
+    async function startAttempt() {
+      // セッション情報の読み込みが完了するまで待つ
+      if (isSessionLoading) {
+        console.log('[debug] Waiting for session info to load...')
+        return
+      }
+
+      if (!sessionInfo || !problem) {
+        console.warn('[warn] Cannot start attempt - missing sessionInfo or problem:', { sessionInfo: !!sessionInfo, problem: !!problem })
+        return
+      }
+
+      const sessionId = sessionInfo.sessionId
+      const userId = sessionInfo.userId
+      console.log('[debug] Attempt start:', { sessionId, userId, problemId: problem.problem_id, sessionInfo })
+      
+      if (sessionId && userId) {
+        try {
+          const attemptRes = await fetch('/api/attempt/start', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              session_id: sessionId,
+              user_id: userId,
+              problem_id: problem.problem_id,
+            }),
+          })
+          const attemptData = await attemptRes.json()
+          console.log('[debug] Attempt start response:', attemptData)
+          if (attemptData.success && attemptData.data) {
+            setAttemptId(attemptData.data.attempt_id)
+            await logAttemptStarted({
+              attemptId: attemptData.data.attempt_id,
+              problemId: problem.problem_id,
+              sessionId,
+              userId,
+            })
+          } else {
+            console.error('[error] Failed to start attempt:', attemptData.error || 'Unknown error', attemptData)
+          }
+        } catch (err) {
+          console.error('[error] Failed to start attempt (exception):', err)
+        }
+      } else {
+        console.warn('[warn] Cannot start attempt - missing sessionId or userId:', { sessionId, userId })
+      }
+    }
+
+    startAttempt()
+  }, [sessionInfo, problem, isSessionLoading])
+
   // Step4に遷移したときに、Step2のリンクをStep4のリンクに初期化
   useEffect(() => {
     if (currentStep === 4 && problem && (problem.total_steps ?? 3) >= 4) {
@@ -223,6 +282,49 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
       }
     }
   }, [currentStep, problem, steps.step2, steps.step4, updateStep])
+
+  // ステップ更新時にResponseテーブルに保存
+  useEffect(() => {
+    if (problem && sessionInfo) {
+      const currentSessionId = sessionInfo.sessionId
+      const currentUserId = sessionInfo.userId
+      if (currentSessionId && currentUserId) {
+        // デバウンス処理（500ms待機）
+        const timeoutId = setTimeout(() => {
+          fetch('/api/response/save', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              session_id: currentSessionId,
+              user_id: currentUserId,
+              problem_id: problem.problem_id,
+              problem_number: problemNumber,
+              state: steps,
+              current_step: currentStep,
+              is_completed: completedSteps >= totalSteps,
+            }),
+          }).catch((err) => {
+            console.error('Failed to save response:', err)
+          })
+        }, 500)
+
+        return () => clearTimeout(timeoutId)
+      }
+    }
+  }, [steps, currentStep, problem, problemNumber, completedSteps, totalSteps, sessionInfo])
+
+  // ステップ遷移のログ記録
+  useEffect(() => {
+    if (currentStep !== previousStepRef.current && problem && attemptId) {
+      logStepNavigation({
+        fromStep: previousStepRef.current,
+        toStep: currentStep,
+        attemptId,
+        problemId: problem.problem_id,
+      }).catch(console.error)
+      previousStepRef.current = currentStep
+    }
+  }, [currentStep, problem, attemptId])
 
   // 次の問題への遷移
   const handleNextProblem = () => {
@@ -392,7 +494,11 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
     console.log(`[debug] correct_answers:`, problem.correct_answers)
 
     // ログ送信（研究用）
+    const sessionId = sessionInfo?.sessionId || null
+    const userId = sessionInfo?.userId || getUserIdClient()
     logClientCheck({
+      sessionId: sessionId ?? undefined,
+      userId: userId ?? undefined,
       problemId: problem.problem_id,
       step: stepNumber as 1 | 2 | 3 | 4 | 5,
       isCorrect,
@@ -402,13 +508,59 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
     if (isCorrect) {
       setFeedbackType('success')
       setFeedbackVisible(true)
-      updateStep(stepNumber, { ...currentStateFragment, isPassed: true })
+      const updatedState = { ...currentStateFragment, isPassed: true }
+      updateStep(stepNumber, updatedState)
+      
+      // Responseテーブルに保存（更新後の状態を使用）
+      if (sessionId && userId && problem) {
+        const isCompleted = stepNumber >= totalSteps
+        // 更新後の状態を作成
+        const updatedSteps = {
+          ...steps,
+          [stepKey]: updatedState,
+        }
+        fetch('/api/response/save', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            session_id: sessionId,
+            user_id: userId,
+            problem_id: problem.problem_id,
+            problem_number: problemNumber,
+            state: updatedSteps,
+            current_step: isCompleted ? totalSteps : stepNumber + 1,
+            is_completed: isCompleted,
+          }),
+        }).catch((err) => {
+          console.error('Failed to save response:', err)
+        })
+      }
       
       setTimeout(() => {
         setFeedbackVisible(false)
         if (stepNumber < totalSteps) {
           goToNextStep()
         } else {
+          // 問題完了時はattemptを完了
+          if (attemptId && sessionId && userId) {
+            logAttemptFinished({
+              attemptId,
+              problemId: problem.problem_id,
+              success: true,
+              sessionId,
+              userId,
+            })
+            fetch('/api/attempt/finish', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                attempt_id: attemptId,
+                success: true,
+              }),
+            }).catch((err) => {
+              console.error('Failed to finish attempt:', err)
+            })
+          }
           setIsClearOpen(true)
         }
       }, 1500)
@@ -469,8 +621,6 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
             consequentValue={steps.step1?.consequent || ''}
             onAntecedentChange={(value) => updateStep(1, { ...steps.step1, antecedent: value })}
             onConsequentChange={(value) => updateStep(1, { ...steps.step1, consequent: value })}
-            premiseValue={steps.step2?.premise || ''}
-            onPremiseChange={(value) => updateStep(2, { ...steps.step2, premise: value })}
             links={steps.step2?.links || []}
             onLinksChange={(links) => updateStep(2, { ...steps.step2, links })}
             activeLinks={steps.step4?.links || []}

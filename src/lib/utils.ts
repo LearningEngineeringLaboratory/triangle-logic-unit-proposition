@@ -78,7 +78,6 @@ export function mapDbToUiState(db: Record<string, unknown>): StepsState {
       case '2':
         ui.step2 = {
           ...base,
-          premise: '',
           links: Array.isArray(rawValue.links) ? (rawValue.links as TriangleLink[]) : [],
         }
         break
@@ -125,14 +124,13 @@ export function normalizeStateFragment(stepNumber: 1 | 2 | 3, incoming: unknown)
     return incoming
   }
   if (stepNumber === 2) {
-    if ('link_directions' in incoming || ('premise' in incoming && !('linkDirections' in incoming))) {
+    if ('link_directions' in incoming || !('linkDirections' in incoming)) {
       return incoming
     }
     if ('linkDirections' in incoming || 'impossible' in incoming) {
       const links = isRecord(incoming.linkDirections) ? incoming.linkDirections : undefined
       return {
         impossible: Boolean(incoming.impossible),
-        premise: incoming.premise,
         link_directions: links
           ? {
               'antecedent-link': Boolean((links as Record<string, unknown>).antecedentLink),
@@ -176,7 +174,6 @@ export function isStepCorrect(correctAnswers: CorrectAnswers | undefined, stepNu
     const fragment = incoming as {
       antecedent?: string
       consequent?: string
-      premise?: string
       links?: TriangleLink[]
     }
     const expected = correct as Step2Answer | TriangleLink[] | undefined
@@ -191,7 +188,16 @@ export function isStepCorrect(correctAnswers: CorrectAnswers | undefined, stepNu
     const getNodeValue = (nodeId: string) => {
       if (nodeId === 'antecedent') return String(fragment?.antecedent ?? '')
       if (nodeId === 'consequent') return String(fragment?.consequent ?? '')
-      if (typeof nodeId === 'string' && nodeId.startsWith('premise-')) return String(fragment?.premise ?? '')
+      // premiseノードの値は、リンクから取得する必要がある（premiseフィールドは削除されたため）
+      if (typeof nodeId === 'string' && nodeId.startsWith('premise-')) {
+        // リンクからpremiseノードの値を取得
+        const premiseLink = uiLinks.find(link => link.from === nodeId || link.to === nodeId)
+        if (premiseLink) {
+          // リンクのfromまたはtoがpremiseノードの場合、そのノードIDを返す
+          return nodeId
+        }
+        return ''
+      }
       return nodeId
     }
 
@@ -247,9 +253,41 @@ export async function logClientCheck(params: {
         problem_id: params.problemId,
         step: params.step,
         is_correct: params.isCorrect,
-        kind: 'check_step_client',
+        kind: 'check_answer',
         payload: params.payload ?? null,
         client_ts: new Date().toISOString(),
+      }),
+    })
+  } catch {
+    // 研究用途のため、失敗時は黙殺
+  }
+}
+
+/**
+ * 汎用ログ送信関数
+ */
+export async function logEvent(params: {
+  sessionId?: string
+  userId?: string
+  attemptId?: string
+  problemId?: string
+  kind: string
+  payload?: unknown
+  idempotencyKey?: string
+}): Promise<void> {
+  try {
+    await fetch('/api/log', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        session_id: params.sessionId,
+        user_id: params.userId,
+        attempt_id: params.attemptId,
+        problem_id: params.problemId,
+        kind: params.kind,
+        payload: params.payload ?? null,
+        client_ts: new Date().toISOString(),
+        idempotency_key: params.idempotencyKey,
       }),
     })
   } catch {

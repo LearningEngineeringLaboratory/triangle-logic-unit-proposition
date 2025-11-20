@@ -7,10 +7,8 @@ interface UseNodeUpdatesProps {
   currentStep: number
   antecedentValue: string
   consequentValue: string
-  premiseValue: string
   onAntecedentChange?: (value: string) => void
   onConsequentChange?: (value: string) => void
-  onPremiseChange?: (value: string) => void
 }
 
 export function useNodeUpdates({
@@ -19,10 +17,8 @@ export function useNodeUpdates({
   currentStep,
   antecedentValue,
   consequentValue,
-  premiseValue,
   onAntecedentChange,
   onConsequentChange,
-  onPremiseChange,
 }: UseNodeUpdatesProps) {
   // ノードの状態を更新
   useEffect(() => {
@@ -64,19 +60,6 @@ export function useNodeUpdates({
           }
         }
         
-        // Step2ノード（所与命題）の更新
-        if (node.id === 'premise') {
-          return {
-            ...node,
-            data: {
-              ...node.data,
-              value: premiseValue,
-              isReadOnly: currentStep > 2,
-              onValueChange: onPremiseChange || (() => {}),
-            }
-          }
-        }
-        
         return node
       })
     )
@@ -86,9 +69,7 @@ export function useNodeUpdates({
     currentStep,
     antecedentValue,
     consequentValue,
-    premiseValue,
     onAntecedentChange,
     onConsequentChange,
-    onPremiseChange
   ])
 }
