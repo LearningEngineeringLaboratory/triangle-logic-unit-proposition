@@ -58,11 +58,11 @@ export interface Step2Answer {
 }
 
 export interface Step4Answer {
-  links: ActiveTriangleLink[]
+  links: ActiveTriangleLink[] | ActiveTriangleLink[][]
 }
 
 export interface Step5Answer {
-  premises: PremiseSelection[]
+  premises: PremiseSelection[] | PremiseSelection[][]
 }
 
 export interface StepState {
@@ -151,8 +151,8 @@ export interface CorrectAnswers {
     validity: boolean
     verification?: boolean
   }
-  step4?: Step4Answer | ActiveTriangleLink[]
-  step5?: Step5Answer | PremiseSelection[]
+  step4?: Step4Answer | ActiveTriangleLink[] | ActiveTriangleLink[][]
+  step5?: Step5Answer | PremiseSelection[] | PremiseSelection[][]
 }
 
 export interface NodeValues {
