@@ -20,6 +20,99 @@ import { useRouter } from 'next/navigation'
 import { logClientCheck } from '@/lib/utils'
 import { Progress } from '@/components/ui/progress'
 
+const isObjectLike = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null && !Array.isArray(value)
+
+const normalizeStep4Variants = (raw: ProblemDetail['correct_answers']['step4']): ActiveTriangleLink[][] => {
+  if (!raw) return []
+
+  if (Array.isArray(raw)) {
+    if (raw.length > 0 && Array.isArray(raw[0])) {
+      return raw as ActiveTriangleLink[][]
+    }
+    return [raw as ActiveTriangleLink[]]
+  }
+
+  if (isObjectLike(raw) && Array.isArray(raw.links)) {
+    const links = raw.links as ActiveTriangleLink[] | ActiveTriangleLink[][]
+    if (links.length > 0 && Array.isArray(links[0])) {
+      return links as ActiveTriangleLink[][]
+    }
+    return [links as ActiveTriangleLink[]]
+  }
+
+  return []
+}
+
+const normalizeStep5Variants = (raw: ProblemDetail['correct_answers']['step5']): PremiseSelection[][] => {
+  if (!raw) return []
+
+  if (Array.isArray(raw)) {
+    if (raw.length > 0 && Array.isArray(raw[0])) {
+      return raw as PremiseSelection[][]
+    }
+    return [raw as PremiseSelection[]]
+  }
+
+  if (isObjectLike(raw) && Array.isArray(raw.premises)) {
+    const premises = raw.premises as PremiseSelection[] | PremiseSelection[][]
+    if (premises.length > 0 && Array.isArray(premises[0])) {
+      return premises as PremiseSelection[][]
+    }
+    return [premises as PremiseSelection[]]
+  }
+
+  return []
+}
+
+const extractActiveLinks = (
+  links: ActiveTriangleLink[] | undefined,
+  resolveNodeValue: (nodeId: string) => string
+): TriangleLink[] => {
+  if (!links?.length) return []
+  return links
+    .filter(link => link.active !== false)
+    .map(link => ({
+      from: resolveNodeValue(link.from),
+      to: resolveNodeValue(link.to),
+    }))
+}
+
+const matchesActiveLinks = (expected: ActiveTriangleLink[], actual: TriangleLink[]): boolean => {
+  const requiredLinks = expected.filter(link => link.active !== false)
+  if (requiredLinks.length !== actual.length) {
+    return false
+  }
+
+  return requiredLinks.every(correctLink =>
+    actual.some(uiLink => uiLink.from === correctLink.from && uiLink.to === correctLink.to)
+  )
+}
+
+const findMatchingStep4VariantIndex = (
+  variants: ActiveTriangleLink[][],
+  actualLinks: TriangleLink[]
+): number => {
+  for (let index = 0; index < variants.length; index += 1) {
+    if (matchesActiveLinks(variants[index], actualLinks)) {
+      return index
+    }
+  }
+  return -1
+}
+
+const premisesSetsMatch = (expected: PremiseSelection[], actual: PremiseSelection[]): boolean => {
+  if (expected.length !== actual.length) {
+    return false
+  }
+
+  const normalize = (premise: PremiseSelection) => JSON.stringify(premise)
+  const normalizedExpected = expected.map(normalize).sort()
+  const normalizedActual = actual.map(normalize).sort()
+
+  return normalizedExpected.every((value, idx) => value === normalizedActual[idx])
+}
+
 interface ProblemDetailPageProps {
   params: Promise<{
     id: string
@@ -202,6 +295,11 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
       return nodeId
     }
 
+    const correctStep4Variants = normalizeStep4Variants(problem.correct_answers.step4)
+    const correctStep5Variants = normalizeStep5Variants(problem.correct_answers.step5)
+    const getActiveStep4LinksWithValues = () =>
+      extractActiveLinks(steps.step4?.links, resolveNodeValue)
+
     switch (stepNumber) {
       case 1: {
         const step1State = steps.step1
@@ -253,74 +351,37 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
         break
       }
       case 4: {
-        // Step4の正誤判定（活性/非活性リンクの比較）
-        const rawStep4 = problem.correct_answers.step4
-        const correctActiveLinks4: ActiveTriangleLink[] = Array.isArray(rawStep4)
-          ? rawStep4
-          : rawStep4?.links ?? []
         const step4State = steps.step4 as Step4State | undefined
-        
-        console.log(`[debug-step4] correctActiveLinks4:`, correctActiveLinks4)
-        console.log(`[debug-step4] uiFragment:`, step4State)
-        
-        // UIリンクを実際の値に変換
-        const uiLinks4 = step4State?.links ?? []
-        
-        // active: trueのリンクのみを抽出
-        const activeUiLinks4 = uiLinks4.filter(link => link.active !== false)
+        const activeUiLinks4 = getActiveStep4LinksWithValues()
+        const matchedVariantIndex = findMatchingStep4VariantIndex(correctStep4Variants, activeUiLinks4)
 
-        const uiLinksWithValues4 = activeUiLinks4.map(link => ({
-          from: resolveNodeValue(link.from),
-          to: resolveNodeValue(link.to),
-        }))
-        
-        // 正解リンクとUIリンクを比較（activeのみが正解）
-        const correctLinksActiveOnly4 = correctActiveLinks4.filter(link => link.active)
-        
-        // リンクの存在と数を比較
-        const linksMatch4 = correctLinksActiveOnly4.every(correctLink => 
-          uiLinksWithValues4.some(uiLink => 
-            uiLink.from === correctLink.from && uiLink.to === correctLink.to
-          )
-        ) && correctLinksActiveOnly4.length === uiLinksWithValues4.length
-        
-        console.log(`[debug-step4] uiLinks4:`, uiLinks4)
-        console.log(`[debug-step4] uiLinksWithValues4:`, uiLinksWithValues4)
-        console.log(`[debug-step4] correctLinksActiveOnly4:`, correctLinksActiveOnly4)
-        console.log(`[debug-step4] linksMatch4:`, linksMatch4)
-        
-        isCorrect = linksMatch4
+        console.log(`[debug-step4] variants:`, correctStep4Variants)
+        console.log(`[debug-step4] uiLinks:`, step4State?.links ?? [])
+        console.log(`[debug-step4] activeUiLinksWithValues:`, activeUiLinks4)
+        console.log(`[debug-step4] matchedVariantIndex:`, matchedVariantIndex)
+
+        isCorrect = matchedVariantIndex !== -1
         break
       }
       case 5: {
-        // Step5の正誤判定（論証構成の比較、順不同）
-        // 2つのpremiseの順序は入れ替え可能だが、各premiseのantecedentとconsequentの組み合わせは固定
-        const rawStep5 = problem.correct_answers.step5
-        const correctPremises: PremiseSelection[] = Array.isArray(rawStep5)
-          ? rawStep5
-          : rawStep5?.premises ?? []
         const step5State = steps.step5 as Step5State | undefined
         const userPremises = step5State?.premises ?? []
-        
-        // 各premiseをJSON文字列に変換（順序は保持）
-        const normalizePremise = (premise: { antecedent: string; consequent: string }): string => {
-          return JSON.stringify(premise)
-        }
-        
-        // 2つのpremiseの順序を入れ替え可能にするため、配列をソート
-        const normalizedCorrect = correctPremises.map(normalizePremise).sort()
-        const normalizedUser = userPremises.map(normalizePremise).sort()
-        
-        const premisesMatch =
-          normalizedCorrect.length === normalizedUser.length &&
-          normalizedCorrect.every(correctPremise => normalizedUser.includes(correctPremise))
-        
-        console.log(`[debug-step5] correctPremises:`, correctPremises)
+        const step4ActiveLinks = getActiveStep4LinksWithValues()
+        const matchedStep4Variant = findMatchingStep4VariantIndex(correctStep4Variants, step4ActiveLinks)
+
+        const candidatePremiseVariants =
+          matchedStep4Variant !== -1 && matchedStep4Variant < correctStep5Variants.length
+            ? [correctStep5Variants[matchedStep4Variant]]
+            : correctStep5Variants
+
+        const premisesMatch = candidatePremiseVariants.some(variant => premisesSetsMatch(variant, userPremises))
+
+        console.log(`[debug-step5] variants:`, correctStep5Variants)
+        console.log(`[debug-step5] candidateVariants:`, candidatePremiseVariants)
         console.log(`[debug-step5] userPremises:`, userPremises)
-        console.log(`[debug-step5] normalizedCorrect:`, normalizedCorrect)
-        console.log(`[debug-step5] normalizedUser:`, normalizedUser)
+        console.log(`[debug-step5] matchedStep4Variant:`, matchedStep4Variant)
         console.log(`[debug-step5] premisesMatch:`, premisesMatch)
-        
+
         isCorrect = premisesMatch
         break
       }
