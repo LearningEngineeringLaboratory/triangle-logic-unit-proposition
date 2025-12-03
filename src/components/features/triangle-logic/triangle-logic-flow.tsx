@@ -74,7 +74,7 @@ export function TriangleLogicFlow({
 }: TriangleLogicFlowProps) {
   // テーマを取得
   const { theme } = useTheme()
-  
+
   // ReactFlowの状態管理
   const [nodes, setNodes, onNodesChange] = useNodesState([] as Node[])
   const [edges, setEdges, onEdgesChange] = useEdgesState([] as Edge[])
@@ -83,15 +83,15 @@ export function TriangleLogicFlow({
   const handleNodeDelete = useCallback((nodeId: string) => {
     // そのノードに関連するリンクを削除
     if (currentStep === 2 && onLinksChange) {
-      const filteredLinks = links.filter(link => 
+      const filteredLinks = links.filter(link =>
         link.from !== nodeId && link.to !== nodeId
       )
       onLinksChange(filteredLinks)
     }
-    
+
     // Step4の場合もactiveLinksから削除
     if (currentStep === 4 && onActiveLinksChange) {
-      const filteredActiveLinks = activeLinks.filter(link => 
+      const filteredActiveLinks = activeLinks.filter(link =>
         link.from !== nodeId && link.to !== nodeId
       )
       onActiveLinksChange(filteredActiveLinks)
@@ -99,9 +99,9 @@ export function TriangleLogicFlow({
   }, [currentStep, links, activeLinks, onLinksChange, onActiveLinksChange])
 
   // カスタムフックを使用してノード管理
-  const { addPremiseNode, updateNodePosition } = useTriangleNodes({ 
-    currentStep, 
-    options, 
+  const { addPremiseNode, updateNodePosition } = useTriangleNodes({
+    currentStep,
+    options,
     setNodes: setNodes as (nodes: Node[] | ((prevNodes: Node[]) => Node[])) => void,
     onNodeDelete: handleNodeDelete
   })
@@ -110,7 +110,7 @@ export function TriangleLogicFlow({
   const handleNodesChange = useCallback((changes: NodeChange[]) => {
     // ReactFlowの変更を適用
     onNodesChange(changes)
-    
+
     // premiseノードの位置変更を検知して更新（ドラッグ中は無視）
     if (currentStep >= 2) {
       changes.forEach((change) => {
@@ -151,25 +151,25 @@ export function TriangleLogicFlow({
       // 1. sourceHandleが存在し、かつ'-right'で終わる（sourceハンドル）場合のみ許可
       if (!connection.sourceHandle) return false
       if (!connection.sourceHandle.endsWith('-right')) return false
-      
+
       // 2. 自己ループ（同じノードへの接続）を禁止
       if (connection.source === connection.target) return false
-      
+
       // 3. targetHandleが'-target'で終わる（入力ハンドル）場合のみ許可
       if (!connection.targetHandle) return false
       if (!connection.targetHandle.endsWith('-target')) return false
-      
+
       // 4. Step1の前件→後件リンクの作成を禁止
       if (connection.source === 'antecedent' && connection.target === 'consequent') {
         return false
       }
-      
+
       // 5. 既存のエッジとの重複をチェック
-      const isDuplicate = links.some(link => 
+      const isDuplicate = links.some(link =>
         link.from === connection.source && link.to === connection.target
       )
       if (isDuplicate) return false
-      
+
       return true
     },
     [links]
@@ -203,11 +203,11 @@ export function TriangleLogicFlow({
   // ノードの値をメモ化
   const nodeValues = useMemo(() => {
     if (nodes.length === 0) return null
-    
+
     const antecedentNode = nodes.find(node => node.id === 'antecedent')
     const consequentNode = nodes.find(node => node.id === 'consequent')
     const premiseNodes = nodes.filter(node => node.id.startsWith('premise-'))
-    
+
     return {
       antecedent: (antecedentNode?.data?.value as string) || '',
       consequent: (consequentNode?.data?.value as string) || '',
@@ -220,7 +220,7 @@ export function TriangleLogicFlow({
 
   // 前回の値を保持
   const prevNodeValuesRef = useRef<string>('')
-  
+
   // コールバックをrefで保持（無限ループ防止）
   const onGetNodeValuesRef = useRef(onGetNodeValues)
   useEffect(() => {
@@ -230,10 +230,10 @@ export function TriangleLogicFlow({
   // ノードの値が変更された場合のみコールバックを呼び出す
   useEffect(() => {
     if (!onGetNodeValuesRef.current || !nodeValues) return
-    
+
     // JSON文字列化して比較（深い比較）
     const currentValuesStr = JSON.stringify(nodeValues)
-    
+
     if (prevNodeValuesRef.current !== currentValuesStr) {
       prevNodeValuesRef.current = currentValuesStr
       onGetNodeValuesRef.current(nodeValues)
@@ -243,7 +243,7 @@ export function TriangleLogicFlow({
   // エッジを動的に生成（linksとactiveLinksの変更を監視）
   useEffect(() => {
     const newEdges: Edge[] = []
-    
+
     if (currentStep >= 1) {
       // Step1: 導出命題のリンク（固定、削除不可）
       newEdges.push({
@@ -306,7 +306,7 @@ export function TriangleLogicFlow({
       const allLinks = [...links]
       activeLinks.forEach(activeLink => {
         // activeLinksに既に存在するかチェック（linksには含まれている可能性がある）
-        const exists = allLinks.some(link => 
+        const exists = allLinks.some(link =>
           link.from === activeLink.from && link.to === activeLink.to
         )
         if (!exists) {
@@ -314,23 +314,23 @@ export function TriangleLogicFlow({
           allLinks.push({ from: activeLink.from, to: activeLink.to })
         }
       })
-      
+
       allLinks.forEach((link, index) => {
         // Step1の派生リンク（antecedent → consequent）は操作不可
         const isDerivedLink = link.from === 'antecedent' && link.to === 'consequent'
-        
+
         // Step2のエッジか、Step4で新規作成したエッジかを判定
         const isStep2Link = links.some(l => l.from === link.from && l.to === link.to)
         const isStep4NewLink = !isStep2Link && !isDerivedLink
-        
+
         // activeLinksからactive状態を取得
-        const activeLink = activeLinks.find(al => 
+        const activeLink = activeLinks.find(al =>
           al.from === link.from && al.to === link.to
         )
         // Step2のエッジでactiveLinksに存在しない場合はtrue（初期化時に追加されているはず）
         // Step4で新規作成したエッジでactiveLinksに存在しない場合もtrue
         const isActive = activeLink ? activeLink.active : true
-        
+
         newEdges.push({
           id: `user-link-${index}`,
           source: link.from,
@@ -345,12 +345,12 @@ export function TriangleLogicFlow({
             isDeletable: isStep4NewLink,
             onToggle: !isDerivedLink && isStep2Link ? () => {
               // Step2のエッジのactive状態を切り替え
-              const existingLink = activeLinks.find(al => 
+              const existingLink = activeLinks.find(al =>
                 al.from === link.from && al.to === link.to
               )
               if (existingLink) {
                 // 既存のリンクのactive状態を切り替え
-                const newActiveLinks = activeLinks.map(al => 
+                const newActiveLinks = activeLinks.map(al =>
                   al.from === link.from && al.to === link.to
                     ? { ...al, active: !al.active }
                     : al
@@ -368,7 +368,7 @@ export function TriangleLogicFlow({
             } : undefined,
             onDelete: isStep4NewLink ? () => {
               // Step4で新規作成したエッジを削除
-              const newActiveLinks = activeLinks.filter(al => 
+              const newActiveLinks = activeLinks.filter(al =>
                 !(al.from === link.from && al.to === link.to)
               )
               onActiveLinksChange?.(newActiveLinks)
@@ -384,7 +384,7 @@ export function TriangleLogicFlow({
       const allLinks = [...links]
       activeLinks.forEach(activeLink => {
         // activeLinksに既に存在するかチェック（linksには含まれている可能性がある）
-        const exists = allLinks.some(link => 
+        const exists = allLinks.some(link =>
           link.from === activeLink.from && link.to === activeLink.to
         )
         if (!exists) {
@@ -392,16 +392,16 @@ export function TriangleLogicFlow({
           allLinks.push({ from: activeLink.from, to: activeLink.to })
         }
       })
-      
+
       allLinks.forEach((link, index) => {
         // activeLinksからactive状態を取得
-        const activeLink = activeLinks.find(al => 
+        const activeLink = activeLinks.find(al =>
           al.from === link.from && al.to === link.to
         )
         // Step2のエッジでactiveLinksに存在しない場合はtrue（初期化時に追加されているはず）
         // Step4で新規作成したエッジでactiveLinksに存在しない場合もtrue
         const isActive = activeLink ? activeLink.active : true
-        
+
         newEdges.push({
           id: `user-link-${index}`,
           source: link.from,
@@ -440,7 +440,7 @@ export function TriangleLogicFlow({
         connectionMode={ConnectionMode.Strict}
         connectOnClick={false}
         fitView
-        fitViewOptions={{ 
+        fitViewOptions={{
           padding: 0.2,
           includeHiddenNodes: false,
           minZoom: 0.5,
@@ -452,22 +452,20 @@ export function TriangleLogicFlow({
         attributionPosition="top-right"
         colorMode={theme === 'dark' ? 'dark' : 'light'}
       >
-        <Controls 
+        <Controls
           showZoom={true}
           showFitView={true}
           showInteractive={false}
           position="bottom-right"
         />
-        <Background 
-          variant={BackgroundVariant.Dots} 
-          gap={20} 
-          size={1}
+        <Background
+          variant={BackgroundVariant.Dots}
         />
-        
+
         {/* Step2の時のみノード追加ボタンを表示 */}
         {currentStep === 2 && (
           <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-10">
-            <AddPremiseNodeButton 
+            <AddPremiseNodeButton
               options={options}
               onAddNode={addPremiseNode}
             />
