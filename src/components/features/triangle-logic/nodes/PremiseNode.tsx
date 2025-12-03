@@ -1,5 +1,6 @@
 'use client'
 
+import { useNodeId, useReactFlow } from '@xyflow/react'
 import { X } from 'lucide-react'
 import { NodeHandles } from './NodeHandles'
 
@@ -17,6 +18,10 @@ interface PremiseNodeProps {
 
 export function PremiseNode({ data }: PremiseNodeProps) {
   const { value, nodeId, showHandles = true, showDeleteButton = true, onDelete } = data
+  const id = useNodeId()
+  const { getNode } = useReactFlow()
+  const node = id ? getNode(id) : null
+  const isSelected = node?.selected ?? false
 
   return (
     <div className="relative">
@@ -24,11 +29,13 @@ export function PremiseNode({ data }: PremiseNodeProps) {
 
       {/* ノード本体（テキスト表示のみ） */}
       <div className="m-1.5 flex items-center justify-center">
-        <div className="relative bg-background border-2 border-border rounded-xl shadow-sm min-w-[160px] min-h-[60px] text-sm text-center flex items-center justify-center">
+        <div className={`relative bg-background border-2 rounded-xl shadow-sm min-w-[160px] min-h-[60px] text-sm text-center flex items-center justify-center transition-colors ${
+          isSelected ? 'border-primary ring-2 ring-primary ring-offset-2' : 'border-border'
+        }`}>
           {value || "選択されていません"}
 
-          {/* 削除ボタン */}
-          {showDeleteButton && onDelete && (
+          {/* 削除ボタン（選択時のみ表示） */}
+          {showDeleteButton && onDelete && isSelected && (
             <div
               role="button"
               aria-label="ノードを削除"

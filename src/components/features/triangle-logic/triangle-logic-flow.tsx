@@ -264,14 +264,16 @@ export function TriangleLogicFlow({
     }
 
     if (currentStep >= 2 && currentStep < 3) {
-      // Step2: ユーザー作成リンク（削除可能）
+      // Step2: ユーザー作成リンク（削除可能、「ならば」ラベル表示）
       links.forEach((link, index) => {
         newEdges.push({
           id: `user-link-${index}`,
           source: link.from,
           target: link.to,
           type: 'triangleEdge',
+          selectable: true, // Step2でエッジを選択可能に
           data: {
+            label: 'ならば', // Step2のエッジに「ならば」ラベルを常に表示
             isActive: true,
             isDeletable: true,
             onDelete: () => {
@@ -336,6 +338,7 @@ export function TriangleLogicFlow({
           source: link.from,
           target: link.to,
           type: 'triangleEdge',
+          selectable: isStep4NewLink, // Step4で新規作成したエッジのみ選択可能
           data: {
             isActive,
             // Step1のエッジ：操作不可

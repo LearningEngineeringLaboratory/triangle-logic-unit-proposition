@@ -1,5 +1,6 @@
 'use client'
 
+import { useNodeId, useReactFlow } from '@xyflow/react'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { NodeHandles } from './NodeHandles'
 
@@ -18,6 +19,10 @@ interface TriangleNodeProps {
 
 export function TriangleNode({ data }: TriangleNodeProps) {
   const { options, value, onValueChange, isReadOnly = false, nodeId, showHandles = true } = data
+  const id = useNodeId()
+  const { getNode } = useReactFlow()
+  const node = id ? getNode(id) : null
+  const isSelected = node?.selected ?? false
 
   return (
     <div className="relative">
@@ -26,11 +31,17 @@ export function TriangleNode({ data }: TriangleNodeProps) {
       {/* ノード本体 */}
       <div className="m-1.5 flex items-center justify-center">
         {isReadOnly ? (
-          <div className="bg-background border-2 border-border rounded-xl shadow-sm min-w-[160px] min-h-[60px] text-sm text-center flex items-center justify-center">{value || "選択されていません"}</div>
+          <div className={`bg-background border-2 rounded-xl shadow-sm min-w-[160px] min-h-[60px] text-sm text-center flex items-center justify-center transition-colors ${
+            isSelected ? 'border-primary ring-2 ring-primary ring-offset-2' : 'border-border'
+          }`}>
+            {value || "選択されていません"}
+          </div>
         ) : (
           <div className="bg-background text-center w-full">
             <Select value={value} onValueChange={onValueChange}>
-              <SelectTrigger className="min-w-[160px] min-h-[60px] rounded-xl border-2 hover:border-primary focus:ring-2 focus:ring-primary">
+              <SelectTrigger className={`min-w-[160px] min-h-[60px] rounded-xl border-2 hover:border-primary focus:ring-2 focus:ring-primary transition-colors ${
+                isSelected ? 'border-primary ring-2 ring-primary ring-offset-2' : ''
+              }`}>
                 <SelectValue placeholder="選択" />
               </SelectTrigger>
               <SelectContent>

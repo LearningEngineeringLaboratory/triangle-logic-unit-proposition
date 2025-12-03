@@ -1,6 +1,6 @@
 'use client'
 
-import { useInternalNode, getStraightPath, EdgeProps, EdgeLabelRenderer, useEdges } from '@xyflow/react'
+import { useInternalNode, getStraightPath, EdgeProps, EdgeLabelRenderer, useEdges, useReactFlow } from '@xyflow/react'
 import { getEdgeParams } from '../utils/edgeUtils'
 import { Button } from '@/components/ui/button'
 import { X } from 'lucide-react'
@@ -24,6 +24,9 @@ export function TriangleEdge({ id, source, target, style, data }: TriangleEdgePr
   const sourceNode = useInternalNode(source)
   const targetNode = useInternalNode(target)
   const edges = useEdges()
+  const { getEdge } = useReactFlow()
+  const edge = id ? getEdge(id) : null
+  const isSelected = edge?.selected ?? false
 
   if (!sourceNode || !targetNode) return null
 
@@ -113,8 +116,8 @@ export function TriangleEdge({ id, source, target, style, data }: TriangleEdgePr
 
   const edgeStyle = {
     ...style,
-    stroke: strokeColor ?? defaultStrokeColor,
-    strokeWidth: strokeWidth ?? defaultStrokeWidth,
+    stroke: isSelected ? 'oklch(0.5 0.2 260)' : (strokeColor ?? defaultStrokeColor),
+    strokeWidth: isSelected ? (strokeWidth ?? defaultStrokeWidth) + 1 : (strokeWidth ?? defaultStrokeWidth),
     strokeDasharray: isActive ? 'none' : '5,5',
     strokeLinecap: 'round' as const,
     opacity: isActive ? 1 : 0.4,
@@ -167,7 +170,7 @@ export function TriangleEdge({ id, source, target, style, data }: TriangleEdgePr
       {label && (
         <EdgeLabelRenderer>
           <div
-            className="nodrag nopan p-1 bg-background border border-border rounded-md text-xs"
+            className="nodrag nopan p-1 bg-background border border-border rounded-md text-xs relative"
             style={{
               position: 'absolute',
               transform: `translate(-50%, -50%) translate(${labelX}px, ${labelY}px)`,
@@ -175,6 +178,21 @@ export function TriangleEdge({ id, source, target, style, data }: TriangleEdgePr
             }}
           >
             {label}
+            {/* 削除ボタン（ラベルの右上、選択時のみ表示） */}
+            {isDeletable && onDelete && isSelected && (
+              <div
+                role="button"
+                aria-label="エッジを削除"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onDelete()
+                }}
+                className="absolute -top-1.5 -right-1.5 grid place-items-center rounded-full bg-destructive text-destructive-foreground cursor-pointer transition-transform duration-150 ease-out hover:scale-[1.08]"
+                style={{ width: '14px', height: '14px', lineHeight: 0 }}
+              >
+                <X strokeWidth={4} className="text-white" style={{ width: '10px', height: '10px' }} />
+              </div>
+            )}
           </div>
         </EdgeLabelRenderer>
       )}
@@ -201,15 +219,15 @@ export function TriangleEdge({ id, source, target, style, data }: TriangleEdgePr
           </div>
         </EdgeLabelRenderer>
       )}
-      {/* Step4で新規作成したエッジ：削除ボタン */}
-      {isDeletable && onDelete && (
+      {/* Step4のエッジ：削除ボタン（選択時のみ表示、ラベルがない場合） */}
+      {isDeletable && onDelete && isSelected && !label && (
         <EdgeLabelRenderer>
           <div
             className="nodrag nopan"
             style={{
               position: 'absolute',
-              left: labelX,
-              top: labelY,
+              left: labelX + (isToggleable ? 20 : 0), // 切り替えボタンがある場合は右にずらす
+              top: labelY - (isToggleable ? 20 : 0), // 切り替えボタンがある場合は上にずらす
               transform: 'translate(-50%, -50%)',
               pointerEvents: 'all',
             }}

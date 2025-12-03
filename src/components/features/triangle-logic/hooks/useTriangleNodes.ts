@@ -98,6 +98,7 @@ export function useTriangleNodes({ currentStep, options, setNodes, onNodeDelete,
             type: 'premiseNode',
             position,
             draggable: currentStep !== 3 && currentStep !== 5, // Step3とStep5では移動不可
+            selectable: currentStep === 2, // Step2でのみ選択可能
             data: {
               value: premiseNode.value,
               nodeId: premiseNode.id,
