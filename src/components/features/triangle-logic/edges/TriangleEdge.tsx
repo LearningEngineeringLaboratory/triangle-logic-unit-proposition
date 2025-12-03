@@ -3,7 +3,7 @@
 import { useInternalNode, getStraightPath, EdgeProps, EdgeLabelRenderer, useEdges, useReactFlow } from '@xyflow/react'
 import { getEdgeParams } from '../utils/edgeUtils'
 import { Button } from '@/components/ui/button'
-import { X } from 'lucide-react'
+import { Trash2 } from 'lucide-react'
 
 interface TriangleEdgeProps extends EdgeProps {
   data?: {
@@ -26,7 +26,8 @@ export function TriangleEdge({ id, source, target, style, data }: TriangleEdgePr
   const edges = useEdges()
   const { getEdge } = useReactFlow()
   const edge = id ? getEdge(id) : null
-  const isSelected = edge?.selected ?? false
+  // Step1の導出命題リンクは選択時の見た目変化を無効化
+  const isSelected = (edge?.selected ?? false) && id !== 'derived-link'
 
   if (!sourceNode || !targetNode) return null
 
@@ -116,15 +117,15 @@ export function TriangleEdge({ id, source, target, style, data }: TriangleEdgePr
 
   const edgeStyle = {
     ...style,
-    stroke: isSelected ? 'oklch(0.5 0.2 260)' : (strokeColor ?? defaultStrokeColor),
-    strokeWidth: isSelected ? (strokeWidth ?? defaultStrokeWidth) + 1 : (strokeWidth ?? defaultStrokeWidth),
+    stroke: isSelected ? '#fcd34d' : (strokeColor ?? defaultStrokeColor), // amber-300 (薄いオレンジ)
+    strokeWidth: isSelected ? (strokeWidth ?? defaultStrokeWidth) + 2 : (strokeWidth ?? defaultStrokeWidth),
     strokeDasharray: isActive ? 'none' : '5,5',
     strokeLinecap: 'round' as const,
     opacity: isActive ? 1 : 0.4,
     fill: 'none',
   }
 
-  const markerColor = strokeColor ?? defaultMarkerColor
+  const markerColor = isSelected ? '#fcd34d' : (strokeColor ?? defaultMarkerColor) // 選択時はamber-300 (薄いオレンジ)
 
   return (
     <>
@@ -168,18 +169,24 @@ export function TriangleEdge({ id, source, target, style, data }: TriangleEdgePr
         style={edgeStyle}
       />
       {label && (
-        <EdgeLabelRenderer>
-          <div
-            className="nodrag nopan p-1 bg-background border border-border rounded-md text-xs relative"
-            style={{
-              position: 'absolute',
-              transform: `translate(-50%, -50%) translate(${labelX}px, ${labelY}px)`,
-              pointerEvents: 'all',
-            }}
-          >
-            {label}
-            {/* 削除ボタン（ラベルの右上、選択時のみ表示） */}
-            {isDeletable && onDelete && isSelected && (
+        <>
+          <EdgeLabelRenderer>
+            <div
+              className={`nodrag nopan p-1 bg-background rounded-md text-xs transition-colors ${
+                isSelected ? 'border-[5px] border-amber-300' : 'border border-border'
+              }`}
+              style={{
+                position: 'absolute',
+                transform: `translate(-50%, -50%) translate(${labelX}px, ${labelY}px)`,
+                pointerEvents: 'all',
+              }}
+            >
+              {label}
+            </div>
+          </EdgeLabelRenderer>
+          {/* 削除ボタン（ラベルの外側、選択時のみ表示） */}
+          {isDeletable && onDelete && isSelected && (
+            <EdgeLabelRenderer>
               <div
                 role="button"
                 aria-label="エッジを削除"
@@ -187,14 +194,21 @@ export function TriangleEdge({ id, source, target, style, data }: TriangleEdgePr
                   e.stopPropagation()
                   onDelete()
                 }}
-                className="absolute -top-1.5 -right-1.5 grid place-items-center rounded-full bg-destructive text-destructive-foreground cursor-pointer transition-transform duration-150 ease-out hover:scale-[1.08]"
-                style={{ width: '14px', height: '14px', lineHeight: 0 }}
+                className="nodrag nopan flex items-center gap-1 px-1.5 py-0.5 rounded-md border border-destructive text-destructive bg-background cursor-pointer transition-all duration-150 ease-out hover:scale-105 hover:bg-red-50 dark:hover:bg-red-950/30 shadow-sm"
+                style={{
+                  position: 'absolute',
+                  left: labelX,
+                  top: labelY,
+                  transform: 'translate(-50%, -50%) translate(20px, -20px)',
+                  pointerEvents: 'all',
+                }}
               >
-                <X strokeWidth={4} className="text-white" style={{ width: '10px', height: '10px' }} />
+                <Trash2 className="w-3 h-3 text-destructive" />
+                <span className="text-[10px] font-medium text-destructive">削除</span>
               </div>
-            )}
-          </div>
-        </EdgeLabelRenderer>
+            </EdgeLabelRenderer>
+          )}
+        </>
       )}
       {/* Step2のエッジ：active切り替えボタン */}
       {isToggleable && onToggle && (
@@ -223,24 +237,20 @@ export function TriangleEdge({ id, source, target, style, data }: TriangleEdgePr
       {isDeletable && onDelete && isSelected && !label && (
         <EdgeLabelRenderer>
           <div
-            className="nodrag nopan"
+            role="button"
+            aria-label="エッジを削除"
+            onClick={onDelete}
+            className="nodrag nopan flex items-center gap-1 px-1.5 py-0.5 rounded-md border border-destructive text-destructive bg-background cursor-pointer transition-all duration-150 ease-out hover:scale-105 hover:bg-destructive/10 shadow-sm"
             style={{
               position: 'absolute',
-              left: labelX + (isToggleable ? 20 : 0), // 切り替えボタンがある場合は右にずらす
-              top: labelY - (isToggleable ? 20 : 0), // 切り替えボタンがある場合は上にずらす
+              left: labelX + (isToggleable ? 30 : 0), // 切り替えボタンがある場合は右にずらす
+              top: labelY - (isToggleable ? 30 : 0), // 切り替えボタンがある場合は上にずらす
               transform: 'translate(-50%, -50%)',
               pointerEvents: 'all',
             }}
           >
-            <div
-              role="button"
-              aria-label="エッジを削除"
-              onClick={onDelete}
-              className="grid place-items-center rounded-full bg-destructive text-destructive-foreground cursor-pointer transition-transform duration-150 ease-out hover:scale-[1.08]"
-              style={{ width: '14px', height: '14px', lineHeight: 0 }}
-            >
-              <X strokeWidth={4} className="text-white" style={{ width: '10px', height: '10px' }} />
-            </div>
+            <Trash2 className="w-3 h-3 text-destructive" />
+            <span className="text-[10px] font-medium text-destructive">削除</span>
           </div>
         </EdgeLabelRenderer>
       )}

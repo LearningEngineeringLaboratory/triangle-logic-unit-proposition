@@ -22,7 +22,8 @@ export function TriangleNode({ data }: TriangleNodeProps) {
   const id = useNodeId()
   const { getNode } = useReactFlow()
   const node = id ? getNode(id) : null
-  const isSelected = node?.selected ?? false
+  // Step1の前件・後件ノードは選択時の見た目変化を無効化
+  const isSelected = (node?.selected ?? false) && nodeId !== 'antecedent' && nodeId !== 'consequent'
 
   return (
     <div className="relative">
@@ -31,16 +32,16 @@ export function TriangleNode({ data }: TriangleNodeProps) {
       {/* ノード本体 */}
       <div className="m-1.5 flex items-center justify-center">
         {isReadOnly ? (
-          <div className={`bg-background border-2 rounded-xl shadow-sm min-w-[160px] min-h-[60px] text-sm text-center flex items-center justify-center transition-colors ${
-            isSelected ? 'border-primary ring-2 ring-primary ring-offset-2' : 'border-border'
+          <div className={`bg-background rounded-xl shadow-sm min-w-[160px] min-h-[60px] text-sm text-center flex items-center justify-center transition-colors ${
+            isSelected ? 'border-[5px] border-amber-300' : 'border-2 border-border'
           }`}>
             {value || "選択されていません"}
           </div>
         ) : (
           <div className="bg-background text-center w-full">
             <Select value={value} onValueChange={onValueChange}>
-              <SelectTrigger className={`min-w-[160px] min-h-[60px] rounded-xl border-2 hover:border-primary focus:ring-2 focus:ring-primary transition-colors ${
-                isSelected ? 'border-primary ring-2 ring-primary ring-offset-2' : ''
+              <SelectTrigger className={`min-w-[160px] min-h-[60px] rounded-xl hover:border-primary focus:ring-2 focus:ring-primary transition-colors ${
+                isSelected ? 'border-[5px] border-amber-300' : 'border-2'
               }`}>
                 <SelectValue placeholder="選択" />
               </SelectTrigger>
