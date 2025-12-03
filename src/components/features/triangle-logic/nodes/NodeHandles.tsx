@@ -8,49 +8,54 @@ interface NodeHandlesProps {
 }
 
 export function NodeHandles({ nodeId, showHandles = true }: NodeHandlesProps) {
-  const { inProgress } = useConnection()
-  const isConnecting = inProgress === true
+  const connection = useConnection()
+  // ConnectionState が null でなければ「どこかのハンドルを掴んで接続操作中」
+  const isConnecting = !!(connection && (connection as any).fromNode)
   const hideHandleVisual = isConnecting
-  const targetExpansion = 12 // px: ノード外側に広げる判定範囲
+  const targetExpansion = 12 // px: ノード外側に広げるターゲット範囲
 
   return (
     <>
-      {/* 入力ハンドル領域の可視化用オーバーレイ */}
-      {showHandles && (
-        <div
-          className={`absolute rounded-xl pointer-events-none transition-opacity ${
-            isConnecting
-              ? 'opacity-100 border-2 border-sky-400/80 bg-sky-200/40'
-              : 'opacity-60 border border-dashed border-sky-300/70 bg-sky-200/20'
-          }`}
-          style={{
-            top: -targetExpansion,
-            left: -targetExpansion,
-            right: -targetExpansion,
-            bottom: -targetExpansion,
-          }}
-        />
-      )}
-
       {/* ノード全体を入力用ハンドルとして機能させる */}
       {showHandles && (
         <Handle
           type="target"
           position={Position.Top}
           id={`${nodeId}-target`}
-          style={{
-            width: `calc(100% + ${targetExpansion * 2}px)`,
-            height: `calc(100% + ${targetExpansion * 2}px)`,
-            top: -targetExpansion,
-            left: -targetExpansion,
-            borderRadius: '12px',
-            backgroundColor: 'transparent',
-            border: 'none',
-            transform: 'none',
-            // sourceハンドルよりは低くして、ドラッグ開始を邪魔しない
-            zIndex: 5,
-            pointerEvents: 'auto',
-          }}
+          isConnectableStart={false}
+          style={
+            isConnecting
+              ? {
+                  // 接続操作中のみ、ノード外側まで広げてターゲット判定を優先
+                  width: `calc(100% + ${targetExpansion * 2}px)`,
+                  height: `calc(100% + ${targetExpansion * 2}px)`,
+                  top: -targetExpansion,
+                  left: -targetExpansion,
+                  borderRadius: '12px',
+                  backgroundColor: 'transparent',
+                  border: 'none',
+                  transform: 'none',
+                  // ノード本体より前面に出して、接続中はターゲット判定を優先
+                  zIndex: 40,
+                  // 接続中はターゲットとしてマウスイベントを受ける
+                  pointerEvents: 'auto',
+                }
+              : {
+                  // 通常時はノード本体の範囲に限定し、ドラッグを優先
+                  width: '100%',
+                  height: '100%',
+                  top: 0,
+                  left: 0,
+                  borderRadius: '12px',
+                  backgroundColor: 'transparent',
+                  border: 'none',
+                  transform: 'none',
+                  // 通常時はノード本体と同レイヤー以下にしつつ、イベントは透過
+                  zIndex: 0,
+                  // ノードドラッグを妨げないようにマウスイベントは透過する
+                  pointerEvents: 'none',
+                }
+          }
         />
       )}
 
@@ -100,6 +105,7 @@ export function NodeHandles({ nodeId, showHandles = true }: NodeHandlesProps) {
           <Handle
             type="target"
             position={Position.Bottom}
+            isConnectableStart={false}
             style={{ opacity: 0, cursor: 'default' }}
           />
           <Handle

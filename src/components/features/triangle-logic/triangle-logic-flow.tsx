@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef } from 'react'
 import { useTheme } from 'next-themes'
 import {
   ReactFlow,
@@ -75,9 +75,6 @@ export function TriangleLogicFlow({
   // テーマを取得
   const { theme } = useTheme()
 
-  // 接続操作中かどうか（ハンドルを掴んでいる間だけtrue）
-  const [isConnecting, setIsConnecting] = useState(false)
-
   // ReactFlowの状態管理
   const [nodes, setNodes, onNodesChange] = useNodesState([] as Node[])
   const [edges, setEdges, onEdgesChange] = useEdgesState([] as Edge[])
@@ -106,8 +103,7 @@ export function TriangleLogicFlow({
     currentStep,
     options,
     setNodes: setNodes as (nodes: Node[] | ((prevNodes: Node[]) => Node[])) => void,
-    onNodeDelete: handleNodeDelete,
-    isConnecting,
+    onNodeDelete: handleNodeDelete
   })
 
   // onNodesChangeをラップして、premiseノードの位置変更を検知
@@ -440,8 +436,6 @@ export function TriangleLogicFlow({
         onEdgesChange={onEdgesChange}
         onNodeDragStop={handleNodeDragStop}
         onConnect={onConnect}
-        onConnectStart={() => setIsConnecting(true)}
-        onConnectEnd={() => setIsConnecting(false)}
         isValidConnection={isValidConnection}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}

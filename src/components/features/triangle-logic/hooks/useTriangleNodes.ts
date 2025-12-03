@@ -7,7 +7,6 @@ interface UseTriangleNodesProps {
   setNodes: (nodes: Node[] | ((prevNodes: Node[]) => Node[])) => void
   onNodeDelete?: (nodeId: string) => void
   onNodePositionChange?: (nodeId: string, position: { x: number; y: number }) => void
-  isConnecting?: boolean
 }
 
 interface PremiseNode {
@@ -16,14 +15,7 @@ interface PremiseNode {
   position: { x: number; y: number }
 }
 
-export function useTriangleNodes({
-  currentStep,
-  options,
-  setNodes,
-  onNodeDelete,
-  onNodePositionChange,
-  isConnecting = false,
-}: UseTriangleNodesProps) {
+export function useTriangleNodes({ currentStep, options, setNodes, onNodeDelete, onNodePositionChange }: UseTriangleNodesProps) {
   // 動的に追加される所与命題ノードの状態
   const [premiseNodes, setPremiseNodes] = useState<PremiseNode[]>([])
 
@@ -105,8 +97,8 @@ export function useTriangleNodes({
             id: premiseNode.id,
             type: 'premiseNode',
             position,
-            // 接続操作中はドラッグ不可にすることで、ノード全体を安定した入力ハンドルとして機能させる
-            draggable: currentStep !== 3 && currentStep !== 5 && !isConnecting,
+            // Step3とStep5では移動不可（表示専用）
+            draggable: currentStep !== 3 && currentStep !== 5,
             selectable: currentStep === 2, // Step2でのみ選択可能
             data: {
               value: premiseNode.value,
@@ -123,7 +115,7 @@ export function useTriangleNodes({
         return [...filteredNodes, ...premiseNodeElements]
       })
     }
-  }, [premiseNodes, currentStep, setNodes, removePremiseNode, isConnecting])
+  }, [premiseNodes, currentStep, setNodes, removePremiseNode])
 
   // 所与命題ノードを追加する関数
   const addPremiseNode = useCallback((value: string) => {
