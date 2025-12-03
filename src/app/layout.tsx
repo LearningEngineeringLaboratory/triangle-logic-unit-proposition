@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "単位命題三角ロジック演習システム",
-  description: "単位命題三角ロジックを用いた学習演習システム",
+  description: "単位命題三角ロジックを用いた論証妥当性判別学習支援システム",
 };
 
 export default function RootLayout({
