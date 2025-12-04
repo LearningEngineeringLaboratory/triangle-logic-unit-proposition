@@ -430,12 +430,29 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
           )
         ) && correctLinks.length === uiLinksWithValues.length
 
+        // すべてのノードがリンクに接続されているかを確認
+        // antecedentとconsequentは常に導出命題リンクで接続されているため、premiseノードのみチェック
+        const allPremiseNodeIds = nodeValues.premiseNodes.map(node => node.id)
+        const connectedNodeIds = new Set<string>()
+        uiLinks.forEach(link => {
+          connectedNodeIds.add(link.from)
+          connectedNodeIds.add(link.to)
+        })
+        
+        // すべてのpremiseノードがリンクに接続されているかを確認
+        const allPremiseNodesConnected = allPremiseNodeIds.every(nodeId =>
+          connectedNodeIds.has(nodeId)
+        )
+
         console.log(`[debug-step2] correctLinks:`, correctLinks)
         console.log(`[debug-step2] uiLinks:`, uiLinks)
         console.log(`[debug-step2] uiLinksWithValues:`, uiLinksWithValues)
         console.log(`[debug-step2] linksMatch:`, linksMatch)
+        console.log(`[debug-step2] allPremiseNodeIds:`, allPremiseNodeIds)
+        console.log(`[debug-step2] connectedNodeIds:`, Array.from(connectedNodeIds))
+        console.log(`[debug-step2] allPremiseNodesConnected:`, allPremiseNodesConnected)
 
-        isCorrect = linksMatch
+        isCorrect = linksMatch && allPremiseNodesConnected
         break
       }
       case 3: {
