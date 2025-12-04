@@ -14,24 +14,32 @@ interface ProblemsListWithSetSelectorProps {
   onCompletedCountChange: (count: number) => void
 }
 
+// 問題セット選択とそれに応じた問題一覧の表示、およびクリア済み問題数の集計を行うコンポーネント
 export function ProblemsListWithSetSelector({ 
   initialProblems, 
   problemSets, 
   onCompletedCountChange 
 }: ProblemsListWithSetSelectorProps) {
+  // 親から渡されたクリア済み問題数更新コールバックを常に最新に保つためのref
   const onCompletedCountChangeRef = useRef(onCompletedCountChange)
   
   useEffect(() => {
     onCompletedCountChangeRef.current = onCompletedCountChange
   }, [onCompletedCountChange])
   
-  const [problems, setProblems] = useState<Problem[]>(initialProblems)
+  // 表示対象の問題一覧（問題セット未選択時は空にしてメッセージのみ表示）
+  const [problems, setProblems] = useState<Problem[]>([])
+  // 現在選択されている問題セットID（null の場合は全体）
   const [selectedSetId, setSelectedSetId] = useState<string | null>(null)
+  // 問題セット変更時のローディング状態
   const [isLoading, setIsLoading] = useState(false)
+  // localStorage からの初期復元が完了したかどうか
   const [isInitialized, setIsInitialized] = useState(false)
+  // クリア済みの problem_id の集合
   const [completedProblemIds, setCompletedProblemIds] = useState<Set<string>>(new Set())
   const { sessionInfo } = useSession()
 
+  // 問題セット選択変更時に、選択状態を保持しつつ問題一覧を切り替える
   const handleSetChange = useCallback(async (setId: string | null) => {
     setSelectedSetId(setId)
     setIsLoading(true)
@@ -48,8 +56,8 @@ export function ProblemsListWithSetSelector({
         const problemsFromSet = await getProblemsBySet(setId)
         setProblems(problemsFromSet)
       } else {
-        // セットが選択されていない場合は初期問題を表示
-        setProblems(initialProblems)
+        // セットが選択されていない場合は問題を表示せず、案内メッセージのみ表示
+        setProblems([])
       }
     } catch (error) {
       console.error('Error loading problems:', error)
@@ -58,7 +66,7 @@ export function ProblemsListWithSetSelector({
     }
   }, [initialProblems])
 
-  // 初期化時にlocalStorageから選択状態を復元
+  // 初期化時に localStorage から直近の問題セット選択状態を復元
   useEffect(() => {
     if (!isInitialized && problemSets.length > 0) {
       const savedSetId = localStorage.getItem('selectedProblemSetId')
@@ -70,7 +78,7 @@ export function ProblemsListWithSetSelector({
     }
   }, [problemSets, isInitialized, handleSetChange])
 
-  // クリア済み問題の状態を取得
+  // ログイン済みセッションに紐づく「クリア済み問題ID一覧」を取得し、カードの表示とカウンタに反映
   useEffect(() => {
     async function fetchCompletionStatus() {
       if (!sessionInfo) {
@@ -113,6 +121,7 @@ export function ProblemsListWithSetSelector({
         isLoading={isLoading}
       />
 
+      {/* 選択中のセットに問題が無い場合の状態表示 */}
       {problems.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
@@ -122,6 +131,7 @@ export function ProblemsListWithSetSelector({
           </CardContent>
         </Card>
       ) : (
+        // 問題一覧カード（クリア済みは `isCompleted` フラグで視覚的に区別）
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {problems.map((problem: Problem) => (
             <ProblemCard 

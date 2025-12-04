@@ -21,6 +21,22 @@ interface ProblemStepDisplayProps {
   stepsState?: StepsState // ステップの完了状態
 }
 
+interface Step3QuestionInputsProps {
+  inferenceTypeValue: string
+  validityValue: string
+  verificationValue: string
+  onInferenceTypeChange?: (value: string) => void
+  onValidityChange?: (value: string) => void
+  onVerificationChange?: (value: string) => void
+}
+
+interface Step5ArgumentInputProps {
+  optionList: string[]
+  step5Premises: PremiseSelection[]
+  onStep5PremiseChange?: (index: number, field: 'antecedent' | 'consequent', value: string) => void
+  stepsState: StepsState
+}
+
 export function ProblemStepDisplay({
   problem,
   currentStep,
@@ -175,148 +191,24 @@ export function ProblemStepDisplay({
 
             {/* ステップ3の入力フィールド */}
             {currentStepData.number === 3 && (
-              <div className="mb-6">
-                <div className="flex flex-col gap-4 w-full max-w-3xl">
-                  <div className="flex flex-col gap-2 mt-6">
-                    <span className="text-sm font-medium text-foreground">問題1. この論証には演繹構造が含まれていますか？演繹構造とは、「P→Q, Q→R, P→R」のような構造のことを指します。</span>
-                    <Select value={verificationValue} onValueChange={onVerificationChange ?? (() => { })}>
-                      <SelectTrigger className={`w-full h-14 rounded-xl border-2 text-lg py-3 ${verificationValue ? '' : 'animate-glow-pulse'}`}>
-                        <SelectValue placeholder="選択してください" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="高い">演繹構造が含まれている</SelectItem>
-                        <SelectItem value="低い">演繹構造が含まれていない</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="flex flex-col gap-2 mt-6">
-                    <span className="text-sm font-medium text-foreground">問題2. この論証の妥当性を答えてください。妥当であるとは、前提を正しいと仮定したとき、導出される結論が必ず正しいことを意味します。</span>
-                    <Select value={validityValue} onValueChange={onValidityChange ?? (() => { })}>
-                      <SelectTrigger className={`w-full h-14 rounded-xl border-2 text-lg py-3 ${validityValue ? '' : 'animate-glow-pulse'}`}>
-                        <SelectValue placeholder="選択してください" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="妥当">妥当</SelectItem>
-                        <SelectItem value="非妥当">非妥当</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="flex flex-col gap-2 mt-6">
-                    <span className="text-sm font-medium text-foreground">問題3. この論証の推論形式を答えてください。</span>
-                    <Select value={inferenceTypeValue} onValueChange={onInferenceTypeChange ?? (() => { })}>
-                      <SelectTrigger className={`w-full h-14 rounded-xl border-2 text-lg py-3 ${inferenceTypeValue ? '' : 'animate-glow-pulse'}`}>
-                        <SelectValue placeholder="選択してください" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="演繹推論">演繹推論</SelectItem>
-                        <SelectItem value="仮説推論">仮説推論</SelectItem>
-                        <SelectItem value="非形式推論">非形式推論</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              </div>
+              <Step3QuestionInputs
+                inferenceTypeValue={inferenceTypeValue}
+                validityValue={validityValue}
+                verificationValue={verificationValue}
+                onInferenceTypeChange={onInferenceTypeChange}
+                onValidityChange={onValidityChange}
+                onVerificationChange={onVerificationChange}
+              />
             )}
 
             {/* ステップ5の入力フィールド */}
             {currentStepData.number === 5 && (
-              <div className="mb-6">
-                <fieldset className="border-2 border-primary/20 rounded-2xl px-4 pt-2 pb-3 mb-2 bg-primary/5">
-                  <legend className="px-2 flex items-center gap-2">
-                    <BookOpen className="w-3 h-3 text-primary" />
-                    <span className="text-sm font-semibold text-primary">論証</span>
-                  </legend>
-                  <div className="space-y-4 w-full max-w-3xl">
-                    {/* 一つの文章として表示 */}
-                    <div className="flex flex-wrap items-center gap-x-2 gap-y-3 text-base leading-relaxed text-foreground font-serif tracking-wide break-keep">
-                      {/* 前提1 */}
-                      <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                        <Select
-                          value={step5Premises[0]?.antecedent || ''}
-                          onValueChange={(value) => onStep5PremiseChange?.(0, 'antecedent', value)}
-                        >
-                          <SelectTrigger className={`h-10 rounded-lg border-2 text-base min-w-[120px] font-sans ${step5Premises[0]?.antecedent ? '' : 'animate-glow-pulse'}`}>
-                            <SelectValue placeholder="選択" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {optionList.map((option) => (
-                              <SelectItem key={option} value={option}>
-                                {option}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <span className="text-base font-medium text-foreground font-serif whitespace-normal">
-                          ならば
-                        </span>
-                        <Select
-                          value={step5Premises[0]?.consequent || ''}
-                          onValueChange={(value) => onStep5PremiseChange?.(0, 'consequent', value)}
-                        >
-                          <SelectTrigger className={`h-10 rounded-lg border-2 text-base min-w-[120px] font-sans ${step5Premises[0]?.consequent ? '' : 'animate-glow-pulse'}`}>
-                            <SelectValue placeholder="選択" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {optionList.map((option) => (
-                              <SelectItem key={option} value={option}>
-                                {option}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <span className="text-base text-foreground font-serif whitespace-normal">。</span>
-                      </div>
-
-                      {/* 前提2 */}
-                      <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                        <Select
-                          value={step5Premises[1]?.antecedent || ''}
-                          onValueChange={(value) => onStep5PremiseChange?.(1, 'antecedent', value)}
-                        >
-                          <SelectTrigger className={`h-10 rounded-lg border-2 text-base min-w-[120px] font-sans ${step5Premises[1]?.antecedent ? '' : 'animate-glow-pulse'}`}>
-                            <SelectValue placeholder="選択" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {optionList.map((option) => (
-                              <SelectItem key={option} value={option}>
-                                {option}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <span className="text-base font-medium text-foreground font-serif whitespace-normal">
-                          ならば
-                        </span>
-                        <Select
-                          value={step5Premises[1]?.consequent || ''}
-                          onValueChange={(value) => onStep5PremiseChange?.(1, 'consequent', value)}
-                        >
-                          <SelectTrigger className={`h-10 rounded-lg border-2 text-base min-w-[120px] font-sans ${step5Premises[1]?.consequent ? '' : 'animate-glow-pulse'}`}>
-                            <SelectValue placeholder="選択" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {optionList.map((option) => (
-                              <SelectItem key={option} value={option}>
-                                {option}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <span className="text-base text-foreground font-serif whitespace-normal">。</span>
-                      </div>
-
-                      {/* したがって、結論 */}
-                      <span className="text-base text-foreground font-serif whitespace-normal break-keep">
-                        <span className="font-medium">したがって、</span>
-                        {stepsState.step1?.antecedent || '（前件）'}
-                        <span className="font-medium">ならば</span>
-                        {stepsState.step1?.consequent || '（後件）'}
-                        。
-                      </span>
-                    </div>
-                  </div>
-                </fieldset>
-              </div>
+              <Step5ArgumentInput
+                optionList={optionList}
+                step5Premises={step5Premises}
+                onStep5PremiseChange={onStep5PremiseChange}
+                stepsState={stepsState}
+              />
             )}
           </div>
         </div>
@@ -381,3 +273,188 @@ export function ProblemStepDisplay({
     </div>
   )
 }
+
+const Step3QuestionInputs = ({
+  inferenceTypeValue,
+  validityValue,
+  verificationValue,
+  onInferenceTypeChange,
+  onValidityChange,
+  onVerificationChange,
+}: Step3QuestionInputsProps) => (
+  <div className="mb-6">
+    <div className="flex flex-col gap-4 w-full max-w-3xl">
+      <div className="flex flex-col gap-2 mt-6">
+        <span className="text-sm font-medium text-foreground">
+          問題1. この論証には演繹構造が含まれていますか？演繹構造とは、「P→Q, Q→R, P→R」のような構造のことを指します。
+        </span>
+        <Select value={verificationValue} onValueChange={onVerificationChange ?? (() => {})}>
+          <SelectTrigger
+            className={`w-full h-14 rounded-xl border-2 text-lg py-3 ${
+              verificationValue ? '' : 'animate-glow-pulse'
+            }`}
+          >
+            <SelectValue placeholder="選択してください" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="高い">演繹構造が含まれている</SelectItem>
+            <SelectItem value="低い">演繹構造が含まれていない</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+      <div className="flex flex-col gap-2 mt-6">
+        <span className="text-sm font-medium text-foreground">
+          問題2. この論証の妥当性を答えてください。妥当であるとは、前提を正しいと仮定したとき、導出される結論が必ず正しいことを意味します。
+        </span>
+        <Select value={validityValue} onValueChange={onValidityChange ?? (() => {})}>
+          <SelectTrigger
+            className={`w-full h-14 rounded-xl border-2 text-lg py-3 ${
+              validityValue ? '' : 'animate-glow-pulse'
+            }`}
+          >
+            <SelectValue placeholder="選択してください" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="妥当">妥当</SelectItem>
+            <SelectItem value="非妥当">非妥当</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+      <div className="flex flex-col gap-2 mt-6">
+        <span className="text-sm font-medium text-foreground">問題3. この論証の推論形式を答えてください。</span>
+        <Select value={inferenceTypeValue} onValueChange={onInferenceTypeChange ?? (() => {})}>
+          <SelectTrigger
+            className={`w-full h-14 rounded-xl border-2 text-lg py-3 ${
+              inferenceTypeValue ? '' : 'animate-glow-pulse'
+            }`}
+          >
+            <SelectValue placeholder="選択してください" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="演繹推論">演繹推論</SelectItem>
+            <SelectItem value="仮説推論">仮説推論</SelectItem>
+            <SelectItem value="非形式推論">非形式推論</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+    </div>
+  </div>
+)
+
+const Step5ArgumentInput = ({
+  optionList,
+  step5Premises,
+  onStep5PremiseChange,
+  stepsState,
+}: Step5ArgumentInputProps) => (
+  <div className="mb-6">
+    <fieldset className="border-2 border-primary/20 rounded-2xl px-4 pt-2 pb-3 mb-2 bg-primary/5">
+      <legend className="px-2 flex items-center gap-2">
+        <BookOpen className="w-3 h-3 text-primary" />
+        <span className="text-sm font-semibold text-primary">論証</span>
+      </legend>
+      <div className="space-y-4 w-full max-w-3xl">
+        {/* 一つの文章として表示 */}
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-3 text-base leading-relaxed text-foreground font-serif tracking-wide break-keep">
+          {/* 前提1 */}
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+            <Select
+              value={step5Premises[0]?.antecedent || ''}
+              onValueChange={(value) => onStep5PremiseChange?.(0, 'antecedent', value)}
+            >
+              <SelectTrigger
+                className={`h-10 rounded-lg border-2 text-base min-w-[120px] font-sans ${
+                  step5Premises[0]?.antecedent ? '' : 'animate-glow-pulse'
+                }`}
+              >
+                <SelectValue placeholder="選択" />
+              </SelectTrigger>
+              <SelectContent>
+                {optionList.map((option) => (
+                  <SelectItem key={option} value={option}>
+                    {option}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <span className="text-base font-medium text-foreground font-serif whitespace-normal">ならば</span>
+            <Select
+              value={step5Premises[0]?.consequent || ''}
+              onValueChange={(value) => onStep5PremiseChange?.(0, 'consequent', value)}
+            >
+              <SelectTrigger
+                className={`h-10 rounded-lg border-2 text-base min-w-[120px] font-sans ${
+                  step5Premises[0]?.consequent ? '' : 'animate-glow-pulse'
+                }`}
+              >
+                <SelectValue placeholder="選択" />
+              </SelectTrigger>
+              <SelectContent>
+                {optionList.map((option) => (
+                  <SelectItem key={option} value={option}>
+                    {option}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <span className="text-base text-foreground font-serif whitespace-normal">。</span>
+          </div>
+
+          {/* 前提2 */}
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+            <Select
+              value={step5Premises[1]?.antecedent || ''}
+              onValueChange={(value) => onStep5PremiseChange?.(1, 'antecedent', value)}
+            >
+              <SelectTrigger
+                className={`h-10 rounded-lg border-2 text-base min-w-[120px] font-sans ${
+                  step5Premises[1]?.antecedent ? '' : 'animate-glow-pulse'
+                }`}
+              >
+                <SelectValue placeholder="選択" />
+              </SelectTrigger>
+              <SelectContent>
+                {optionList.map((option) => (
+                  <SelectItem key={option} value={option}>
+                    {option}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <span className="text-base font-medium text-foreground font-serif whitespace-normal">ならば</span>
+            <Select
+              value={step5Premises[1]?.consequent || ''}
+              onValueChange={(value) => onStep5PremiseChange?.(1, 'consequent', value)}
+            >
+              <SelectTrigger
+                className={`h-10 rounded-lg border-2 text-base min-w-[120px] font-sans ${
+                  step5Premises[1]?.consequent ? '' : 'animate-glow-pulse'
+                }`}
+              >
+                <SelectValue placeholder="選択" />
+              </SelectTrigger>
+              <SelectContent>
+                {optionList.map((option) => (
+                  <SelectItem key={option} value={option}>
+                    {option}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <span className="text-base text-foreground font-serif whitespace-normal">。</span>
+          </div>
+
+          {/* したがって、結論 */}
+          <span className="text-base text-foreground font-serif whitespace-normal break-keep">
+            <span className="font-medium">したがって、</span>
+            {stepsState.step1?.antecedent || '（前件）'}
+            <span className="font-medium">ならば</span>
+            {stepsState.step1?.consequent || '（後件）'}
+            。
+          </span>
+        </div>
+      </div>
+    </fieldset>
+  </div>
+)
+

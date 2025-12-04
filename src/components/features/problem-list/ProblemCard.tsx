@@ -2,7 +2,7 @@
 
 import { Problem } from '@/lib/types'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
+import { CheckCircle2 } from 'lucide-react'
 import Link from 'next/link'
 
 interface ProblemCardProps {
@@ -16,13 +16,14 @@ export function ProblemCard({ problem, isCompleted }: ProblemCardProps) {
   return (
     <div className="relative">
       {isCompleted ? (
-        <Card className="bg-muted/50 border-muted-foreground/20 opacity-75">
+        <Card className="bg-muted/50 border-muted-foreground/20 opacity-75 hover:shadow-none shadow-none">
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle className="text-lg">問題{problemNumber}</CardTitle>
-              <Badge variant="default" className="bg-green-600">
-                クリア済み
-              </Badge>
+              <CardTitle className="text-lg text-muted-foreground">問題{problemNumber}</CardTitle>
+              <CheckCircle2
+                className="w-5 h-5 text-success"
+                aria-label="完了した問題"
+              />
             </div>
           </CardHeader>
           <CardContent>
@@ -31,7 +32,7 @@ export function ProblemCard({ problem, isCompleted }: ProblemCardProps) {
         </Card>
       ) : (
         <Link href={`/problems/${problem.problem_id}`} className="block">
-          <Card className="hover:shadow-md transition-shadow hover:ring-1 hover:ring-primary cursor-pointer">
+          <Card className="transition-shadow hover:ring-1 hover:ring-primary cursor-pointer">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle className="text-lg">問題{problemNumber}</CardTitle>
