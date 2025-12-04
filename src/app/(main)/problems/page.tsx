@@ -16,7 +16,7 @@ export default function ProblemsPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [completedCount, setCompletedCount] = useState(0)
   const { sessionInfo, isLoading: isSessionLoading, needsRegistration, handleRegistrationSuccess, handleLogout } = useSession()
-  
+
   const { handleResetAll } = useResetAll({
     sessionInfo,
     onSuccess: () => setCompletedCount(0),

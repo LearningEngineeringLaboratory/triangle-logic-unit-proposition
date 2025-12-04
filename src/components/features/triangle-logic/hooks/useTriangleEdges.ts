@@ -10,16 +10,16 @@ interface UseTriangleEdgesOptions {
   onActiveLinksChange?: (links: ActiveTriangleLink[]) => void
 }
 
-export function useTriangleEdges({
-  currentStep,
-  links,
-  activeLinks,
+export function useTriangleEdges({ 
+  currentStep, 
+  links, 
+  activeLinks, 
   onLinksChange,
   onActiveLinksChange,
 }: UseTriangleEdgesOptions) {
   const edges = useMemo(() => {
     const newEdges: Edge[] = []
-
+    
     if (currentStep >= 1) {
       // Step1: 導出命題のリンク（固定、削除不可）
       newEdges.push({
@@ -179,5 +179,5 @@ export function useTriangleEdges({
     return newEdges
   }, [currentStep, links, activeLinks, onLinksChange, onActiveLinksChange])
 
-  return edges
+    return edges
 }

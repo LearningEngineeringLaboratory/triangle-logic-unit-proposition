@@ -11,7 +11,6 @@ export function NodeHandles({ nodeId, showHandles = true }: NodeHandlesProps) {
   const connection = useConnection()
   // ConnectionState が null でなければ「どこかのハンドルを掴んで接続操作中」
   const isConnecting = !!(connection && (connection as any).fromNode)
-  const hideHandleVisual = isConnecting
   const targetExpansion = 12 // px: ノード外側に広げるターゲット範囲
 
   return (
@@ -68,15 +67,20 @@ export function NodeHandles({ nodeId, showHandles = true }: NodeHandlesProps) {
             position={Position.Right}
             id={`${nodeId}-right`}
             style={{
-              top: 64,
+              top: 48,
+              left: 134,
               width: 20,
               height: 20,
               backgroundColor: 'transparent',
               border: 'none',
-              borderRadius: 0,
-            // 常に最前面に出して、矢印ドラッグを優先
-            zIndex: 50,
-              opacity: hideHandleVisual ? 0 : 1,
+              borderRadius: '50%',
+              // ニューモーフィズムの凹んだ効果（内側の影）
+              boxShadow: `
+                inset 2px 2px 4px rgba(0, 0, 0, 0.15),
+                inset -2px -2px 4px rgba(255, 255, 255, 0.8)
+              `,
+              // 常に最前面に出して、矢印ドラッグを優先
+              zIndex: 50,
             }}
           >
             {/* 右下向き矢印 */}
@@ -92,7 +96,6 @@ export function NodeHandles({ nodeId, showHandles = true }: NodeHandlesProps) {
                 transform: 'rotate(45deg)',
                 fontWeight: 'bold',
                 textShadow: '1px 1px 4px rgba(0, 0, 0, 0.3)',
-                opacity: hideHandleVisual ? 0 : 1,
               }}
             >
               →

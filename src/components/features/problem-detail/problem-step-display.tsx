@@ -177,23 +177,22 @@ export function ProblemStepDisplay({
             {currentStepData.number === 3 && (
               <div className="mb-6">
                 <div className="flex flex-col gap-4 w-full max-w-3xl">
-                  <div className="flex flex-col gap-2">
-                    <span className="text-sm font-medium text-foreground">推論形式</span>
-                    <Select value={inferenceTypeValue} onValueChange={onInferenceTypeChange ?? (() => { })}>
-                      <SelectTrigger className={`w-full h-12 rounded-xl border-2 text-base ${inferenceTypeValue ? '' : 'animate-glow-pulse'}`}>
+                  <div className="flex flex-col gap-2 mt-6">
+                    <span className="text-sm font-medium text-foreground">問題1. この論証には演繹構造が含まれていますか？演繹構造とは、「P→Q, Q→R, P→R」のような構造のことを指します。</span>
+                    <Select value={verificationValue} onValueChange={onVerificationChange ?? (() => { })}>
+                      <SelectTrigger className={`w-full h-14 rounded-xl border-2 text-lg py-3 ${verificationValue ? '' : 'animate-glow-pulse'}`}>
                         <SelectValue placeholder="選択してください" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="演繹推論">演繹推論</SelectItem>
-                        <SelectItem value="仮説推論">仮説推論</SelectItem>
-                        <SelectItem value="非形式推論">非形式推論</SelectItem>
+                        <SelectItem value="高い">演繹構造が含まれている</SelectItem>
+                        <SelectItem value="低い">演繹構造が含まれていない</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="flex flex-col gap-2">
-                    <span className="text-sm font-medium text-foreground">妥当性</span>
+                  <div className="flex flex-col gap-2 mt-6">
+                    <span className="text-sm font-medium text-foreground">問題2. この論証の妥当性を答えてください。妥当であるとは、前提を正しいと仮定したとき、導出される結論が必ず正しいことを意味します。</span>
                     <Select value={validityValue} onValueChange={onValidityChange ?? (() => { })}>
-                      <SelectTrigger className={`w-full h-12 rounded-xl border-2 text-base ${validityValue ? '' : 'animate-glow-pulse'}`}>
+                      <SelectTrigger className={`w-full h-14 rounded-xl border-2 text-lg py-3 ${validityValue ? '' : 'animate-glow-pulse'}`}>
                         <SelectValue placeholder="選択してください" />
                       </SelectTrigger>
                       <SelectContent>
@@ -202,15 +201,16 @@ export function ProblemStepDisplay({
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="flex flex-col gap-2">
-                    <span className="text-sm font-medium text-foreground">検証価値</span>
-                    <Select value={verificationValue} onValueChange={onVerificationChange ?? (() => { })}>
-                      <SelectTrigger className={`w-full h-12 rounded-xl border-2 text-base ${verificationValue ? '' : 'animate-glow-pulse'}`}>
+                  <div className="flex flex-col gap-2 mt-6">
+                    <span className="text-sm font-medium text-foreground">問題3. この論証の推論形式を答えてください。</span>
+                    <Select value={inferenceTypeValue} onValueChange={onInferenceTypeChange ?? (() => { })}>
+                      <SelectTrigger className={`w-full h-14 rounded-xl border-2 text-lg py-3 ${inferenceTypeValue ? '' : 'animate-glow-pulse'}`}>
                         <SelectValue placeholder="選択してください" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="高い">高い</SelectItem>
-                        <SelectItem value="低い">低い</SelectItem>
+                        <SelectItem value="演繹推論">演繹推論</SelectItem>
+                        <SelectItem value="仮説推論">仮説推論</SelectItem>
+                        <SelectItem value="非形式推論">非形式推論</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
