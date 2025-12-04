@@ -23,9 +23,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { Switch } from '@/components/ui/switch'
-import { Moon, Menu, RotateCcw, LogOut } from 'lucide-react'
-import { useTheme } from 'next-themes'
+import { Menu, RotateCcw, LogOut } from 'lucide-react'
 import Link from 'next/link'
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useSession } from '@/hooks/useSession'
@@ -41,17 +39,7 @@ interface HeaderWithThemeProps {
 }
 
 function HeaderWithTheme({ sessionInfo, onLogout, onResetAll, completedCount }: HeaderWithThemeProps) {
-  const { theme, setTheme } = useTheme()
-  const [mounted, setMounted] = useState(false)
   const [showResetDialog, setShowResetDialog] = useState(false)
-
-  useEffect(() => {
-    setMounted(true)
-    // デフォルトをライト設定に
-    if (!theme) {
-      setTheme("light")
-    }
-  }, [theme, setTheme])
 
   const handleResetClick = () => {
     setShowResetDialog(true)
@@ -60,13 +48,6 @@ function HeaderWithTheme({ sessionInfo, onLogout, onResetAll, completedCount }: 
   const handleResetConfirm = () => {
     setShowResetDialog(false)
     onResetAll()
-  }
-
-  // トグル状態: darkモードがONかどうか
-  const isDarkMode = theme === "dark"
-  
-  const handleThemeToggle = (checked: boolean) => {
-    setTheme(checked ? "dark" : "light")
   }
 
   return (
@@ -79,69 +60,52 @@ function HeaderWithTheme({ sessionInfo, onLogout, onResetAll, completedCount }: 
 
           {/* ハンバーガーメニュー */}
           <div className="flex items-center">
-            {mounted && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="h-9 w-9 px-0">
-                    <Menu className="h-5 w-5" />
-                    <span className="sr-only">メニューを開く</span>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  {/* ログイン状況 */}
-                  {sessionInfo && (
-                    <>
-                      <DropdownMenuLabel>
-                        <div className="flex flex-col space-y-1">
-                          <p className="text-sm font-medium">{sessionInfo.userName}</p>
-                          <p className="text-xs text-muted-foreground">{sessionInfo.userEmail}</p>
-                        </div>
-                      </DropdownMenuLabel>
-                      <DropdownMenuSeparator />
-                    </>
-                  )}
-
-                  {/* クリア済みリセット */}
-                  {sessionInfo && completedCount > 0 && (
-                    <>
-                      <DropdownMenuGroup>
-                        <DropdownMenuItem onClick={handleResetClick}>
-                          <RotateCcw className="mr-2 h-4 w-4" />
-                          <span>全クリア済みをリセット ({completedCount})</span>
-                        </DropdownMenuItem>
-                      </DropdownMenuGroup>
-                      <DropdownMenuSeparator />
-                    </>
-                  )}
-
-                  {/* テーマ切り替え（ベータ版） */}
-                  <DropdownMenuGroup>
-                    <div className="flex items-center justify-between px-2 py-1.5">
-                      <div className="flex items-center gap-2">
-                        <Moon className="h-4 w-4" />
-                        <span className="text-sm">ダークモード（ベータ）</span>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="h-9 w-9 px-0">
+                  <Menu className="h-5 w-5" />
+                  <span className="sr-only">メニューを開く</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                {/* ログイン状況 */}
+                {sessionInfo && (
+                  <>
+                    <DropdownMenuLabel>
+                      <div className="flex flex-col space-y-1">
+                        <p className="text-sm font-medium">{sessionInfo.userName}</p>
+                        <p className="text-xs text-muted-foreground">{sessionInfo.userEmail}</p>
                       </div>
-                      <Switch
-                        checked={isDarkMode}
-                        onCheckedChange={handleThemeToggle}
-                        disabled={!mounted}
-                      />
-                    </div>
-                  </DropdownMenuGroup>
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                  </>
+                )}
 
-                  {/* ログアウト */}
-                  {sessionInfo && (
-                    <>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={onLogout} variant="destructive">
-                        <LogOut className="mr-2 h-4 w-4" />
-                        <span>ログアウト</span>
+                {/* クリア済みリセット */}
+                {sessionInfo && completedCount > 0 && (
+                  <>
+                    <DropdownMenuGroup>
+                      <DropdownMenuItem onClick={handleResetClick}>
+                        <RotateCcw className="mr-2 h-4 w-4" />
+                        <span>全クリア済みをリセット ({completedCount})</span>
                       </DropdownMenuItem>
-                    </>
-                  )}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
+                    </DropdownMenuGroup>
+                    <DropdownMenuSeparator />
+                  </>
+                )}
+
+                {/* ログアウト */}
+                {sessionInfo && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={onLogout} variant="destructive">
+                      <LogOut className="mr-2 h-4 w-4" />
+                      <span>ログアウト</span>
+                    </DropdownMenuItem>
+                  </>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </div>

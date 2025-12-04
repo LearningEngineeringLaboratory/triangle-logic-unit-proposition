@@ -9,6 +9,7 @@ interface ThemeProviderProps {
   defaultTheme?: string
   enableSystem?: boolean
   disableTransitionOnChange?: boolean
+  forcedTheme?: string
 }
 
 export function ThemeProvider({
