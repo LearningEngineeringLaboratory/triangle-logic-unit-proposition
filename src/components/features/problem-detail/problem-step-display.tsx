@@ -228,9 +228,9 @@ export function ProblemStepDisplay({
                   </legend>
                   <div className="space-y-4 w-full max-w-3xl">
                     {/* 一つの文章として表示 */}
-                    <div className="flex flex-wrap items-center gap-2 text-base leading-relaxed text-foreground font-serif tracking-wide">
+                    <div className="flex flex-wrap items-center gap-x-2 gap-y-3 text-base leading-relaxed text-foreground font-serif tracking-wide break-keep">
                       {/* 前提1 */}
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                         <Select
                           value={step5Premises[0]?.antecedent || ''}
                           onValueChange={(value) => onStep5PremiseChange?.(0, 'antecedent', value)}
@@ -246,7 +246,9 @@ export function ProblemStepDisplay({
                             ))}
                           </SelectContent>
                         </Select>
-                        <span className="text-base font-medium text-foreground font-serif">ならば</span>
+                        <span className="text-base font-medium text-foreground font-serif whitespace-normal">
+                          ならば
+                        </span>
                         <Select
                           value={step5Premises[0]?.consequent || ''}
                           onValueChange={(value) => onStep5PremiseChange?.(0, 'consequent', value)}
@@ -262,11 +264,11 @@ export function ProblemStepDisplay({
                             ))}
                           </SelectContent>
                         </Select>
-                        <span className="text-base text-foreground font-serif">。</span>
+                        <span className="text-base text-foreground font-serif whitespace-normal">。</span>
                       </div>
 
                       {/* 前提2 */}
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                         <Select
                           value={step5Premises[1]?.antecedent || ''}
                           onValueChange={(value) => onStep5PremiseChange?.(1, 'antecedent', value)}
@@ -282,7 +284,9 @@ export function ProblemStepDisplay({
                             ))}
                           </SelectContent>
                         </Select>
-                        <span className="text-base font-medium text-foreground font-serif">ならば</span>
+                        <span className="text-base font-medium text-foreground font-serif whitespace-normal">
+                          ならば
+                        </span>
                         <Select
                           value={step5Premises[1]?.consequent || ''}
                           onValueChange={(value) => onStep5PremiseChange?.(1, 'consequent', value)}
@@ -298,11 +302,11 @@ export function ProblemStepDisplay({
                             ))}
                           </SelectContent>
                         </Select>
-                        <span className="text-base text-foreground font-serif">。</span>
+                        <span className="text-base text-foreground font-serif whitespace-normal">。</span>
                       </div>
 
                       {/* したがって、結論 */}
-                      <span className="text-base text-foreground font-serif">
+                      <span className="text-base text-foreground font-serif whitespace-normal break-keep">
                         <span className="font-medium">したがって、</span>
                         {stepsState.step1?.antecedent || '（前件）'}
                         <span className="font-medium">ならば</span>
