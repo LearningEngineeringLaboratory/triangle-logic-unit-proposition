@@ -29,25 +29,26 @@ export async function GET() {
       )
     }
 
-    // クリア済み問題のリストを取得
-    const { data: responses, error: responseError } = await supabase
-      .from('responses')
-      .select('problem_id, is_completed')
+    // クリア済み問題のリストを取得（attemptsテーブルから）
+    // status = 'completed' のattemptを取得
+    const { data: attempts, error: attemptError } = await supabase
+      .from('attempts')
+      .select('problem_id, status')
       .eq('session_id', sessionId)
       .eq('user_id', session.user_id)
-      .eq('is_completed', true)
+      .eq('status', 'completed')
 
-    if (responseError) {
-      console.error('Response query error:', responseError)
+    if (attemptError) {
+      console.error('Attempt query error:', attemptError)
       return NextResponse.json(
         { success: false, error: 'query_failed' },
         { status: 500 }
       )
     }
 
-    // problem_idのセットに変換
+    // problem_idのセットに変換（重複を除去）
     const completedProblemIds = new Set(
-      (responses || []).map(r => r.problem_id)
+      (attempts || []).map(a => a.problem_id)
     )
 
     return NextResponse.json({

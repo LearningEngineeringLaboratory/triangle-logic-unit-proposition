@@ -62,7 +62,7 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
   } = useProblemSteps(problem)
 
   // Attempt管理
-  const { attemptId, finishAttempt } = useProblemAttempt({
+  const { attemptId, updateCurrentStep, finishAttempt } = useProblemAttempt({
     problem,
     sessionInfo,
     isSessionLoading,
@@ -86,6 +86,7 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
     completedSteps,
     totalSteps,
     sessionInfo,
+    nodeValues,
   })
 
   useEffect(() => {
@@ -162,6 +163,13 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
     }
   }, [currentStep, problem, steps.step2, steps.step4, updateStep])
 
+
+  // ステップ遷移時にattemptsテーブルのcurrent_stepを更新
+  useEffect(() => {
+    if (currentStep !== previousStepRef.current && attemptId && updateCurrentStep) {
+      updateCurrentStep(currentStep)
+    }
+  }, [currentStep, attemptId, updateCurrentStep])
 
   // ステップ遷移のログ記録
   useEffect(() => {
@@ -272,6 +280,9 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
                   updateStep(5, { ...steps.step5, premises: newPremises })
                 }}
                 stepsState={steps}
+                attemptId={attemptId}
+                sessionInfo={sessionInfo}
+                nodeValues={nodeValues}
               />
           </div>
         ),
@@ -288,6 +299,10 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
             activeLinks={steps.step4?.links || []}
             onActiveLinksChange={(links) => updateStep(4, { ...steps.step4, links })}
             onGetNodeValues={handleNodeValuesChange}
+            attemptId={attemptId}
+            problemId={problem?.problem_id}
+            sessionInfo={sessionInfo}
+            steps={steps as StepsState}
           />
         ),
         footer: (

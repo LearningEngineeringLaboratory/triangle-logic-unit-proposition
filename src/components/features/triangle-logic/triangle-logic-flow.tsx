@@ -25,7 +25,10 @@ import { AddPremiseNodeButton } from './components/AddPremiseNodeButton'
 import { useTriangleNodes } from './hooks/useTriangleNodes'
 import { useNodeUpdates } from './hooks/useNodeUpdates'
 import { useTriangleEdges } from './hooks/useTriangleEdges'
-import { ActiveTriangleLink, NodeValues, TriangleLink } from '@/lib/types'
+import { ActiveTriangleLink, NodeValues, TriangleLink, StepsState } from '@/lib/types'
+import { logLinkCreated, logLinkDeleted, logLinkMarkedInactive, logLinkMarkedActive, logSelectDropdown } from '@/lib/logging'
+import { createNodeValueResolver } from '@/lib/answer-validation'
+import { mapUiToDbState } from '@/lib/utils'
 
 // ========================================
 // ノードタイプとエッジタイプの定義
@@ -58,6 +61,11 @@ interface TriangleLogicFlowProps {
   onActiveLinksChange?: (links: ActiveTriangleLink[]) => void
   // 答え合わせ用
   onGetNodeValues?: (values: NodeValues) => void
+  // ログ記録用
+  attemptId?: string | null
+  problemId?: string
+  sessionInfo?: { sessionId: string; userId: string } | null
+  steps?: StepsState // 現在のステップ状態（state記録用）
 }
 
 export function TriangleLogicFlow({
@@ -72,6 +80,10 @@ export function TriangleLogicFlow({
   activeLinks = [],
   onActiveLinksChange,
   onGetNodeValues,
+  attemptId,
+  problemId,
+  sessionInfo,
+  steps,
 }: TriangleLogicFlowProps) {
   // テーマを取得
   const { theme } = useTheme()
@@ -79,6 +91,24 @@ export function TriangleLogicFlow({
   // ReactFlowの状態管理
   const [nodes, setNodes, onNodesChange] = useNodesState([] as Node[])
   const [flowEdges, setEdges, onEdgesChange] = useEdgesState([] as Edge[])
+
+  // ノードの値をメモ化（他のコールバックより前に定義）
+  const nodeValues = useMemo(() => {
+    if (nodes.length === 0) return null
+
+    const antecedentNode = nodes.find(node => node.id === 'antecedent')
+    const consequentNode = nodes.find(node => node.id === 'consequent')
+    const premiseNodes = nodes.filter(node => node.id.startsWith('premise-'))
+
+    return {
+      antecedent: (antecedentNode?.data?.value as string) || '',
+      consequent: (consequentNode?.data?.value as string) || '',
+      premiseNodes: premiseNodes.map(node => ({
+        id: node.id,
+        value: (node.data?.value as string) || ''
+      }))
+    }
+  }, [nodes])
 
   // ノード削除時にリンクも削除するコールバック
   const handleNodeDelete = useCallback((nodeId: string) => {
@@ -100,12 +130,30 @@ export function TriangleLogicFlow({
   }, [currentStep, links, activeLinks, onLinksChange, onActiveLinksChange])
 
   // カスタムフックを使用してノード管理
-  const { addPremiseNode, updateNodePosition } = useTriangleNodes({
+  const { addPremiseNode: originalAddPremiseNode, updateNodePosition } = useTriangleNodes({
     currentStep,
     options,
     setNodes: setNodes as (nodes: Node[] | ((prevNodes: Node[]) => Node[])) => void,
     onNodeDelete: handleNodeDelete
   })
+
+  // premiseノード追加時のログ記録付きラッパー
+  const addPremiseNode = useCallback((value: string) => {
+    originalAddPremiseNode(value)
+    // ログ記録
+    if (sessionInfo && problemId) {
+      const dbState = steps ? mapUiToDbState(steps, nodeValues) : null
+      logSelectDropdown({
+        controlId: 'premise-node-add',
+        value,
+        attemptId: attemptId ?? undefined,
+        problemId,
+        sessionId: sessionInfo.sessionId,
+        userId: sessionInfo.userId,
+        state: dbState,
+      }).catch(console.error)
+    }
+  }, [originalAddPremiseNode, attemptId, problemId, sessionInfo, steps, nodeValues])
 
   // onNodesChangeをラップして、premiseノードの位置変更を検知
   const handleNodesChange = useCallback((changes: NodeChange[]) => {
@@ -135,15 +183,61 @@ export function TriangleLogicFlow({
     }
   }, [currentStep, updateNodePosition])
 
-  // ノードの状態更新
+  // ノードの状態更新（ログ記録付き）
+  const handleAntecedentChange = useCallback((value: string) => {
+    onAntecedentChange?.(value)
+    // ログ記録（sessionInfoとproblemIdがあれば記録）
+    if (sessionInfo && problemId) {
+      // stateをDB形式に変換
+      const dbState = steps ? mapUiToDbState(steps, nodeValues) : null
+      console.log('[handleAntecedentChange] Logging:', { controlId: 'antecedent', value, attemptId, problemId, sessionId: sessionInfo.sessionId, userId: sessionInfo.userId })
+      logSelectDropdown({
+        controlId: 'antecedent',
+        value,
+        attemptId: attemptId ?? undefined,
+        problemId,
+        sessionId: sessionInfo.sessionId,
+        userId: sessionInfo.userId,
+        state: dbState,
+      }).catch((err) => {
+        console.error('[handleAntecedentChange] Log error:', err)
+      })
+    } else {
+      console.warn('[handleAntecedentChange] Skipping log - missing sessionInfo or problemId:', { sessionInfo: !!sessionInfo, problemId })
+    }
+  }, [onAntecedentChange, attemptId, problemId, sessionInfo, steps, nodeValues])
+
+  const handleConsequentChange = useCallback((value: string) => {
+    onConsequentChange?.(value)
+    // ログ記録（sessionInfoとproblemIdがあれば記録）
+    if (sessionInfo && problemId) {
+      // stateをDB形式に変換
+      const dbState = steps ? mapUiToDbState(steps, nodeValues) : null
+      console.log('[handleConsequentChange] Logging:', { controlId: 'consequent', value, attemptId, problemId, sessionId: sessionInfo.sessionId, userId: sessionInfo.userId })
+      logSelectDropdown({
+        controlId: 'consequent',
+        value,
+        attemptId: attemptId ?? undefined,
+        problemId,
+        sessionId: sessionInfo.sessionId,
+        userId: sessionInfo.userId,
+        state: dbState,
+      }).catch((err) => {
+        console.error('[handleConsequentChange] Log error:', err)
+      })
+    } else {
+      console.warn('[handleConsequentChange] Skipping log - missing sessionInfo or problemId:', { sessionInfo: !!sessionInfo, problemId })
+    }
+  }, [onConsequentChange, attemptId, problemId, sessionInfo, steps, nodeValues])
+
   useNodeUpdates({
     nodes,
     setNodes: setNodes as (nodes: Node[] | ((prevNodes: Node[]) => Node[])) => void,
     currentStep,
     antecedentValue,
     consequentValue,
-    onAntecedentChange,
-    onConsequentChange,
+    onAntecedentChange: handleAntecedentChange,
+    onConsequentChange: handleConsequentChange,
   })
 
   // 接続の妥当性を検証
@@ -187,6 +281,23 @@ export function TriangleLogicFlow({
         }
         const newLinks = [...links, newLink]
         onLinksChange?.(newLinks)
+        
+        // ログ記録（ノードIDと文字列ラベルを含む）
+        if (sessionInfo && problemId && nodeValues) {
+          const resolveNodeValue = createNodeValueResolver(nodeValues)
+          const dbState = steps ? mapUiToDbState(steps, nodeValues) : null
+          logLinkCreated({
+            fromNode: params.source,
+            toNode: params.target,
+            fromLabel: resolveNodeValue(params.source),
+            toLabel: resolveNodeValue(params.target),
+            attemptId: attemptId ?? undefined,
+            problemId,
+            sessionId: sessionInfo.sessionId,
+            userId: sessionInfo.userId,
+            state: dbState,
+          }).catch(console.error)
+        }
       } else if (currentStep === 4 && params.source && params.target) {
         // Step4: activeLinksを更新（active: trueとして追加）
         const newLink = {
@@ -196,28 +307,27 @@ export function TriangleLogicFlow({
         }
         const newActiveLinks = [...activeLinks, newLink]
         onActiveLinksChange?.(newActiveLinks)
+        
+        // ログ記録（ノードIDと文字列ラベルを含む）
+        if (sessionInfo && problemId && nodeValues) {
+          const resolveNodeValue = createNodeValueResolver(nodeValues)
+          const dbState = steps ? mapUiToDbState(steps, nodeValues) : null
+          logLinkCreated({
+            fromNode: params.source,
+            toNode: params.target,
+            fromLabel: resolveNodeValue(params.source),
+            toLabel: resolveNodeValue(params.target),
+            attemptId: attemptId ?? undefined,
+            problemId,
+            sessionId: sessionInfo.sessionId,
+            userId: sessionInfo.userId,
+            state: dbState,
+          }).catch(console.error)
+        }
       }
     },
-    [currentStep, links, activeLinks, onLinksChange, onActiveLinksChange]
+    [currentStep, links, activeLinks, onLinksChange, onActiveLinksChange, attemptId, problemId, nodeValues, sessionInfo, steps]
   )
-
-  // ノードの値をメモ化
-  const nodeValues = useMemo(() => {
-    if (nodes.length === 0) return null
-
-    const antecedentNode = nodes.find(node => node.id === 'antecedent')
-    const consequentNode = nodes.find(node => node.id === 'consequent')
-    const premiseNodes = nodes.filter(node => node.id.startsWith('premise-'))
-
-    return {
-      antecedent: (antecedentNode?.data?.value as string) || '',
-      consequent: (consequentNode?.data?.value as string) || '',
-      premiseNodes: premiseNodes.map(node => ({
-        id: node.id,
-        value: (node.data?.value as string) || ''
-      }))
-    }
-  }, [nodes])
 
   // 前回の値を保持
   const prevNodeValuesRef = useRef<string>('')
@@ -241,13 +351,111 @@ export function TriangleLogicFlow({
     }
   }, [nodeValues])
 
+  // リンク変更時のログ記録付きコールバック
+  const handleLinksChange = useCallback((newLinks: TriangleLink[]) => {
+    onLinksChange?.(newLinks)
+    
+    // 削除されたリンクを検出してログ記録
+    if (sessionInfo && problemId && nodeValues) {
+      const resolveNodeValue = createNodeValueResolver(nodeValues)
+      const dbState = steps ? mapUiToDbState(steps, nodeValues) : null
+      const deletedLinks = links.filter(link => 
+        !newLinks.some(newLink => newLink.from === link.from && newLink.to === link.to)
+      )
+      deletedLinks.forEach(link => {
+        logLinkDeleted({
+          fromNode: link.from,
+          toNode: link.to,
+          fromLabel: resolveNodeValue(link.from),
+          toLabel: resolveNodeValue(link.to),
+          attemptId: attemptId ?? undefined,
+          problemId,
+          sessionId: sessionInfo.sessionId,
+          userId: sessionInfo.userId,
+          state: dbState,
+        }).catch(console.error)
+      })
+    }
+  }, [onLinksChange, links, attemptId, problemId, nodeValues, sessionInfo, steps])
+
+  // アクティブリンク変更時のログ記録付きコールバック
+  const handleActiveLinksChange = useCallback((newActiveLinks: ActiveTriangleLink[]) => {
+    onActiveLinksChange?.(newActiveLinks)
+    
+    // 活性/非活性の変更を検出してログ記録
+    if (sessionInfo && problemId && nodeValues) {
+      const resolveNodeValue = createNodeValueResolver(nodeValues)
+      const dbState = steps ? mapUiToDbState(steps, nodeValues) : null
+      activeLinks.forEach(oldLink => {
+        const newLink = newActiveLinks.find(
+          nl => nl.from === oldLink.from && nl.to === oldLink.to
+        )
+        if (newLink) {
+          // リンクが存在する場合、活性状態の変更をチェック
+          if (oldLink.active !== newLink.active) {
+            if (newLink.active) {
+              logLinkMarkedActive({
+                linkId: `${newLink.from}-${newLink.to}`,
+                fromNode: newLink.from,
+                toNode: newLink.to,
+                fromLabel: resolveNodeValue(newLink.from),
+                toLabel: resolveNodeValue(newLink.to),
+                attemptId: attemptId ?? undefined,
+                problemId,
+                sessionId: sessionInfo.sessionId,
+                userId: sessionInfo.userId,
+                state: dbState,
+              }).catch(console.error)
+            } else {
+              logLinkMarkedInactive({
+                linkId: `${newLink.from}-${newLink.to}`,
+                fromNode: newLink.from,
+                toNode: newLink.to,
+                fromLabel: resolveNodeValue(newLink.from),
+                toLabel: resolveNodeValue(newLink.to),
+                attemptId: attemptId ?? undefined,
+                problemId,
+                sessionId: sessionInfo.sessionId,
+                userId: sessionInfo.userId,
+                state: dbState,
+              }).catch(console.error)
+            }
+          }
+        } else {
+          // リンクが削除された場合
+          logLinkDeleted({
+            fromNode: oldLink.from,
+            toNode: oldLink.to,
+            fromLabel: resolveNodeValue(oldLink.from),
+            toLabel: resolveNodeValue(oldLink.to),
+            attemptId: attemptId ?? undefined,
+            problemId,
+            sessionId: sessionInfo.sessionId,
+            userId: sessionInfo.userId,
+            state: dbState,
+          }).catch(console.error)
+        }
+      })
+      
+      // 新しく追加されたリンクを検出
+      newActiveLinks.forEach(newLink => {
+        const oldLink = activeLinks.find(
+          ol => ol.from === newLink.from && ol.to === newLink.to
+        )
+        if (!oldLink) {
+          // 新規追加されたリンク（onConnectで記録されるため、ここでは記録しない）
+        }
+      })
+    }
+  }, [onActiveLinksChange, activeLinks, attemptId, problemId, nodeValues, sessionInfo, steps])
+
   // エッジを動的に生成
   const computedEdges = useTriangleEdges({
     currentStep,
     links,
     activeLinks,
-    onLinksChange,
-    onActiveLinksChange,
+    onLinksChange: handleLinksChange,
+    onActiveLinksChange: handleActiveLinksChange,
   })
 
   useEffect(() => {

@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { ProblemDetail, StepsState } from '@/lib/types'
+import { ProblemDetail, StepsState, NodeValues } from '@/lib/types'
 
 interface UseProblemResponseOptions {
   problem: ProblemDetail | null
@@ -9,6 +9,7 @@ interface UseProblemResponseOptions {
   completedSteps: number
   totalSteps: number
   sessionInfo: { sessionId: string; userId: string } | null
+  nodeValues?: NodeValues | null
 }
 
 export function useProblemResponse({
@@ -19,6 +20,7 @@ export function useProblemResponse({
   completedSteps,
   totalSteps,
   sessionInfo,
+  nodeValues,
 }: UseProblemResponseOptions) {
   // ステップ更新時にResponseテーブルに保存
   useEffect(() => {
@@ -37,6 +39,7 @@ export function useProblemResponse({
               problem_id: problem.problem_id,
               problem_number: problemNumber,
               state: steps,
+              node_values: nodeValues ?? undefined,
               current_step: currentStep,
               is_completed: completedSteps >= totalSteps,
             }),

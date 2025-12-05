@@ -8,8 +8,8 @@ import {
   premisesSetsMatch,
   createNodeValueResolver
 } from '@/lib/answer-validation'
-import { TriangleLink } from '@/lib/types'
-import { logClientCheck } from '@/lib/utils'
+import { TriangleLink, StepsState } from '@/lib/types'
+import { logClientCheck, mapUiToDbState } from '@/lib/utils'
 import { getUserIdClient } from '@/lib/session-client'
 
 interface UseAnswerCheckOptions {
@@ -121,16 +121,34 @@ export function useAnswerCheck({ problem, nodeValues, steps, currentStep, sessio
       }
     }
 
-    // ログ送信（研究用）
+    // ログ送信（研究用）- ノード文字列ラベルを含む
     const sessionId = sessionInfo?.sessionId || null
     const userId = sessionInfo?.userId || getUserIdClient()
+    
+    // payloadにノード文字列ラベルを追加
+    const payloadWithLabels = {
+      ...currentStateFragment,
+      node_labels: {
+        antecedent: nodeValues.antecedent,
+        consequent: nodeValues.consequent,
+        premiseNodes: nodeValues.premiseNodes.map(node => ({
+          id: node.id,
+          label: node.value,
+        })),
+      },
+    }
+    
+    // stateをDB形式に変換
+    const dbState = mapUiToDbState(steps as StepsState, nodeValues)
+    
     logClientCheck({
       sessionId: sessionId ?? undefined,
       userId: userId ?? undefined,
       problemId: problem.problem_id,
       step: stepNumber,
       isCorrect,
-      payload: currentStateFragment,
+      payload: payloadWithLabels,
+      state: dbState,
     })
 
     return isCorrect

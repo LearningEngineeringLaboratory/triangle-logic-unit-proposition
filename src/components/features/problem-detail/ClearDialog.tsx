@@ -26,7 +26,7 @@ export function ClearDialog({
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader className="text-center space-y-4">
-          <div className="mx-auto w-20 h-20 rounded-full bg-gradient-to-br from-success to-success/70 flex items-center justify-center shadow-xl animate-in zoom-in duration-500">
+          <div className="mx-auto w-20 h-20 rounded-full bg-linear-to-br from-success to-success/70 flex items-center justify-center shadow-xl animate-in zoom-in duration-500">
             {isLastProblem ? (
               <Sparkles className="w-10 h-10 text-white" />
             ) : (

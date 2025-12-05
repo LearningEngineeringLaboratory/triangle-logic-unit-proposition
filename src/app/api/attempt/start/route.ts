@@ -56,6 +56,7 @@ export async function POST(req: NextRequest) {
       problem_id: body.problem_id,
       started_at: new Date().toISOString(),
       status: 'in_progress' as const,
+      current_step: 1, // 初期ステップは1
     }
     
     console.log('[debug] Creating attempt:', attemptData)
@@ -63,7 +64,7 @@ export async function POST(req: NextRequest) {
     const { data: attempt, error: insertError } = await supabase
       .from('attempts')
       .insert(attemptData)
-      .select('attempt_id, session_id, user_id, problem_id, started_at, status')
+      .select('attempt_id, session_id, user_id, problem_id, started_at, status, current_step')
       .single()
 
     if (insertError) {

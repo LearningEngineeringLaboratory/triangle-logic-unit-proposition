@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { Node } from '@xyflow/react'
 
 interface UseNodeUpdatesProps {
@@ -20,6 +20,18 @@ export function useNodeUpdates({
   onAntecedentChange,
   onConsequentChange,
 }: UseNodeUpdatesProps) {
+  // コールバックをrefで保持（無限ループ防止）
+  const onAntecedentChangeRef = useRef(onAntecedentChange)
+  const onConsequentChangeRef = useRef(onConsequentChange)
+  
+  useEffect(() => {
+    onAntecedentChangeRef.current = onAntecedentChange
+  }, [onAntecedentChange])
+  
+  useEffect(() => {
+    onConsequentChangeRef.current = onConsequentChange
+  }, [onConsequentChange])
+
   // ノードの状態を更新
   useEffect(() => {
     if (nodes.length === 0) return
@@ -38,7 +50,7 @@ export function useNodeUpdates({
               value: antecedentValue,
               isReadOnly: currentStep > 1,
               showHandles: currentStep >= 2 && currentStep !== 3 && currentStep !== 5,
-              onValueChange: onAntecedentChange || (() => {}),
+              onValueChange: onAntecedentChangeRef.current || (() => {}),
             }
           }
         }
@@ -55,7 +67,7 @@ export function useNodeUpdates({
               value: consequentValue,
               isReadOnly: currentStep > 1,
               showHandles: currentStep >= 2 && currentStep !== 3 && currentStep !== 5,
-              onValueChange: onConsequentChange || (() => {}),
+              onValueChange: onConsequentChangeRef.current || (() => {}),
             }
           }
         }
@@ -69,7 +81,6 @@ export function useNodeUpdates({
     currentStep,
     antecedentValue,
     consequentValue,
-    onAntecedentChange,
-    onConsequentChange,
+    // onAntecedentChangeとonConsequentChangeは依存配列から削除（refで保持）
   ])
 }

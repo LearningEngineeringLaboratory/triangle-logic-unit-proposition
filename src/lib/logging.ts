@@ -117,19 +117,30 @@ export async function logSelectDropdown(params: {
   value: string
   attemptId?: string
   problemId?: string
+  sessionId?: string
+  userId?: string
+  state?: unknown // イベント送信時の問題の全ての回答状況（responses.stateと同じ形式）
 }) {
+  console.log('[logSelectDropdown] Called with:', { controlId: params.controlId, value: params.value, attemptId: params.attemptId, problemId: params.problemId, sessionId: params.sessionId, userId: params.userId })
   const context = getLogContext()
-  await logEvent({
-    sessionId: context.sessionId ?? undefined,
-    userId: context.userId ?? undefined,
-    attemptId: params.attemptId,
-    problemId: params.problemId,
-    kind: 'select_dropdown',
-    payload: {
-      control_id: params.controlId,
-      value: params.value,
-    },
-  })
+  try {
+    await logEvent({
+      sessionId: params.sessionId ?? context.sessionId ?? undefined,
+      userId: params.userId ?? context.userId ?? undefined,
+      attemptId: params.attemptId,
+      problemId: params.problemId,
+      kind: 'select_dropdown',
+      payload: {
+        control_id: params.controlId,
+        value: params.value,
+      },
+      state: params.state,
+    })
+    console.log('[logSelectDropdown] Successfully logged:', params.controlId)
+  } catch (err) {
+    console.error('[logSelectDropdown] Error:', err)
+    throw err
+  }
 }
 
 /**
@@ -138,20 +149,28 @@ export async function logSelectDropdown(params: {
 export async function logLinkCreated(params: {
   fromNode: string
   toNode: string
+  fromLabel?: string
+  toLabel?: string
   attemptId?: string
   problemId?: string
+  sessionId?: string
+  userId?: string
+  state?: unknown // イベント送信時の問題の全ての回答状況（responses.stateと同じ形式）
 }) {
   const context = getLogContext()
   await logEvent({
-    sessionId: context.sessionId ?? undefined,
-    userId: context.userId ?? undefined,
+    sessionId: params.sessionId ?? context.sessionId ?? undefined,
+    userId: params.userId ?? context.userId ?? undefined,
     attemptId: params.attemptId,
     problemId: params.problemId,
     kind: 'link_created',
     payload: {
-      from_node: params.fromNode,
-      to_node: params.toNode,
+      from_node_id: params.fromNode,
+      from_node_label: params.fromLabel ?? params.fromNode,
+      to_node_id: params.toNode,
+      to_node_label: params.toLabel ?? params.toNode,
     },
+    state: params.state,
   })
 }
 
@@ -161,20 +180,28 @@ export async function logLinkCreated(params: {
 export async function logLinkDeleted(params: {
   fromNode: string
   toNode: string
+  fromLabel?: string
+  toLabel?: string
   attemptId?: string
   problemId?: string
+  sessionId?: string
+  userId?: string
+  state?: unknown // イベント送信時の問題の全ての回答状況（responses.stateと同じ形式）
 }) {
   const context = getLogContext()
   await logEvent({
-    sessionId: context.sessionId ?? undefined,
-    userId: context.userId ?? undefined,
+    sessionId: params.sessionId ?? context.sessionId ?? undefined,
+    userId: params.userId ?? context.userId ?? undefined,
     attemptId: params.attemptId,
     problemId: params.problemId,
     kind: 'link_deleted',
     payload: {
-      from_node: params.fromNode,
-      to_node: params.toNode,
+      from_node_id: params.fromNode,
+      from_node_label: params.fromLabel ?? params.fromNode,
+      to_node_id: params.toNode,
+      to_node_label: params.toLabel ?? params.toNode,
     },
+    state: params.state,
   })
 }
 
@@ -183,20 +210,32 @@ export async function logLinkDeleted(params: {
  */
 export async function logLinkMarkedInactive(params: {
   linkId: string
+  fromNode?: string
+  toNode?: string
+  fromLabel?: string
+  toLabel?: string
   attemptId?: string
   problemId?: string
+  sessionId?: string
+  userId?: string
+  state?: unknown // イベント送信時の問題の全ての回答状況（responses.stateと同じ形式）
 }) {
   const context = getLogContext()
   await logEvent({
-    sessionId: context.sessionId ?? undefined,
-    userId: context.userId ?? undefined,
+    sessionId: params.sessionId ?? context.sessionId ?? undefined,
+    userId: params.userId ?? context.userId ?? undefined,
     attemptId: params.attemptId,
     problemId: params.problemId,
     kind: 'link_marked_inactive',
     payload: {
       link_id: params.linkId,
+      from_node_id: params.fromNode,
+      from_node_label: params.fromLabel ?? params.fromNode,
+      to_node_id: params.toNode,
+      to_node_label: params.toLabel ?? params.toNode,
       active: false,
     },
+    state: params.state,
   })
 }
 
@@ -205,20 +244,32 @@ export async function logLinkMarkedInactive(params: {
  */
 export async function logLinkMarkedActive(params: {
   linkId: string
+  fromNode?: string
+  toNode?: string
+  fromLabel?: string
+  toLabel?: string
   attemptId?: string
   problemId?: string
+  sessionId?: string
+  userId?: string
+  state?: unknown // イベント送信時の問題の全ての回答状況（responses.stateと同じ形式）
 }) {
   const context = getLogContext()
   await logEvent({
-    sessionId: context.sessionId ?? undefined,
-    userId: context.userId ?? undefined,
+    sessionId: params.sessionId ?? context.sessionId ?? undefined,
+    userId: params.userId ?? context.userId ?? undefined,
     attemptId: params.attemptId,
     problemId: params.problemId,
     kind: 'link_marked_active',
     payload: {
       link_id: params.linkId,
+      from_node_id: params.fromNode,
+      from_node_label: params.fromLabel ?? params.fromNode,
+      to_node_id: params.toNode,
+      to_node_label: params.toLabel ?? params.toNode,
       active: true,
     },
+    state: params.state,
   })
 }
 

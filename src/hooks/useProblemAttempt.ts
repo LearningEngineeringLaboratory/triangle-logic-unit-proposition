@@ -76,6 +76,25 @@ export function useProblemAttempt({
     startAttempt()
   }, [sessionInfo, problem, isSessionLoading, onComplete])
 
+  const updateCurrentStep = async (currentStep: number) => {
+    if (!attemptId) return
+
+    try {
+      await fetch('/api/attempt/update-step', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          attempt_id: attemptId,
+          current_step: currentStep,
+        }),
+      }).catch((err) => {
+        console.error('Failed to update current step:', err)
+      })
+    } catch (err) {
+      console.error('Failed to update current step (exception):', err)
+    }
+  }
+
   const finishAttempt = async (success: boolean) => {
     if (!attemptId || !sessionInfo || !problem) return
 
@@ -102,6 +121,6 @@ export function useProblemAttempt({
     })
   }
 
-  return { attemptId, finishAttempt }
+  return { attemptId, updateCurrentStep, finishAttempt }
 }
 

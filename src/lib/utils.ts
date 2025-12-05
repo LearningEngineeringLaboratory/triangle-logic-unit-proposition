@@ -7,13 +7,45 @@ export function cn(...inputs: ClassValue[]) {
 
 // UI <-> DB マッピングユーティリティ（可変ステップ数対応）
 
-import { StepsState, Step1State, Step2State, Step2Answer, Step3State, Step4State, Step5State, TriangleLink, CorrectAnswers } from './types'
+import {
+  StepsState,
+  Step1State,
+  Step2State,
+  Step2Answer,
+  Step3State,
+  Step4State,
+  Step5State,
+  TriangleLink,
+  CorrectAnswers,
+  NodeValues,
+  ActiveTriangleLink,
+} from './types'
+import { createNodeValueResolver } from './answer-validation'
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null
 }
 
-export function mapUiToDbState(ui: StepsState) {
+function buildLinkLabels(
+  links: TriangleLink[] | ActiveTriangleLink[] | undefined,
+  nodeValues?: NodeValues
+) {
+  if (!links?.length || !nodeValues) return undefined
+
+  const resolveNodeValue = createNodeValueResolver(nodeValues)
+
+  return links.map(link => ({
+    from_id: link.from,
+    from_label: resolveNodeValue(link.from),
+    to_id: link.to,
+    to_label: resolveNodeValue(link.to),
+    ...(Object.prototype.hasOwnProperty.call(link, 'active')
+      ? { active: (link as ActiveTriangleLink).active ?? true }
+      : {}),
+  }))
+}
+
+export function mapUiToDbState(ui: StepsState, nodeValues?: NodeValues) {
   const db: Record<string, unknown> = {}
   
   Object.entries(ui).forEach(([stepKey, step]) => {
@@ -32,6 +64,10 @@ export function mapUiToDbState(ui: StepsState) {
       const state = step as Step2State
       if (state.links?.length) {
         base.links = state.links
+        const labels = buildLinkLabels(state.links, nodeValues)
+        if (labels) {
+          base.link_labels = labels
+        }
       }
     } else if (stepNumber === '3') {
       const state = step as Step3State
@@ -42,6 +78,10 @@ export function mapUiToDbState(ui: StepsState) {
       const state = step as Step4State
       if (state.links?.length) {
         base.links = state.links
+        const labels = buildLinkLabels(state.links, nodeValues)
+        if (labels) {
+          base.link_labels = labels
+        }
       }
     } else if (stepNumber === '5') {
       const state = step as Step5State
@@ -242,6 +282,7 @@ export async function logClientCheck(params: {
   step: 1 | 2 | 3 | 4 | 5
   isCorrect: boolean
   payload?: unknown
+  state?: unknown // イベント送信時の問題の全ての回答状況（responses.stateと同じ形式）
 }) {
   try {
     await fetch('/api/log', {
@@ -255,6 +296,7 @@ export async function logClientCheck(params: {
         is_correct: params.isCorrect,
         kind: 'check_answer',
         payload: params.payload ?? null,
+        state: params.state ?? null,
         client_ts: new Date().toISOString(),
       }),
     })
@@ -273,6 +315,7 @@ export async function logEvent(params: {
   problemId?: string
   kind: string
   payload?: unknown
+  state?: unknown // イベント送信時の問題の全ての回答状況（responses.stateと同じ形式）
   idempotencyKey?: string
 }): Promise<void> {
   try {
@@ -286,6 +329,7 @@ export async function logEvent(params: {
         problem_id: params.problemId,
         kind: params.kind,
         payload: params.payload ?? null,
+        state: params.state ?? null,
         client_ts: new Date().toISOString(),
         idempotency_key: params.idempotencyKey,
       }),

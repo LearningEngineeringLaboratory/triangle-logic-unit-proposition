@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 import { generateUlid } from '@/lib/session'
 import { mapUiToDbState } from '@/lib/utils'
-import { StepsState } from '@/lib/types'
+import { StepsState, NodeValues } from '@/lib/types'
 
 interface SaveResponseBody {
   session_id: string
@@ -12,6 +12,7 @@ interface SaveResponseBody {
   state: StepsState
   current_step: number
   is_completed: boolean
+  node_values?: NodeValues
 }
 
 export async function POST(req: NextRequest) {
@@ -36,8 +37,8 @@ export async function POST(req: NextRequest) {
       .eq('problem_id', body.problem_id)
       .single()
 
-    // ステートをDB形式に変換
-    const dbState = mapUiToDbState(body.state)
+    // ステートをDB形式に変換（ノードの文字列表現も含めて保存）
+    const dbState = mapUiToDbState(body.state, body.node_values)
 
     if (!searchError && existingResponse) {
       // 既存のresponseを更新

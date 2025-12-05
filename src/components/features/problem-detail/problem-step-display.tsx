@@ -1,6 +1,8 @@
 'use client'
 
 import { PremiseSelection, ProblemDetail, StepsState } from '@/lib/types'
+import { logSelectDropdown } from '@/lib/logging'
+import { mapUiToDbState } from '@/lib/utils'
 import { AlertCircle, ArrowUp, BookOpen } from 'lucide-react'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Button } from '@/components/ui/button'
@@ -19,6 +21,10 @@ interface ProblemStepDisplayProps {
   step5Premises?: PremiseSelection[]
   onStep5PremiseChange?: (index: number, field: 'antecedent' | 'consequent', value: string) => void
   stepsState?: StepsState // ステップの完了状態
+  // ログ記録用
+  attemptId?: string | null
+  sessionInfo?: { sessionId: string; userId: string } | null
+  nodeValues?: { antecedent: string; consequent: string; premiseNodes: Array<{ id: string; value: string }> } | null
 }
 
 interface Step3QuestionInputsProps {
@@ -28,6 +34,11 @@ interface Step3QuestionInputsProps {
   onInferenceTypeChange?: (value: string) => void
   onValidityChange?: (value: string) => void
   onVerificationChange?: (value: string) => void
+  attemptId?: string | null
+  problemId?: string
+  sessionInfo?: { sessionId: string; userId: string } | null
+  stepsState?: StepsState
+  nodeValues?: { antecedent: string; consequent: string; premiseNodes: Array<{ id: string; value: string }> } | null
 }
 
 interface Step5ArgumentInputProps {
@@ -35,6 +46,10 @@ interface Step5ArgumentInputProps {
   step5Premises: PremiseSelection[]
   onStep5PremiseChange?: (index: number, field: 'antecedent' | 'consequent', value: string) => void
   stepsState: StepsState
+  attemptId?: string | null
+  problemId?: string
+  sessionInfo?: { sessionId: string; userId: string } | null
+  nodeValues?: { antecedent: string; consequent: string; premiseNodes: Array<{ id: string; value: string }> } | null
 }
 
 export function ProblemStepDisplay({
@@ -48,7 +63,10 @@ export function ProblemStepDisplay({
   onVerificationChange,
   step5Premises = [],
   onStep5PremiseChange,
-  stepsState = {}
+  stepsState = {},
+  attemptId,
+  sessionInfo,
+  nodeValues,
 }: ProblemStepDisplayProps) {
   const [showScrollTop, setShowScrollTop] = useState(false)
   const scrollContainerRef = useRef<HTMLDivElement | null>(null)
@@ -198,6 +216,11 @@ export function ProblemStepDisplay({
                 onInferenceTypeChange={onInferenceTypeChange}
                 onValidityChange={onValidityChange}
                 onVerificationChange={onVerificationChange}
+                attemptId={attemptId}
+                problemId={problem.problem_id}
+                sessionInfo={sessionInfo}
+                stepsState={stepsState}
+                nodeValues={nodeValues}
               />
             )}
 
@@ -208,6 +231,10 @@ export function ProblemStepDisplay({
                 step5Premises={step5Premises}
                 onStep5PremiseChange={onStep5PremiseChange}
                 stepsState={stepsState}
+                attemptId={attemptId}
+                problemId={problem.problem_id}
+                sessionInfo={sessionInfo}
+                nodeValues={nodeValues}
               />
             )}
           </div>
@@ -281,14 +308,68 @@ const Step3QuestionInputs = ({
   onInferenceTypeChange,
   onValidityChange,
   onVerificationChange,
-}: Step3QuestionInputsProps) => (
+  attemptId,
+  problemId,
+  sessionInfo,
+  stepsState,
+  nodeValues,
+}: Step3QuestionInputsProps) => {
+  const handleVerificationChange = (value: string) => {
+    onVerificationChange?.(value)
+    if (sessionInfo && problemId) {
+      const dbState = stepsState && nodeValues ? mapUiToDbState(stepsState, nodeValues) : null
+      logSelectDropdown({
+        controlId: 'step3-verification',
+        value,
+        attemptId: attemptId ?? undefined,
+        problemId,
+        sessionId: sessionInfo.sessionId,
+        userId: sessionInfo.userId,
+        state: dbState,
+      }).catch(console.error)
+    }
+  }
+  
+  const handleValidityChange = (value: string) => {
+    onValidityChange?.(value)
+    if (sessionInfo && problemId) {
+      const dbState = stepsState && nodeValues ? mapUiToDbState(stepsState, nodeValues) : null
+      logSelectDropdown({
+        controlId: 'step3-validity',
+        value,
+        attemptId: attemptId ?? undefined,
+        problemId,
+        sessionId: sessionInfo.sessionId,
+        userId: sessionInfo.userId,
+        state: dbState,
+      }).catch(console.error)
+    }
+  }
+  
+  const handleInferenceTypeChange = (value: string) => {
+    onInferenceTypeChange?.(value)
+    if (sessionInfo && problemId) {
+      const dbState = stepsState && nodeValues ? mapUiToDbState(stepsState, nodeValues) : null
+      logSelectDropdown({
+        controlId: 'step3-inference_type',
+        value,
+        attemptId: attemptId ?? undefined,
+        problemId,
+        sessionId: sessionInfo.sessionId,
+        userId: sessionInfo.userId,
+        state: dbState,
+      }).catch(console.error)
+    }
+  }
+  
+  return (
   <div className="mb-6">
     <div className="flex flex-col gap-4 w-full max-w-3xl">
       <div className="flex flex-col gap-2 mt-6">
         <span className="text-sm font-medium text-foreground">
           問題1. この論証には演繹構造が含まれていますか？演繹構造とは、「P→Q, Q→R, P→R」のような構造のことを指します。
         </span>
-        <Select value={verificationValue} onValueChange={onVerificationChange ?? (() => {})}>
+        <Select value={verificationValue} onValueChange={handleVerificationChange}>
           <SelectTrigger
             className={`w-full h-14 rounded-xl border-2 text-lg py-3 ${
               verificationValue ? '' : 'animate-glow-pulse'
@@ -306,7 +387,7 @@ const Step3QuestionInputs = ({
         <span className="text-sm font-medium text-foreground">
           問題2. この論証の妥当性を答えてください。妥当であるとは、前提を正しいと仮定したとき、導出される結論が必ず正しいことを意味します。
         </span>
-        <Select value={validityValue} onValueChange={onValidityChange ?? (() => {})}>
+        <Select value={validityValue} onValueChange={handleValidityChange}>
           <SelectTrigger
             className={`w-full h-14 rounded-xl border-2 text-lg py-3 ${
               validityValue ? '' : 'animate-glow-pulse'
@@ -322,7 +403,7 @@ const Step3QuestionInputs = ({
       </div>
       <div className="flex flex-col gap-2 mt-6">
         <span className="text-sm font-medium text-foreground">問題3. この論証の推論形式を答えてください。</span>
-        <Select value={inferenceTypeValue} onValueChange={onInferenceTypeChange ?? (() => {})}>
+        <Select value={inferenceTypeValue} onValueChange={handleInferenceTypeChange}>
           <SelectTrigger
             className={`w-full h-14 rounded-xl border-2 text-lg py-3 ${
               inferenceTypeValue ? '' : 'animate-glow-pulse'
@@ -339,14 +420,36 @@ const Step3QuestionInputs = ({
       </div>
     </div>
   </div>
-)
+  )
+}
 
 const Step5ArgumentInput = ({
   optionList,
   step5Premises,
   onStep5PremiseChange,
   stepsState,
-}: Step5ArgumentInputProps) => (
+  attemptId,
+  problemId,
+  sessionInfo,
+  nodeValues,
+}: Step5ArgumentInputProps) => {
+  const handlePremiseChange = (index: number, field: 'antecedent' | 'consequent', value: string) => {
+    onStep5PremiseChange?.(index, field, value)
+    if (sessionInfo && problemId) {
+      const dbState = stepsState && nodeValues ? mapUiToDbState(stepsState, nodeValues) : null
+      logSelectDropdown({
+        controlId: `step5-premise${index}-${field}`,
+        value,
+        attemptId: attemptId ?? undefined,
+        problemId,
+        sessionId: sessionInfo.sessionId,
+        userId: sessionInfo.userId,
+        state: dbState,
+      }).catch(console.error)
+    }
+  }
+  
+  return (
   <div className="mb-6">
     <fieldset className="border-2 border-primary/20 rounded-2xl px-4 pt-2 pb-3 mb-2 bg-primary/5">
       <legend className="px-2 flex items-center gap-2">
@@ -360,7 +463,7 @@ const Step5ArgumentInput = ({
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
             <Select
               value={step5Premises[0]?.antecedent || ''}
-              onValueChange={(value) => onStep5PremiseChange?.(0, 'antecedent', value)}
+              onValueChange={(value) => handlePremiseChange(0, 'antecedent', value)}
             >
               <SelectTrigger
                 className={`h-10 rounded-lg border-2 text-base min-w-[120px] font-sans ${
@@ -380,7 +483,7 @@ const Step5ArgumentInput = ({
             <span className="text-base font-medium text-foreground font-serif whitespace-normal">ならば</span>
             <Select
               value={step5Premises[0]?.consequent || ''}
-              onValueChange={(value) => onStep5PremiseChange?.(0, 'consequent', value)}
+              onValueChange={(value) => handlePremiseChange(0, 'consequent', value)}
             >
               <SelectTrigger
                 className={`h-10 rounded-lg border-2 text-base min-w-[120px] font-sans ${
@@ -404,7 +507,7 @@ const Step5ArgumentInput = ({
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
             <Select
               value={step5Premises[1]?.antecedent || ''}
-              onValueChange={(value) => onStep5PremiseChange?.(1, 'antecedent', value)}
+              onValueChange={(value) => handlePremiseChange(1, 'antecedent', value)}
             >
               <SelectTrigger
                 className={`h-10 rounded-lg border-2 text-base min-w-[120px] font-sans ${
@@ -424,7 +527,7 @@ const Step5ArgumentInput = ({
             <span className="text-base font-medium text-foreground font-serif whitespace-normal">ならば</span>
             <Select
               value={step5Premises[1]?.consequent || ''}
-              onValueChange={(value) => onStep5PremiseChange?.(1, 'consequent', value)}
+              onValueChange={(value) => handlePremiseChange(1, 'consequent', value)}
             >
               <SelectTrigger
                 className={`h-10 rounded-lg border-2 text-base min-w-[120px] font-sans ${
@@ -456,5 +559,6 @@ const Step5ArgumentInput = ({
       </div>
     </fieldset>
   </div>
-)
+  )
+}
 
