@@ -214,7 +214,7 @@ export function TriangleLogicFlow({
           antecedent: value, // 更新後の値を使用
         },
       }
-      const dbState = mapUiToDbState(updatedSteps, nodeValues)
+      const dbState = mapUiToDbState(updatedSteps, nodeValues ?? undefined)
       console.log('[handleAntecedentChange] Logging:', { controlId: 'antecedent', value, attemptId, problemId, sessionId: sessionInfo.sessionId, userId: sessionInfo.userId })
       logSelectDropdown({
         controlId: 'antecedent',
@@ -245,7 +245,7 @@ export function TriangleLogicFlow({
           consequent: value, // 更新後の値を使用
         },
       }
-      const dbState = mapUiToDbState(updatedSteps, nodeValues)
+      const dbState = mapUiToDbState(updatedSteps, nodeValues ?? undefined)
       console.log('[handleConsequentChange] Logging:', { controlId: 'consequent', value, attemptId, problemId, sessionId: sessionInfo.sessionId, userId: sessionInfo.userId })
       logSelectDropdown({
         controlId: 'consequent',
@@ -382,7 +382,7 @@ export function TriangleLogicFlow({
               links: newActiveLinks, // 更新後のリンクを使用
             },
           }
-          const dbState = mapUiToDbState(updatedSteps, nodeValues)
+          const dbState = mapUiToDbState(updatedSteps, nodeValues ?? undefined)
           logLinkCreated({
             fromNode: params.source,
             toNode: params.target,
@@ -438,7 +438,7 @@ export function TriangleLogicFlow({
           links: newLinks, // 更新後のリンクを使用
         },
       }
-      const dbState = mapUiToDbState(updatedSteps, nodeValues)
+      const dbState = mapUiToDbState(updatedSteps, nodeValues ?? undefined)
       const deletedLinks = links.filter(link => 
         !newLinks.some(newLink => newLink.from === link.from && newLink.to === link.to)
       )
@@ -474,7 +474,7 @@ export function TriangleLogicFlow({
           links: newActiveLinks, // 更新後のリンクを使用
         },
       }
-      const dbState = mapUiToDbState(updatedSteps, nodeValues)
+      const dbState = mapUiToDbState(updatedSteps, nodeValues ?? undefined)
       activeLinks.forEach(oldLink => {
         const newLink = newActiveLinks.find(
           nl => nl.from === oldLink.from && nl.to === oldLink.to
