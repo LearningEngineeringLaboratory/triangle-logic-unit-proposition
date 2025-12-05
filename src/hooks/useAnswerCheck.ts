@@ -125,9 +125,10 @@ export function useAnswerCheck({ problem, nodeValues, steps, currentStep, sessio
     const sessionId = sessionInfo?.sessionId || null
     const userId = sessionInfo?.userId || getUserIdClient()
     
-    // payloadにノード文字列ラベルを追加
+    // payloadにノード文字列ラベルと正誤判定結果を追加
     const payloadWithLabels = {
       ...currentStateFragment,
+      isPassed: isCorrect, // 正誤判定結果を明示的に設定
       node_labels: {
         antecedent: nodeValues.antecedent,
         consequent: nodeValues.consequent,
@@ -138,8 +139,12 @@ export function useAnswerCheck({ problem, nodeValues, steps, currentStep, sessio
       },
     }
     
-    // stateをDB形式に変換
-    const dbState = mapUiToDbState(steps as StepsState, nodeValues)
+    // stateをDB形式に変換（現在のステップのisPassedをisCorrectの結果で上書き）
+    const dbState = mapUiToDbState(
+      steps as StepsState,
+      nodeValues,
+      { stepNumber, isPassed: isCorrect }
+    )
     
     logClientCheck({
       sessionId: sessionId ?? undefined,

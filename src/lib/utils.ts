@@ -35,9 +35,7 @@ function buildLinkLabels(
   const resolveNodeValue = createNodeValueResolver(nodeValues)
 
   return links.map(link => ({
-    from_id: link.from,
     from_label: resolveNodeValue(link.from),
-    to_id: link.to,
     to_label: resolveNodeValue(link.to),
     ...(Object.prototype.hasOwnProperty.call(link, 'active')
       ? { active: (link as ActiveTriangleLink).active ?? true }
@@ -45,15 +43,25 @@ function buildLinkLabels(
   }))
 }
 
-export function mapUiToDbState(ui: StepsState, nodeValues?: NodeValues) {
+export function mapUiToDbState(
+  ui: StepsState,
+  nodeValues?: NodeValues,
+  currentStepOverride?: { stepNumber: number; isPassed: boolean }
+) {
   const db: Record<string, unknown> = {}
   
   Object.entries(ui).forEach(([stepKey, step]) => {
     if (!step) return
     const stepNumber = stepKey.replace('step', '')
     
+    // 現在のステップのisPassedを上書きする場合
+    const isPassed = currentStepOverride && 
+                     parseInt(stepNumber) === currentStepOverride.stepNumber
+      ? currentStepOverride.isPassed
+      : step.isPassed
+    
     const base: Record<string, unknown> = {
-      is_passed: step.isPassed,
+      is_passed: isPassed,
     }
     
     if (stepNumber === '1') {
@@ -63,10 +71,40 @@ export function mapUiToDbState(ui: StepsState, nodeValues?: NodeValues) {
     } else if (stepNumber === '2') {
       const state = step as Step2State
       if (state.links?.length) {
-        base.links = state.links
+        // link_labelsのみを保存（IDは不要）
         const labels = buildLinkLabels(state.links, nodeValues)
         if (labels) {
           base.link_labels = labels
+        }
+      }
+      
+      // リンクが繋がっていない単独ノードも保存
+      if (nodeValues) {
+        const linkedNodeIds = new Set<string>()
+        // linksに含まれる全てのノードIDを収集
+        if (state.links?.length) {
+          state.links.forEach(link => {
+            linkedNodeIds.add(link.from)
+            linkedNodeIds.add(link.to)
+          })
+        }
+        
+        // antecedentとconsequentは常に含める（Step1で設定済み）
+        const isolatedNodes: Array<{ label: string }> = []
+        
+        // premiseノードでリンクが繋がっていないものを抽出
+        if (nodeValues.premiseNodes?.length) {
+          nodeValues.premiseNodes.forEach(premiseNode => {
+            if (!linkedNodeIds.has(premiseNode.id) && premiseNode.value) {
+              isolatedNodes.push({
+                label: premiseNode.value
+              })
+            }
+          })
+        }
+        
+        if (isolatedNodes.length > 0) {
+          base.standalone_nodes = isolatedNodes
         }
       }
     } else if (stepNumber === '3') {
@@ -77,7 +115,7 @@ export function mapUiToDbState(ui: StepsState, nodeValues?: NodeValues) {
     } else if (stepNumber === '4') {
       const state = step as Step4State
       if (state.links?.length) {
-        base.links = state.links
+        // link_labelsのみを保存（IDは不要）
         const labels = buildLinkLabels(state.links, nodeValues)
         if (labels) {
           base.link_labels = labels

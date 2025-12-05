@@ -299,6 +299,33 @@ export async function logStepCompleted(params: {
 }
 
 /**
+ * ノード作成イベントを記録
+ */
+export async function logCreateNode(params: {
+  nodeId: string
+  nodeLabel: string
+  attemptId?: string
+  problemId?: string
+  sessionId?: string
+  userId?: string
+  state?: unknown // イベント送信時の問題の全ての回答状況（全ステップの回答状態をJSONB形式で保存）
+}) {
+  const context = getLogContext()
+  await logEvent({
+    sessionId: params.sessionId ?? context.sessionId ?? undefined,
+    userId: params.userId ?? context.userId ?? undefined,
+    attemptId: params.attemptId,
+    problemId: params.problemId,
+    kind: 'create_node',
+    payload: {
+      node_id: params.nodeId,
+      node_label: params.nodeLabel,
+    },
+    state: params.state,
+  })
+}
+
+/**
  * ステップ遷移イベントを記録
  */
 export async function logStepNavigation(params: {

@@ -316,8 +316,17 @@ const Step3QuestionInputs = ({
 }: Step3QuestionInputsProps) => {
   const handleVerificationChange = (value: string) => {
     onVerificationChange?.(value)
-    if (sessionInfo && problemId) {
-      const dbState = stepsState && nodeValues ? mapUiToDbState(stepsState, nodeValues) : null
+    if (sessionInfo && problemId && stepsState) {
+      // 更新後の状態を計算してstateを生成
+      const currentStep3 = stepsState.step3 || { isPassed: false, inferenceType: '', validity: null, verification: null }
+      const updatedSteps: StepsState = {
+        ...stepsState,
+        step3: {
+          ...currentStep3,
+          verification: value === '高い', // 更新後の値を使用
+        },
+      }
+      const dbState = nodeValues ? mapUiToDbState(updatedSteps, nodeValues) : null
       logSelectDropdown({
         controlId: 'step3-verification',
         value,
@@ -332,8 +341,17 @@ const Step3QuestionInputs = ({
   
   const handleValidityChange = (value: string) => {
     onValidityChange?.(value)
-    if (sessionInfo && problemId) {
-      const dbState = stepsState && nodeValues ? mapUiToDbState(stepsState, nodeValues) : null
+    if (sessionInfo && problemId && stepsState) {
+      // 更新後の状態を計算してstateを生成
+      const currentStep3 = stepsState.step3 || { isPassed: false, inferenceType: '', validity: null, verification: null }
+      const updatedSteps: StepsState = {
+        ...stepsState,
+        step3: {
+          ...currentStep3,
+          validity: value === '妥当', // 更新後の値を使用
+        },
+      }
+      const dbState = nodeValues ? mapUiToDbState(updatedSteps, nodeValues) : null
       logSelectDropdown({
         controlId: 'step3-validity',
         value,
@@ -348,8 +366,17 @@ const Step3QuestionInputs = ({
   
   const handleInferenceTypeChange = (value: string) => {
     onInferenceTypeChange?.(value)
-    if (sessionInfo && problemId) {
-      const dbState = stepsState && nodeValues ? mapUiToDbState(stepsState, nodeValues) : null
+    if (sessionInfo && problemId && stepsState) {
+      // 更新後の状態を計算してstateを生成
+      const currentStep3 = stepsState.step3 || { isPassed: false, inferenceType: '', validity: null, verification: null }
+      const updatedSteps: StepsState = {
+        ...stepsState,
+        step3: {
+          ...currentStep3,
+          inferenceType: value, // 更新後の値を使用
+        },
+      }
+      const dbState = nodeValues ? mapUiToDbState(updatedSteps, nodeValues) : null
       logSelectDropdown({
         controlId: 'step3-inference_type',
         value,
@@ -435,8 +462,26 @@ const Step5ArgumentInput = ({
 }: Step5ArgumentInputProps) => {
   const handlePremiseChange = (index: number, field: 'antecedent' | 'consequent', value: string) => {
     onStep5PremiseChange?.(index, field, value)
-    if (sessionInfo && problemId) {
-      const dbState = stepsState && nodeValues ? mapUiToDbState(stepsState, nodeValues) : null
+    if (sessionInfo && problemId && stepsState) {
+      // 更新後の状態を計算してstateを生成
+      const currentStep5 = stepsState.step5 || { isPassed: false, premises: [] }
+      const currentPremises = currentStep5.premises || []
+      const newPremises = [...currentPremises]
+      if (!newPremises[index]) {
+        newPremises[index] = { antecedent: '', consequent: '' }
+      }
+      newPremises[index] = {
+        ...newPremises[index],
+        [field]: value, // 更新後の値を使用
+      }
+      const updatedSteps: StepsState = {
+        ...stepsState,
+        step5: {
+          ...currentStep5,
+          premises: newPremises, // 更新後のpremisesを使用
+        },
+      }
+      const dbState = nodeValues ? mapUiToDbState(updatedSteps, nodeValues) : null
       logSelectDropdown({
         controlId: `step5-premise${index}-${field}`,
         value,

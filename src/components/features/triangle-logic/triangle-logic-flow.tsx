@@ -26,7 +26,7 @@ import { useTriangleNodes } from './hooks/useTriangleNodes'
 import { useNodeUpdates } from './hooks/useNodeUpdates'
 import { useTriangleEdges } from './hooks/useTriangleEdges'
 import { ActiveTriangleLink, NodeValues, TriangleLink, StepsState } from '@/lib/types'
-import { logLinkCreated, logLinkDeleted, logLinkMarkedInactive, logLinkMarkedActive, logSelectDropdown } from '@/lib/logging'
+import { logLinkCreated, logLinkDeleted, logLinkMarkedInactive, logLinkMarkedActive, logSelectDropdown, logCreateNode } from '@/lib/logging'
 import { createNodeValueResolver } from '@/lib/answer-validation'
 import { mapUiToDbState } from '@/lib/utils'
 
@@ -139,13 +139,30 @@ export function TriangleLogicFlow({
 
   // premiseノード追加時のログ記録付きラッパー
   const addPremiseNode = useCallback((value: string) => {
+    // ノードIDを生成（useTriangleNodesと同じロジック）
+    const newNodeId = `premise-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`
     originalAddPremiseNode(value)
-    // ログ記録
-    if (sessionInfo && problemId) {
-      const dbState = steps ? mapUiToDbState(steps, nodeValues) : null
-      logSelectDropdown({
-        controlId: 'premise-node-add',
-        value,
+    
+    // ログ記録（create_nodeイベントとして記録）
+    // nodeValuesはuseEffectで更新されるため、少し遅延してから記録
+    // または、追加予定のノードを含めて計算
+    if (sessionInfo && problemId && steps) {
+      // ノード追加後のnodeValuesを計算（新しく追加されたノードを含む）
+      const updatedNodeValues: NodeValues = nodeValues ? {
+        ...nodeValues,
+        premiseNodes: [
+          ...nodeValues.premiseNodes,
+          { id: newNodeId, value }
+        ]
+      } : {
+        antecedent: '',
+        consequent: '',
+        premiseNodes: [{ id: newNodeId, value }]
+      }
+      const dbState = mapUiToDbState(steps, updatedNodeValues)
+      logCreateNode({
+        nodeId: newNodeId,
+        nodeLabel: value,
         attemptId: attemptId ?? undefined,
         problemId,
         sessionId: sessionInfo.sessionId,
@@ -187,9 +204,17 @@ export function TriangleLogicFlow({
   const handleAntecedentChange = useCallback((value: string) => {
     onAntecedentChange?.(value)
     // ログ記録（sessionInfoとproblemIdがあれば記録）
-    if (sessionInfo && problemId) {
-      // stateをDB形式に変換
-      const dbState = steps ? mapUiToDbState(steps, nodeValues) : null
+    if (sessionInfo && problemId && steps) {
+      // 更新後の状態を計算してstateを生成
+      const currentStep1 = steps.step1 || { isPassed: false, antecedent: '', consequent: '' }
+      const updatedSteps: StepsState = {
+        ...steps,
+        step1: {
+          ...currentStep1,
+          antecedent: value, // 更新後の値を使用
+        },
+      }
+      const dbState = mapUiToDbState(updatedSteps, nodeValues)
       console.log('[handleAntecedentChange] Logging:', { controlId: 'antecedent', value, attemptId, problemId, sessionId: sessionInfo.sessionId, userId: sessionInfo.userId })
       logSelectDropdown({
         controlId: 'antecedent',
@@ -210,9 +235,17 @@ export function TriangleLogicFlow({
   const handleConsequentChange = useCallback((value: string) => {
     onConsequentChange?.(value)
     // ログ記録（sessionInfoとproblemIdがあれば記録）
-    if (sessionInfo && problemId) {
-      // stateをDB形式に変換
-      const dbState = steps ? mapUiToDbState(steps, nodeValues) : null
+    if (sessionInfo && problemId && steps) {
+      // 更新後の状態を計算してstateを生成
+      const currentStep1 = steps.step1 || { isPassed: false, antecedent: '', consequent: '' }
+      const updatedSteps: StepsState = {
+        ...steps,
+        step1: {
+          ...currentStep1,
+          consequent: value, // 更新後の値を使用
+        },
+      }
+      const dbState = mapUiToDbState(updatedSteps, nodeValues)
       console.log('[handleConsequentChange] Logging:', { controlId: 'consequent', value, attemptId, problemId, sessionId: sessionInfo.sessionId, userId: sessionInfo.userId })
       logSelectDropdown({
         controlId: 'consequent',
@@ -283,20 +316,49 @@ export function TriangleLogicFlow({
         onLinksChange?.(newLinks)
         
         // ログ記録（ノードIDと文字列ラベルを含む）
-        if (sessionInfo && problemId && nodeValues) {
-          const resolveNodeValue = createNodeValueResolver(nodeValues)
-          const dbState = steps ? mapUiToDbState(steps, nodeValues) : null
-          logLinkCreated({
-            fromNode: params.source,
-            toNode: params.target,
-            fromLabel: resolveNodeValue(params.source),
-            toLabel: resolveNodeValue(params.target),
-            attemptId: attemptId ?? undefined,
-            problemId,
-            sessionId: sessionInfo.sessionId,
-            userId: sessionInfo.userId,
-            state: dbState,
-          }).catch(console.error)
+        // nodeValuesが最新の状態を反映していることを確認するため、
+        // nodesから直接計算する
+        if (sessionInfo && problemId && steps) {
+          // nodesから最新のnodeValuesを計算
+          const latestNodeValues: NodeValues | null = (() => {
+            if (nodes.length === 0) return null
+            const antecedentNode = nodes.find(node => node.id === 'antecedent')
+            const consequentNode = nodes.find(node => node.id === 'consequent')
+            const premiseNodes = nodes.filter(node => node.id.startsWith('premise-'))
+            return {
+              antecedent: (antecedentNode?.data?.value as string) || '',
+              consequent: (consequentNode?.data?.value as string) || '',
+              premiseNodes: premiseNodes.map(node => ({
+                id: node.id,
+                value: (node.data?.value as string) || ''
+              }))
+            }
+          })()
+          
+          if (latestNodeValues) {
+            const resolveNodeValue = createNodeValueResolver(latestNodeValues)
+            // 更新後の状態を計算してstateを生成
+            const currentStep2 = steps.step2 || { isPassed: false, links: [] }
+            const updatedSteps: StepsState = {
+              ...steps,
+              step2: {
+                ...currentStep2,
+                links: newLinks, // 更新後のリンクを使用
+              },
+            }
+            const dbState = mapUiToDbState(updatedSteps, latestNodeValues)
+            logLinkCreated({
+              fromNode: params.source,
+              toNode: params.target,
+              fromLabel: resolveNodeValue(params.source),
+              toLabel: resolveNodeValue(params.target),
+              attemptId: attemptId ?? undefined,
+              problemId,
+              sessionId: sessionInfo.sessionId,
+              userId: sessionInfo.userId,
+              state: dbState,
+            }).catch(console.error)
+          }
         }
       } else if (currentStep === 4 && params.source && params.target) {
         // Step4: activeLinksを更新（active: trueとして追加）
@@ -309,9 +371,18 @@ export function TriangleLogicFlow({
         onActiveLinksChange?.(newActiveLinks)
         
         // ログ記録（ノードIDと文字列ラベルを含む）
-        if (sessionInfo && problemId && nodeValues) {
+        if (sessionInfo && problemId && nodeValues && steps) {
           const resolveNodeValue = createNodeValueResolver(nodeValues)
-          const dbState = steps ? mapUiToDbState(steps, nodeValues) : null
+          // 更新後の状態を計算してstateを生成
+          const currentStep4 = steps.step4 || { isPassed: false, links: [] }
+          const updatedSteps: StepsState = {
+            ...steps,
+            step4: {
+              ...currentStep4,
+              links: newActiveLinks, // 更新後のリンクを使用
+            },
+          }
+          const dbState = mapUiToDbState(updatedSteps, nodeValues)
           logLinkCreated({
             fromNode: params.source,
             toNode: params.target,
@@ -356,9 +427,18 @@ export function TriangleLogicFlow({
     onLinksChange?.(newLinks)
     
     // 削除されたリンクを検出してログ記録
-    if (sessionInfo && problemId && nodeValues) {
+    if (sessionInfo && problemId && nodeValues && steps) {
       const resolveNodeValue = createNodeValueResolver(nodeValues)
-      const dbState = steps ? mapUiToDbState(steps, nodeValues) : null
+      // 更新後の状態を計算してstateを生成
+      const currentStep2 = steps.step2 || { isPassed: false, links: [] }
+      const updatedSteps: StepsState = {
+        ...steps,
+        step2: {
+          ...currentStep2,
+          links: newLinks, // 更新後のリンクを使用
+        },
+      }
+      const dbState = mapUiToDbState(updatedSteps, nodeValues)
       const deletedLinks = links.filter(link => 
         !newLinks.some(newLink => newLink.from === link.from && newLink.to === link.to)
       )
@@ -383,9 +463,18 @@ export function TriangleLogicFlow({
     onActiveLinksChange?.(newActiveLinks)
     
     // 活性/非活性の変更を検出してログ記録
-    if (sessionInfo && problemId && nodeValues) {
+    if (sessionInfo && problemId && nodeValues && steps) {
       const resolveNodeValue = createNodeValueResolver(nodeValues)
-      const dbState = steps ? mapUiToDbState(steps, nodeValues) : null
+      // 更新後の状態を計算してstateを生成
+      const currentStep4 = steps.step4 || { isPassed: false, links: [] }
+      const updatedSteps: StepsState = {
+        ...steps,
+        step4: {
+          ...currentStep4,
+          links: newActiveLinks, // 更新後のリンクを使用
+        },
+      }
+      const dbState = mapUiToDbState(updatedSteps, nodeValues)
       activeLinks.forEach(oldLink => {
         const newLink = newActiveLinks.find(
           nl => nl.from === oldLink.from && nl.to === oldLink.to
