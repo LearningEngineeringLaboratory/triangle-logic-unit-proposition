@@ -15,7 +15,6 @@ import { Header } from '@/components/layout/Header'
 import { useProblemSteps } from '@/hooks/useProblemSteps'
 import { useAnswerCheck } from '@/hooks/useAnswerCheck'
 import { useProblemAttempt } from '@/hooks/useProblemAttempt'
-import { useProblemResponse } from '@/hooks/useProblemResponse'
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { logStepNavigation } from '@/lib/logging'
@@ -75,18 +74,6 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
     steps,
     currentStep,
     sessionInfo,
-  })
-
-  // レスポンス保存
-  useProblemResponse({
-    problem,
-    problemNumber,
-    steps: steps as StepsState,
-    currentStep,
-    completedSteps,
-    totalSteps,
-    sessionInfo,
-    nodeValues,
   })
 
   useEffect(() => {

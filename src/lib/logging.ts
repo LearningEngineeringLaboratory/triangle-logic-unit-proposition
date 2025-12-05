@@ -119,7 +119,7 @@ export async function logSelectDropdown(params: {
   problemId?: string
   sessionId?: string
   userId?: string
-  state?: unknown // イベント送信時の問題の全ての回答状況（responses.stateと同じ形式）
+  state?: unknown // イベント送信時の問題の全ての回答状況（全ステップの回答状態をJSONB形式で保存）
 }) {
   console.log('[logSelectDropdown] Called with:', { controlId: params.controlId, value: params.value, attemptId: params.attemptId, problemId: params.problemId, sessionId: params.sessionId, userId: params.userId })
   const context = getLogContext()
@@ -155,7 +155,7 @@ export async function logLinkCreated(params: {
   problemId?: string
   sessionId?: string
   userId?: string
-  state?: unknown // イベント送信時の問題の全ての回答状況（responses.stateと同じ形式）
+  state?: unknown // イベント送信時の問題の全ての回答状況（全ステップの回答状態をJSONB形式で保存）
 }) {
   const context = getLogContext()
   await logEvent({
@@ -186,7 +186,7 @@ export async function logLinkDeleted(params: {
   problemId?: string
   sessionId?: string
   userId?: string
-  state?: unknown // イベント送信時の問題の全ての回答状況（responses.stateと同じ形式）
+  state?: unknown // イベント送信時の問題の全ての回答状況（全ステップの回答状態をJSONB形式で保存）
 }) {
   const context = getLogContext()
   await logEvent({
@@ -218,7 +218,7 @@ export async function logLinkMarkedInactive(params: {
   problemId?: string
   sessionId?: string
   userId?: string
-  state?: unknown // イベント送信時の問題の全ての回答状況（responses.stateと同じ形式）
+  state?: unknown // イベント送信時の問題の全ての回答状況（全ステップの回答状態をJSONB形式で保存）
 }) {
   const context = getLogContext()
   await logEvent({
@@ -252,7 +252,7 @@ export async function logLinkMarkedActive(params: {
   problemId?: string
   sessionId?: string
   userId?: string
-  state?: unknown // イベント送信時の問題の全ての回答状況（responses.stateと同じ形式）
+  state?: unknown // イベント送信時の問題の全ての回答状況（全ステップの回答状態をJSONB形式で保存）
 }) {
   const context = getLogContext()
   await logEvent({

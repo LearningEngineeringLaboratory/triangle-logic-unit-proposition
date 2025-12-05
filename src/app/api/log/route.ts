@@ -11,7 +11,7 @@ interface LogBody {
   is_correct?: boolean
   kind?: string
   payload?: unknown
-  state?: unknown // イベント送信時の問題の全ての回答状況（responses.stateと同じ形式）
+  state?: unknown // イベント送信時の問題の全ての回答状況（全ステップの回答状態をJSONB形式で保存）
   client_ts?: string
   idempotency_key?: string
 }

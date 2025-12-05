@@ -10,7 +10,7 @@ export function useResetAll({ sessionInfo, onSuccess }: UseResetAllOptions) {
     if (!sessionInfo) return
 
     try {
-      const res = await fetch('/api/response/reset-all', {
+      const res = await fetch('/api/attempt/reset-all', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
       })
@@ -25,7 +25,7 @@ export function useResetAll({ sessionInfo, onSuccess }: UseResetAllOptions) {
         }
       }
     } catch (err) {
-      console.error('Error resetting all completions:', err)
+      console.error('Error resetting all attempts:', err)
     }
   }, [sessionInfo, onSuccess])
 

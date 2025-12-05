@@ -29,28 +29,24 @@ export async function POST() {
       )
     }
 
-    // 全クリア済み問題のResponseデータを削除
+    // 該当セッション・ユーザーの全てのattemptsを削除
     const { error: deleteError } = await supabase
-      .from('responses')
+      .from('attempts')
       .delete()
       .eq('session_id', sessionId)
       .eq('user_id', session.user_id)
-      .eq('is_completed', true)
 
     if (deleteError) {
-      console.error('Response delete error:', deleteError)
+      console.error('Attempt reset error:', deleteError)
       return NextResponse.json(
-        { success: false, error: 'delete_failed' },
+        { success: false, error: 'reset_failed' },
         { status: 500 }
       )
     }
 
-    return NextResponse.json({
-      success: true,
-      data: { message: 'All completed responses reset successfully' },
-    })
+    return NextResponse.json({ success: true })
   } catch (err) {
-    console.error('Reset all responses route error:', err)
+    console.error('Reset all attempts route error:', err)
     return NextResponse.json(
       { success: false, error: 'server_error' },
       { status: 500 }

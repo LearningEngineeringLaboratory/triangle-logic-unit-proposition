@@ -282,7 +282,7 @@ export async function logClientCheck(params: {
   step: 1 | 2 | 3 | 4 | 5
   isCorrect: boolean
   payload?: unknown
-  state?: unknown // イベント送信時の問題の全ての回答状況（responses.stateと同じ形式）
+  state?: unknown // イベント送信時の問題の全ての回答状況（全ステップの回答状態をJSONB形式で保存）
 }) {
   try {
     await fetch('/api/log', {
@@ -315,7 +315,7 @@ export async function logEvent(params: {
   problemId?: string
   kind: string
   payload?: unknown
-  state?: unknown // イベント送信時の問題の全ての回答状況（responses.stateと同じ形式）
+  state?: unknown // イベント送信時の問題の全ての回答状況（全ステップの回答状態をJSONB形式で保存）
   idempotencyKey?: string
 }): Promise<void> {
   try {
