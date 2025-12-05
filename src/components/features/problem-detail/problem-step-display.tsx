@@ -1,13 +1,13 @@
 'use client'
 
 import { PremiseSelection, ProblemDetail, StepsState } from '@/lib/types'
-import { logSelectDropdown } from '@/lib/logging'
-import { mapUiToDbState } from '@/lib/utils'
-import { AlertCircle, ArrowUp, BookOpen } from 'lucide-react'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { AlertCircle, ArrowUp } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
-import { useEffect, useRef, useState } from 'react'
+import { Step3QuestionInputs } from './step3-question-inputs'
+import { Step5ArgumentInput } from './step5-argument-input'
+import { buildStepDefinitions } from './step-definitions'
+import { useStepScroll } from './use-step-scroll'
 
 interface ProblemStepDisplayProps {
   problem: ProblemDetail
@@ -20,36 +20,27 @@ interface ProblemStepDisplayProps {
   onVerificationChange?: (value: string) => void
   step5Premises?: PremiseSelection[]
   onStep5PremiseChange?: (index: number, field: 'antecedent' | 'consequent', value: string) => void
-  stepsState?: StepsState // ステップの完了状態
-  // ログ記録用
-  attemptId?: string | null
-  sessionInfo?: { sessionId: string; userId: string } | null
-  nodeValues?: { antecedent: string; consequent: string; premiseNodes: Array<{ id: string; value: string }> } | null
-}
-
-interface Step3QuestionInputsProps {
-  inferenceTypeValue: string
-  validityValue: string
-  verificationValue: string
-  onInferenceTypeChange?: (value: string) => void
-  onValidityChange?: (value: string) => void
-  onVerificationChange?: (value: string) => void
-  attemptId?: string | null
-  problemId?: string
-  sessionInfo?: { sessionId: string; userId: string } | null
   stepsState?: StepsState
+  attemptId?: string | null
+  sessionInfo?: { sessionId: string; userId: string } | null
   nodeValues?: { antecedent: string; consequent: string; premiseNodes: Array<{ id: string; value: string }> } | null
 }
 
-interface Step5ArgumentInputProps {
-  optionList: string[]
-  step5Premises: PremiseSelection[]
-  onStep5PremiseChange?: (index: number, field: 'antecedent' | 'consequent', value: string) => void
-  stepsState: StepsState
-  attemptId?: string | null
-  problemId?: string
-  sessionInfo?: { sessionId: string; userId: string } | null
-  nodeValues?: { antecedent: string; consequent: string; premiseNodes: Array<{ id: string; value: string }> } | null
+type StepStatus = 'completed' | 'skipped' | 'current' | 'future'
+
+const getStepStatus = (stepsState: StepsState, currentStep: number, stepNumber: number): StepStatus => {
+  const stepKey = `step${stepNumber}` as keyof StepsState
+  const state = stepsState[stepKey]
+
+  if (stepNumber < currentStep) {
+    return state?.isPassed ? 'completed' : 'skipped'
+  }
+
+  if (stepNumber === currentStep) {
+    return 'current'
+  }
+
+  return 'future'
 }
 
 export function ProblemStepDisplay({
@@ -68,114 +59,13 @@ export function ProblemStepDisplay({
   sessionInfo,
   nodeValues,
 }: ProblemStepDisplayProps) {
-  const [showScrollTop, setShowScrollTop] = useState(false)
-  const scrollContainerRef = useRef<HTMLDivElement | null>(null)
-
-  // スクロール位置を監視してFABの表示/非表示を切り替え
-  useEffect(() => {
-    const container = scrollContainerRef.current
-    if (!container) return
-
-    const handleScroll = () => {
-      // 200px以上スクロールしたらFABを表示
-      setShowScrollTop(container.scrollTop > 200)
-    }
-
-    container.addEventListener('scroll', handleScroll)
-    return () => container.removeEventListener('scroll', handleScroll)
-  }, [])
-
-  // アクティブステップへ自動スクロール（最上部に移動）
-  useEffect(() => {
-    const el = document.getElementById(`current-step-${currentStep}`)
-    if (el) {
-      // 最上部にスクロール（新しいステップは常に一番上）
-      el.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    }
-  }, [currentStep])
-
-  // 最上部にスクロールする関数
-  const scrollToTop = () => {
-    scrollContainerRef.current?.scrollTo({
-      top: 0,
-      behavior: 'smooth'
-    })
-  }
-  // ステップ定義を動的に生成（可変ステップ数対応）
-  const generateSteps = (totalSteps: number) => {
-    const steps = []
-
-    for (let i = 1; i <= totalSteps; i++) {
-      if (i === 1) {
-        steps.push({
-          number: 1,
-          title: '導出命題を構成',
-          content: 'この論証が導いている命題（導出命題）を構成しましょう。',
-          hint: '「したがって」や「よって」、「とすると」などの接続詞がある命題に着目しましょう。'
-        })
-      } else if (i === 2) {
-        steps.push({
-          number: 2,
-          title: '三角ロジックの構成',
-          content: 'この論証の前提となる命題（所与命題）を構成しましょう。\n\n 1. 前提に必要な部品を追加\n 2. 論証が表す意味と同じになるように、リンクを接続',
-        })
-      } else if (i === 3) {
-        steps.push({
-          number: 3,
-          title: '推論形式と妥当性の判別',
-          content: '構成した三角ロジックをもとに、この論証の推論形式と妥当性を答えましょう。',
-        })
-      } else if (i === 4) {
-        steps.push({
-          number: 4,
-          title: '妥当性のある三角ロジックの構成',
-          content: '三角ロジックを修正して妥当性のある論証になるような三角ロジックを構成しましょう。',
-        })
-      } else if (i === 5) {
-        steps.push({
-          number: 5,
-          title: '妥当性のある三項論証を構成',
-          content: '修正した三角ロジックをもとに、妥当性のある三項論証を構成しましょう。',
-        })
-      } else {
-        // 6ステップ以上の場合（将来の拡張用）
-        steps.push({
-          number: i,
-          title: `ステップ${i}`,
-          content: `ステップ${i}の内容をここに記述します。`,
-          hint: `ステップ${i}のヒントをここに記述します。`
-        })
-      }
-    }
-
-    return steps
-  }
+  const { scrollContainerRef, showScrollTop, scrollToTop } = useStepScroll(currentStep)
 
   const totalSteps = problem?.total_steps || 3
-  const steps = generateSteps(totalSteps)
-  const optionList = (problem?.options && problem.options.length > 0)
-    ? problem.options
-    : ['選択肢が設定されていません']
+  const steps = buildStepDefinitions(totalSteps)
+  const optionList = problem?.options && problem.options.length > 0 ? problem.options : ['選択肢が設定されていません']
 
-  // ステップの状態を判定する関数
-  const getStepStatus = (stepNumber: number) => {
-    const stepKey = `step${stepNumber}` as keyof StepsState
-    const state = stepsState[stepKey]
-    
-    if (stepNumber < currentStep) {
-      // 過去のステップ：完了済みかどうか
-      return state?.isPassed ? 'completed' : 'skipped'
-    } else if (stepNumber === currentStep) {
-      // 現在のステップ
-      return 'current'
-    } else {
-      // 将来のステップ：表示しない
-      return 'future'
-    }
-  }
-
-  // 表示するステップをフィルタリング（現在のひとつ前まで）
-  const visibleSteps = steps.filter((_, index) => index < (currentStep - 1)).reverse()
+  const visibleSteps = steps.filter((_, index) => index < currentStep - 1).reverse()
   const currentStepData = steps[currentStep - 1]
 
   if (!currentStepData) {
@@ -252,7 +142,7 @@ export function ProblemStepDisplay({
               <AccordionContent className="px-6 pt-4 pb-6 bg-background">
                 <div className="space-y-0">
                   {visibleSteps.map((step, index) => {
-                    const status = getStepStatus(step.number)
+                    const status = getStepStatus(stepsState, currentStep, step.number)
                     const isCompleted = status === 'completed'
 
                     return (
@@ -300,310 +190,3 @@ export function ProblemStepDisplay({
     </div>
   )
 }
-
-const Step3QuestionInputs = ({
-  inferenceTypeValue,
-  validityValue,
-  verificationValue,
-  onInferenceTypeChange,
-  onValidityChange,
-  onVerificationChange,
-  attemptId,
-  problemId,
-  sessionInfo,
-  stepsState,
-  nodeValues,
-}: Step3QuestionInputsProps) => {
-  const handleVerificationChange = (value: string) => {
-    onVerificationChange?.(value)
-    if (sessionInfo && problemId && stepsState) {
-      // 更新後の状態を計算してstateを生成
-      const currentStep3 = stepsState.step3 || { isPassed: false, inferenceType: '', validity: null, verification: null }
-      const updatedSteps: StepsState = {
-        ...stepsState,
-        step3: {
-          ...currentStep3,
-          verification: value === '高い', // 更新後の値を使用
-        },
-      }
-      const dbState = nodeValues ? mapUiToDbState(updatedSteps, nodeValues) : null
-      logSelectDropdown({
-        controlId: 'step3-verification',
-        value,
-        attemptId: attemptId ?? undefined,
-        problemId,
-        sessionId: sessionInfo.sessionId,
-        userId: sessionInfo.userId,
-        state: dbState,
-      }).catch(console.error)
-    }
-  }
-  
-  const handleValidityChange = (value: string) => {
-    onValidityChange?.(value)
-    if (sessionInfo && problemId && stepsState) {
-      // 更新後の状態を計算してstateを生成
-      const currentStep3 = stepsState.step3 || { isPassed: false, inferenceType: '', validity: null, verification: null }
-      const updatedSteps: StepsState = {
-        ...stepsState,
-        step3: {
-          ...currentStep3,
-          validity: value === '妥当', // 更新後の値を使用
-        },
-      }
-      const dbState = nodeValues ? mapUiToDbState(updatedSteps, nodeValues) : null
-      logSelectDropdown({
-        controlId: 'step3-validity',
-        value,
-        attemptId: attemptId ?? undefined,
-        problemId,
-        sessionId: sessionInfo.sessionId,
-        userId: sessionInfo.userId,
-        state: dbState,
-      }).catch(console.error)
-    }
-  }
-  
-  const handleInferenceTypeChange = (value: string) => {
-    onInferenceTypeChange?.(value)
-    if (sessionInfo && problemId && stepsState) {
-      // 更新後の状態を計算してstateを生成
-      const currentStep3 = stepsState.step3 || { isPassed: false, inferenceType: '', validity: null, verification: null }
-      const updatedSteps: StepsState = {
-        ...stepsState,
-        step3: {
-          ...currentStep3,
-          inferenceType: value, // 更新後の値を使用
-        },
-      }
-      const dbState = nodeValues ? mapUiToDbState(updatedSteps, nodeValues) : null
-      logSelectDropdown({
-        controlId: 'step3-inference_type',
-        value,
-        attemptId: attemptId ?? undefined,
-        problemId,
-        sessionId: sessionInfo.sessionId,
-        userId: sessionInfo.userId,
-        state: dbState,
-      }).catch(console.error)
-    }
-  }
-  
-  return (
-  <div className="mb-6">
-    <div className="flex flex-col gap-4 w-full max-w-3xl">
-      <div className="flex flex-col gap-2 mt-6">
-        <span className="text-sm font-medium text-foreground">
-          問題1. この論証には演繹構造が含まれていますか？演繹構造とは、「P→Q, Q→R, P→R」のような構造のことを指します。
-        </span>
-        <Select value={verificationValue} onValueChange={handleVerificationChange}>
-          <SelectTrigger
-            className={`w-full h-14 rounded-xl border-2 text-lg py-3 ${
-              verificationValue ? '' : 'animate-glow-pulse'
-            }`}
-          >
-            <SelectValue placeholder="選択してください" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="高い">演繹構造が含まれている</SelectItem>
-            <SelectItem value="低い">演繹構造が含まれていない</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-      <div className="flex flex-col gap-2 mt-6">
-        <span className="text-sm font-medium text-foreground">
-          問題2. この論証の妥当性を答えてください。妥当であるとは、前提を正しいと仮定したとき、導出される結論が必ず正しいことを意味します。
-        </span>
-        <Select value={validityValue} onValueChange={handleValidityChange}>
-          <SelectTrigger
-            className={`w-full h-14 rounded-xl border-2 text-lg py-3 ${
-              validityValue ? '' : 'animate-glow-pulse'
-            }`}
-          >
-            <SelectValue placeholder="選択してください" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="妥当">妥当</SelectItem>
-            <SelectItem value="非妥当">非妥当</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-      <div className="flex flex-col gap-2 mt-6">
-        <span className="text-sm font-medium text-foreground">問題3. この論証の推論形式を答えてください。</span>
-        <Select value={inferenceTypeValue} onValueChange={handleInferenceTypeChange}>
-          <SelectTrigger
-            className={`w-full h-14 rounded-xl border-2 text-lg py-3 ${
-              inferenceTypeValue ? '' : 'animate-glow-pulse'
-            }`}
-          >
-            <SelectValue placeholder="選択してください" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="演繹推論">演繹推論</SelectItem>
-            <SelectItem value="仮説推論">仮説推論</SelectItem>
-            <SelectItem value="非形式推論">非形式推論</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-    </div>
-  </div>
-  )
-}
-
-const Step5ArgumentInput = ({
-  optionList,
-  step5Premises,
-  onStep5PremiseChange,
-  stepsState,
-  attemptId,
-  problemId,
-  sessionInfo,
-  nodeValues,
-}: Step5ArgumentInputProps) => {
-  const handlePremiseChange = (index: number, field: 'antecedent' | 'consequent', value: string) => {
-    onStep5PremiseChange?.(index, field, value)
-    if (sessionInfo && problemId && stepsState) {
-      // 更新後の状態を計算してstateを生成
-      const currentStep5 = stepsState.step5 || { isPassed: false, premises: [] }
-      const currentPremises = currentStep5.premises || []
-      const newPremises = [...currentPremises]
-      if (!newPremises[index]) {
-        newPremises[index] = { antecedent: '', consequent: '' }
-      }
-      newPremises[index] = {
-        ...newPremises[index],
-        [field]: value, // 更新後の値を使用
-      }
-      const updatedSteps: StepsState = {
-        ...stepsState,
-        step5: {
-          ...currentStep5,
-          premises: newPremises, // 更新後のpremisesを使用
-        },
-      }
-      const dbState = nodeValues ? mapUiToDbState(updatedSteps, nodeValues) : null
-      logSelectDropdown({
-        controlId: `step5-premise${index}-${field}`,
-        value,
-        attemptId: attemptId ?? undefined,
-        problemId,
-        sessionId: sessionInfo.sessionId,
-        userId: sessionInfo.userId,
-        state: dbState,
-      }).catch(console.error)
-    }
-  }
-  
-  return (
-  <div className="mb-6">
-    <fieldset className="border-2 border-primary/20 rounded-2xl px-4 pt-2 pb-3 mb-2 bg-primary/5">
-      <legend className="px-2 flex items-center gap-2">
-        <BookOpen className="w-3 h-3 text-primary" />
-        <span className="text-sm font-semibold text-primary">論証</span>
-      </legend>
-      <div className="space-y-4 w-full max-w-3xl">
-        {/* 一つの文章として表示 */}
-        <div className="flex flex-wrap items-center gap-x-2 gap-y-3 text-base leading-relaxed text-foreground font-serif tracking-wide break-keep">
-          {/* 前提1 */}
-          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-            <Select
-              value={step5Premises[0]?.antecedent || ''}
-              onValueChange={(value) => handlePremiseChange(0, 'antecedent', value)}
-            >
-              <SelectTrigger
-                className={`h-10 rounded-lg border-2 text-base min-w-[120px] font-sans ${
-                  step5Premises[0]?.antecedent ? '' : 'animate-glow-pulse'
-                }`}
-              >
-                <SelectValue placeholder="選択" />
-              </SelectTrigger>
-              <SelectContent>
-                {optionList.map((option) => (
-                  <SelectItem key={option} value={option}>
-                    {option}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <span className="text-base font-medium text-foreground font-serif whitespace-normal">ならば</span>
-            <Select
-              value={step5Premises[0]?.consequent || ''}
-              onValueChange={(value) => handlePremiseChange(0, 'consequent', value)}
-            >
-              <SelectTrigger
-                className={`h-10 rounded-lg border-2 text-base min-w-[120px] font-sans ${
-                  step5Premises[0]?.consequent ? '' : 'animate-glow-pulse'
-                }`}
-              >
-                <SelectValue placeholder="選択" />
-              </SelectTrigger>
-              <SelectContent>
-                {optionList.map((option) => (
-                  <SelectItem key={option} value={option}>
-                    {option}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <span className="text-base text-foreground font-serif whitespace-normal">。</span>
-          </div>
-
-          {/* 前提2 */}
-          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-            <Select
-              value={step5Premises[1]?.antecedent || ''}
-              onValueChange={(value) => handlePremiseChange(1, 'antecedent', value)}
-            >
-              <SelectTrigger
-                className={`h-10 rounded-lg border-2 text-base min-w-[120px] font-sans ${
-                  step5Premises[1]?.antecedent ? '' : 'animate-glow-pulse'
-                }`}
-              >
-                <SelectValue placeholder="選択" />
-              </SelectTrigger>
-              <SelectContent>
-                {optionList.map((option) => (
-                  <SelectItem key={option} value={option}>
-                    {option}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <span className="text-base font-medium text-foreground font-serif whitespace-normal">ならば</span>
-            <Select
-              value={step5Premises[1]?.consequent || ''}
-              onValueChange={(value) => handlePremiseChange(1, 'consequent', value)}
-            >
-              <SelectTrigger
-                className={`h-10 rounded-lg border-2 text-base min-w-[120px] font-sans ${
-                  step5Premises[1]?.consequent ? '' : 'animate-glow-pulse'
-                }`}
-              >
-                <SelectValue placeholder="選択" />
-              </SelectTrigger>
-              <SelectContent>
-                {optionList.map((option) => (
-                  <SelectItem key={option} value={option}>
-                    {option}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <span className="text-base text-foreground font-serif whitespace-normal">。</span>
-          </div>
-
-          {/* したがって、結論 */}
-          <span className="text-base text-foreground font-serif whitespace-normal break-keep">
-            <span className="font-medium">したがって、</span>
-            {stepsState.step1?.antecedent || '（前件）'}
-            <span className="font-medium">ならば</span>
-            {stepsState.step1?.consequent || '（後件）'}
-            。
-          </span>
-        </div>
-      </div>
-    </fieldset>
-  </div>
-  )
-}
-

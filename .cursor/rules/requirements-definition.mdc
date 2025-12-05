@@ -87,7 +87,7 @@ const session = await supabase
     user_id,
     created_at,
     last_activity,
-    users!inner(name, email)
+    users!inner(name, student_id)
   `)
   .eq('session_id', sessionId)
   .gte('last_activity', new Date(Date.now() - 24 * 60 * 60 * 1000)) // 24時間以内
@@ -168,7 +168,7 @@ interface ContinueDialog {
 ## 5. データモデル
 
 ### 5.1 テーブル構成
-* `users`: ユーザー情報（`user_id`, `name`, `email`, `created_at`）
+* `users`: ユーザー情報（`user_id`, `name`, `student_id`, `created_at`）
 * `problems`: 問題データ（`problem_id`, `argument`, `correct_answers`, `options`, `version`）
 * `sessions`: セッション管理（`session_id`, `user_id`, `created_at`, `last_activity`）
 * `attempts`: 試行記録（`session_id`, `user_id`, `problem_id`, `started_at`, `finished_at`, `status`）
@@ -333,7 +333,7 @@ interface ContinueDialog {
 ## 7. イベント記録
 
 ### 7.1 主要イベント
-* `user_registered`: ユーザー登録（`name`, `email`）
+* `user_registered`: ユーザー登録（`name`, `student_id`）
 * `session_created`: セッション作成（`user_id`, `session_id`）
 * `session_restored`: セッション復帰（`user_id`, `session_id`）
 * `continue_dialog_shown`: 継続確認ダイアログ表示（`user_id`, `problem_number`, `current_step`）

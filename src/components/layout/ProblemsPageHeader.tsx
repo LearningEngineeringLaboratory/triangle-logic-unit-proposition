@@ -22,7 +22,7 @@ import { Menu, RotateCcw, LogOut } from 'lucide-react'
 import { useState } from 'react'
 
 interface ProblemsPageHeaderProps {
-  sessionInfo: { sessionId: string; userId: string; userName: string; userEmail: string } | null
+  sessionInfo: { sessionId: string; userId: string; userName: string; userStudentId: string } | null
   onLogout: () => void
   onResetAll: () => void
   completedCount: number
@@ -41,7 +41,7 @@ export function ProblemsPageHeader({ sessionInfo, onLogout, onResetAll, complete
   }
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
       <div className="container mx-auto px-4">
         <div className="flex h-14 items-center justify-between">
           <h1 className="text-lg font-semibold tracking-tight">
@@ -64,7 +64,7 @@ export function ProblemsPageHeader({ sessionInfo, onLogout, onResetAll, complete
                     <DropdownMenuLabel>
                       <div className="flex flex-col space-y-1">
                         <p className="text-sm font-medium">{sessionInfo.userName}</p>
-                        <p className="text-xs text-muted-foreground">{sessionInfo.userEmail}</p>
+                        <p className="text-xs text-muted-foreground">{sessionInfo.userStudentId}</p>
                       </div>
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator />

@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-server'
 
 interface LoginBody {
-  email: string
+  student_id: string
+  name: string
 }
 
 export async function POST(req: NextRequest) {
@@ -10,18 +11,18 @@ export async function POST(req: NextRequest) {
     const body = (await req.json()) as LoginBody
 
     // バリデーション
-    if (!body.email) {
+    if (!body.student_id || !body.name) {
       return NextResponse.json(
-        { success: false, error: 'email is required' },
+        { success: false, error: 'student_id and name are required' },
         { status: 400 }
       )
     }
 
-    // メールアドレスの形式チェック（簡易）
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(body.email)) {
+    // 学籍番号の形式チェック（半角英数字）
+    const studentIdRegex = /^[A-Za-z0-9]+$/
+    if (!studentIdRegex.test(body.student_id)) {
       return NextResponse.json(
-        { success: false, error: 'invalid email format' },
+        { success: false, error: 'invalid student_id format' },
         { status: 400 }
       )
     }
@@ -31,8 +32,8 @@ export async function POST(req: NextRequest) {
     // 既存ユーザーを検索
     const { data: existingUser, error: searchError } = await supabase
       .from('users')
-      .select('user_id, name, email')
-      .eq('email', body.email)
+      .select('user_id, name, student_id')
+      .eq('student_id', body.student_id)
       .single()
 
     if (searchError && searchError.code !== 'PGRST116') {
@@ -44,11 +45,18 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // 既存ユーザーが見つからない場合
     if (!existingUser) {
       return NextResponse.json(
         { success: false, error: 'user_not_found' },
         { status: 404 }
+      )
+    }
+
+    // 名前が一致するかチェック
+    if (existingUser.name !== body.name) {
+      return NextResponse.json(
+        { success: false, error: 'name_mismatch' },
+        { status: 400 }
       )
     }
 
@@ -57,7 +65,7 @@ export async function POST(req: NextRequest) {
       data: {
         user_id: existingUser.user_id,
         name: existingUser.name,
-        email: existingUser.email,
+        student_id: existingUser.student_id,
       },
     })
   } catch (err) {

@@ -1,7 +1,7 @@
 import { useCallback } from 'react'
 
 interface UseResetAllOptions {
-  sessionInfo: { sessionId: string; userId: string; userName: string; userEmail: string } | null
+  sessionInfo: { sessionId: string; userId: string; userName: string; userStudentId: string } | null
   onSuccess?: () => void
 }
 

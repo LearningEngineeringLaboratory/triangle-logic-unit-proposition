@@ -13,13 +13,13 @@ export interface ApiResponse<T> {
 
 export interface RegisterRequestBody {
   name: string
-  email: string
+  student_id: string
 }
 
 export interface RegisterResponse {
   user_id: string
   name: string
-  email: string
+  student_id: string
   isNewUser: boolean
 }
 
@@ -33,7 +33,7 @@ export interface CreateSessionResponse {
 
 export interface RestoreSessionResponse {
   session?: SessionData
-  user?: { name: string; email: string; user_id: string }
+  user?: { name: string; student_id: string; user_id: string }
   isReturningUser: boolean
 }
 

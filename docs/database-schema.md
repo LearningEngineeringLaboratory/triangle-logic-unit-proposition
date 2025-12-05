@@ -11,7 +11,7 @@
 
 | テーブル名 | 用途 | 主要フィールド |
 |-----------|------|---------------|
-| `users` | ユーザー情報管理 | user_id, name, email |
+| `users` | ユーザー情報管理 | user_id, name, student_id |
 | `problems` | 問題データ管理 | problem_id, argument, correct_answers, options, version |
 | `sessions` | セッション管理 | session_id, user_id, created_at, last_activity |
 | `attempts` | 試行記録管理 | attempt_id, session_id, user_id, problem_id, status |
@@ -28,11 +28,11 @@
 |-------------|----------|------|------|
 | user_id | TEXT | PRIMARY KEY | ULID形式のユニークID |
 | name | TEXT | NOT NULL | ユーザー名 |
-| email | TEXT | UNIQUE NOT NULL | メールアドレス（重複不可） |
+| student_id | TEXT | UNIQUE NOT NULL | 学籍番号（半角英数字、重複不可） |
 | created_at | TIMESTAMP WITH TIME ZONE | DEFAULT NOW() | 登録日時 |
 
 **インデックス**:
-- `idx_users_email`: メールアドレス検索用
+- `idx_users_student_id`: 学籍番号検索用
 - `idx_users_created_at`: 登録日時検索用
 
 ### 2. problems テーブル
@@ -152,7 +152,7 @@
 | idempotency_key | TEXT | UNIQUE | 冪等性キー（重複防止） |
 
 **イベント種別**:
-- `user_registered`: ユーザー登録（`name`, `email`）
+- `user_registered`: ユーザー登録（`name`, `student_id`）
 - `session_created`: セッション作成（`user_id`, `session_id`）
 - `session_restored`: セッション復帰（`user_id`, `session_id`）
 - `continue_dialog_shown`: 継続確認ダイアログ表示（`user_id`, `problem_number`, `current_step`）

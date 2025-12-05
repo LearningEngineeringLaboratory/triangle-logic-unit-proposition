@@ -8,7 +8,7 @@ interface SessionInfo {
   sessionId: string
   userId: string
   userName: string
-  userEmail: string
+  userStudentId: string
 }
 
 export function useSession() {
@@ -35,7 +35,7 @@ export function useSession() {
           sessionId: session.session_id,
           userId: session.user.user_id,
           userName: session.user.name,
-          userEmail: session.user.email,
+          userStudentId: session.user.student_id,
         })
         setNeedsRegistration(false)
 
@@ -59,12 +59,12 @@ export function useSession() {
   }, [])
 
   const handleRegistrationSuccess = useCallback(
-    (userId: string, sessionId: string, userName: string, userEmail: string) => {
+    (userId: string, sessionId: string, userName: string, userStudentId: string) => {
       setSessionInfo({
         sessionId,
         userId,
         userName,
-        userEmail,
+        userStudentId,
       })
       setNeedsRegistration(false)
     },

@@ -4,7 +4,7 @@ import { generateUlid } from '@/lib/session'
 
 interface RegisterBody {
   name: string
-  email: string
+  student_id: string
 }
 
 export async function POST(req: NextRequest) {
@@ -12,18 +12,18 @@ export async function POST(req: NextRequest) {
     const body = (await req.json()) as RegisterBody
 
     // バリデーション
-    if (!body.name || !body.email) {
+    if (!body.name || !body.student_id) {
       return NextResponse.json(
-        { success: false, error: 'name and email are required' },
+        { success: false, error: 'name and student_id are required' },
         { status: 400 }
       )
     }
 
-    // メールアドレスの形式チェック（簡易）
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(body.email)) {
+    // 学籍番号の形式チェック（半角英数字）
+    const studentIdRegex = /^[A-Za-z0-9]+$/
+    if (!studentIdRegex.test(body.student_id)) {
       return NextResponse.json(
-        { success: false, error: 'invalid email format' },
+        { success: false, error: 'invalid student_id format' },
         { status: 400 }
       )
     }
@@ -33,8 +33,8 @@ export async function POST(req: NextRequest) {
     // 既存ユーザーを検索
     const { data: existingUser, error: searchError } = await supabase
       .from('users')
-      .select('user_id, name, email')
-      .eq('email', body.email)
+      .select('user_id, name, student_id')
+      .eq('student_id', body.student_id)
       .single()
 
     if (searchError && searchError.code !== 'PGRST116') {
@@ -48,12 +48,20 @@ export async function POST(req: NextRequest) {
 
     // 既存ユーザーの場合
     if (existingUser) {
+      // 名前が異なる場合はエラー
+      if (existingUser.name !== body.name) {
+        return NextResponse.json(
+          { success: false, error: 'name_mismatch' },
+          { status: 400 }
+        )
+      }
+
       return NextResponse.json({
         success: true,
         data: {
           user_id: existingUser.user_id,
           name: existingUser.name,
-          email: existingUser.email,
+          student_id: existingUser.student_id,
           isNewUser: false,
         },
       })
@@ -66,9 +74,9 @@ export async function POST(req: NextRequest) {
       .insert({
         user_id: userId,
         name: body.name,
-        email: body.email,
+        student_id: body.student_id,
       })
-      .select('user_id, name, email')
+      .select('user_id, name, student_id')
       .single()
 
     if (insertError) {
@@ -84,7 +92,7 @@ export async function POST(req: NextRequest) {
       data: {
         user_id: newUser.user_id,
         name: newUser.name,
-        email: newUser.email,
+        student_id: newUser.student_id,
         isNewUser: true,
       },
     })

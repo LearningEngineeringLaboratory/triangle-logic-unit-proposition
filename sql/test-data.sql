@@ -5,10 +5,10 @@
 -- ==============================================
 -- テストユーザー作成
 -- ==============================================
-INSERT INTO users (user_id, name, email) VALUES 
-  ('01HZ8X9K2M3N4P5Q6R7S8T9U0V', 'テストユーザー1', 'test1@example.com'),
-  ('01HZ8X9K2M3N4P5Q6R7S8T9U0W', 'テストユーザー2', 'test2@example.com'),
-  ('01HZ8X9K2M3N4P5Q6R7S8T9U0X', '研究用ユーザー', 'research@example.com');
+INSERT INTO users (user_id, name, student_id) VALUES 
+  ('01HZ8X9K2M3N4P5Q6R7S8T9U0V', 'テストユーザー1', 'STU0001'),
+  ('01HZ8X9K2M3N4P5Q6R7S8T9U0W', 'テストユーザー2', 'STU0002'),
+  ('01HZ8X9K2M3N4P5Q6R7S8T9U0X', '研究用ユーザー', 'STU9999');
 
 -- ==============================================
 -- テストセッション作成

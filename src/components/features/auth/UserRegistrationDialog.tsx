@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import {
   Dialog,
   DialogContent,
@@ -16,7 +16,7 @@ import { setUserIdClient } from '@/lib/session-client'
 
 interface UserRegistrationDialogProps {
   open: boolean
-  onSuccess: (userId: string, sessionId: string, userName: string, userEmail: string) => void
+  onSuccess: (userId: string, sessionId: string, userName: string, userStudentId: string) => void
 }
 
 export function UserRegistrationDialog({
@@ -24,51 +24,10 @@ export function UserRegistrationDialog({
   onSuccess,
 }: UserRegistrationDialogProps) {
   const [name, setName] = useState('')
-  const [email, setEmail] = useState('')
+  const [studentId, setStudentId] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [isExistingUser, setIsExistingUser] = useState(false)
-  const [existingUserName, setExistingUserName] = useState<string | null>(null)
-  const [checkingEmail, setCheckingEmail] = useState(false)
-
-  // メールアドレスが変更されたら既存ユーザーをチェック
-  useEffect(() => {
-    const checkExistingUser = async () => {
-      if (!email || !email.includes('@')) {
-        setIsExistingUser(false)
-        setExistingUserName(null)
-        return
-      }
-
-      setCheckingEmail(true)
-      try {
-        const loginRes = await fetch('/api/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email }),
-        })
-
-        const loginData = await loginRes.json()
-
-        if (loginData.success && loginData.data) {
-          setIsExistingUser(true)
-          setExistingUserName(loginData.data.name)
-        } else {
-          setIsExistingUser(false)
-          setExistingUserName(null)
-        }
-      } catch {
-        setIsExistingUser(false)
-        setExistingUserName(null)
-      } finally {
-        setCheckingEmail(false)
-      }
-    }
-
-    // デバウンス処理（500ms待機）
-    const timeoutId = setTimeout(checkExistingUser, 500)
-    return () => clearTimeout(timeoutId)
-  }, [email])
+  const [checkingExisting, setCheckingExisting] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -80,38 +39,40 @@ export function UserRegistrationDialog({
       let userName: string
       let isNewUser = false
 
-      if (isExistingUser && existingUserName) {
-        // 既存ユーザーの場合：メールアドレスのみでログイン
-        const loginRes = await fetch('/api/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email }),
-        })
+      const trimmedName = name.trim()
+      const trimmedStudentId = studentId.trim()
 
-        const loginData = await loginRes.json()
+      // バリデーション
+      if (!trimmedName) {
+        throw new Error('名前を入力してください')
+      }
+      if (!trimmedStudentId) {
+        throw new Error('学籍番号を入力してください')
+      }
+      if (!/^[A-Za-z0-9]+$/.test(trimmedStudentId)) {
+        throw new Error('学籍番号は半角英数字で入力してください')
+      }
 
-        if (!loginData.success) {
-          throw new Error(loginData.error || 'ログインに失敗しました')
-        }
+      setCheckingExisting(true)
 
+      // 1. 既存ユーザーとしてログインを試行
+      const loginRes = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ student_id: trimmedStudentId, name: trimmedName }),
+      })
+
+      const loginData = await loginRes.json()
+
+      if (loginData.success) {
         userId = loginData.data.user_id
         userName = loginData.data.name
-      } else {
-        // 新規ユーザーの場合：名前とメールアドレスで登録
-        // 既存ユーザー検出中の場合、少し待つ
-        if (checkingEmail) {
-          throw new Error('ユーザー情報を確認中です。しばらくお待ちください。')
-        }
-
-        // 名前のバリデーション（既存ユーザーでない場合のみ）
-        if (!isExistingUser && (!name || name.trim() === '')) {
-          throw new Error('名前を入力してください')
-        }
-
+      } else if (loginData.error === 'user_not_found') {
+        // 2. ユーザーが存在しない場合は新規登録
         const registerRes = await fetch('/api/register', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name, email }),
+          body: JSON.stringify({ name: trimmedName, student_id: trimmedStudentId }),
         })
 
         const registerData = await registerRes.json()
@@ -123,6 +84,10 @@ export function UserRegistrationDialog({
         userId = registerData.data.user_id
         userName = registerData.data.name
         isNewUser = registerData.data.isNewUser
+      } else if (loginData.error === 'name_mismatch') {
+        throw new Error('学籍番号と名前が一致しません')
+      } else {
+        throw new Error(loginData.error || 'ログインに失敗しました')
       }
 
       // ユーザーIDをlocalStorageに保存
@@ -132,10 +97,12 @@ export function UserRegistrationDialog({
       if (isNewUser) {
         await logUserRegistered({
           name: userName,
-          email,
+          studentId: trimmedStudentId,
           userId,
         })
       }
+
+      setCheckingExisting(false)
 
       // セッション作成
       const sessionRes = await fetch('/api/session/create', {
@@ -158,11 +125,12 @@ export function UserRegistrationDialog({
         userId,
       })
 
-      onSuccess(userId, sessionId, userName, email)
+      onSuccess(userId, sessionId, userName, trimmedStudentId)
     } catch (err) {
       console.error('Registration/Login error:', err)
       setError(err instanceof Error ? err.message : 'エラーが発生しました')
       setIsLoading(false)
+      setCheckingExisting(false)
     }
   }
 
@@ -172,54 +140,40 @@ export function UserRegistrationDialog({
         <DialogHeader>
           <DialogTitle>ユーザー登録/ログイン</DialogTitle>
           <DialogDescription>
-            研究目的の教育アプリです。メールアドレスを入力してください。
-            {isExistingUser && existingUserName && (
-              <span className="block mt-2 text-primary font-medium">
-                既存ユーザー「{existingUserName}」としてログインしますか？
-              </span>
-            )}
+            研究目的の教育アプリです。学籍番号（半角英数字）と名前を入力してください。
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
-          {!isExistingUser && (
-            <div className="space-y-2">
-              <Label htmlFor="name">名前</Label>
-              <Input
-                id="name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="山田太郎"
-                required={!isExistingUser}
-                disabled={isLoading || checkingEmail}
-              />
-            </div>
-          )}
           <div className="space-y-2">
-            <Label htmlFor="email">メールアドレス</Label>
+            <Label htmlFor="studentId">学籍番号</Label>
             <Input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="example@example.com"
+              id="studentId"
+              value={studentId}
+              onChange={(e) => setStudentId(e.target.value)}
+              placeholder="学籍番号（半角英数字）"
               required
               disabled={isLoading}
             />
-            {checkingEmail && (
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="name">名前</Label>
+            <Input
+              id="name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="山田太郎"
+              required
+              disabled={isLoading}
+            />
+            {checkingExisting && (
               <p className="text-xs text-muted-foreground">確認中...</p>
             )}
           </div>
           {error && (
             <div className="text-sm text-destructive">{error}</div>
           )}
-          <Button type="submit" className="w-full" disabled={isLoading || checkingEmail}>
-            {isLoading
-              ? isExistingUser
-                ? 'ログイン中...'
-                : '登録中...'
-              : isExistingUser
-                ? 'ログインして開始'
-                : '登録して開始'}
+          <Button type="submit" className="w-full" disabled={isLoading || checkingExisting}>
+            {isLoading ? '処理中...' : '開始する'}
           </Button>
         </form>
       </DialogContent>

@@ -26,7 +26,7 @@ export async function POST() {
         user_id,
         created_at,
         last_activity,
-        users!inner(user_id, name, email)
+        users!inner(user_id, name, student_id)
         `
       )
       .eq('session_id', sessionId)
@@ -67,7 +67,7 @@ export async function POST() {
         user: {
           user_id: user.user_id,
           name: user.name,
-          email: user.email,
+          student_id: user.student_id,
         },
       },
     })

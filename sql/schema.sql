@@ -8,14 +8,14 @@
 CREATE TABLE users (
     user_id TEXT PRIMARY KEY, -- ULID形式
     name TEXT NOT NULL, -- ユーザー名
-    email TEXT UNIQUE NOT NULL, -- メールアドレス（重複不可）
+    student_id TEXT UNIQUE NOT NULL, -- 学籍番号（重複不可）
     created_at TIMESTAMP
     WITH
         TIME ZONE DEFAULT NOW() -- 登録日時
 );
 
 -- インデックス
-CREATE INDEX idx_users_email ON users (email);
+CREATE INDEX idx_users_student_id ON users (student_id);
 
 CREATE INDEX idx_users_created_at ON users (created_at);
 
