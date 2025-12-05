@@ -68,59 +68,12 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // 問題非関連イベントの場合は、システム用のattempt_idを取得または作成
+    // 問題非関連イベントでattempt_idが無い場合はエラーとする（システム用attemptを作らない）
     if (!attemptId) {
-      // システム用のattempt_idを取得（存在しない場合は作成）
-      const systemProblemId = 'SYSTEM'
-      const { data: systemAttempt, error: systemAttemptError } = await supabase
-        .from('attempts')
-        .select('attempt_id')
-        .eq('session_id', body.session_id)
-        .eq('user_id', body.user_id)
-        .eq('problem_id', systemProblemId)
-        .eq('status', 'in_progress')
-        .limit(1)
-        .single()
-
-      if (!systemAttemptError && systemAttempt) {
-        attemptId = systemAttempt.attempt_id
-      } else {
-        // システム用のattemptを作成
-        const systemAttemptId = generateUlid()
-        const { error: createSystemAttemptError } = await supabase
-          .from('attempts')
-          .insert({
-            attempt_id: systemAttemptId,
-            session_id: body.session_id,
-            user_id: body.user_id,
-            problem_id: systemProblemId,
-            started_at: new Date().toISOString(),
-            status: 'in_progress',
-          })
-
-        if (!createSystemAttemptError) {
-          attemptId = systemAttemptId
-        } else {
-          console.error('Failed to create system attempt:', createSystemAttemptError)
-          // フォールバック: 既存のattempt_idを取得（任意の1つ）
-          const { data: anyAttempt } = await supabase
-            .from('attempts')
-            .select('attempt_id')
-            .eq('session_id', body.session_id)
-            .eq('user_id', body.user_id)
-            .limit(1)
-            .single()
-
-          if (anyAttempt) {
-            attemptId = anyAttempt.attempt_id
-          } else {
-            return NextResponse.json(
-              { success: false, error: 'failed_to_get_attempt_id' },
-              { status: 500 }
-            )
-          }
-        }
-      }
+      return NextResponse.json(
+        { success: false, error: 'attempt_id is required for non problem events' },
+        { status: 400 }
+      )
     }
 
     // 冪等性キーの生成（指定されていない場合）

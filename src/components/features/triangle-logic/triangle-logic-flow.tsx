@@ -214,7 +214,13 @@ export function TriangleLogicFlow({
           antecedent: value, // 更新後の値を使用
         },
       }
-      const dbState = mapUiToDbState(updatedSteps, nodeValues ?? undefined)
+
+      // nodeValuesも更新後の値を反映させてログに送る
+      const updatedNodeValues: NodeValues = nodeValues
+        ? { ...nodeValues, antecedent: value }
+        : { antecedent: value, consequent: '', premiseNodes: [] }
+
+      const dbState = mapUiToDbState(updatedSteps, updatedNodeValues)
       console.log('[handleAntecedentChange] Logging:', { controlId: 'antecedent', value, attemptId, problemId, sessionId: sessionInfo.sessionId, userId: sessionInfo.userId })
       logSelectDropdown({
         controlId: 'antecedent',
@@ -245,7 +251,13 @@ export function TriangleLogicFlow({
           consequent: value, // 更新後の値を使用
         },
       }
-      const dbState = mapUiToDbState(updatedSteps, nodeValues ?? undefined)
+
+      // nodeValuesも更新後の値を反映させてログに送る
+      const updatedNodeValues: NodeValues = nodeValues
+        ? { ...nodeValues, consequent: value }
+        : { antecedent: '', consequent: value, premiseNodes: [] }
+
+      const dbState = mapUiToDbState(updatedSteps, updatedNodeValues)
       console.log('[handleConsequentChange] Logging:', { controlId: 'consequent', value, attemptId, problemId, sessionId: sessionInfo.sessionId, userId: sessionInfo.userId })
       logSelectDropdown({
         controlId: 'consequent',
