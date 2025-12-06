@@ -143,7 +143,7 @@
 | event_id | TEXT | PRIMARY KEY | イベントID（ULID形式） |
 | session_id | TEXT | NOT NULL | セッションID（外部キー） |
 | user_id | TEXT | NOT NULL | ユーザーID（外部キー） |
-| attempt_id | TEXT | NOT NULL | 試行ID（外部キー） |
+| attempt_id | TEXT | NULL可 | 試行ID（外部キー、問題非関連イベントではNULL） |
 | seq | INTEGER | NOT NULL | シーケンス番号（セッション内で一意） |
 | kind | TEXT | NOT NULL | イベント種別 |
 | payload | JSONB | NULL可 | イベント詳細データ |

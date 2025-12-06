@@ -111,17 +111,17 @@ CREATE TABLE events (
     event_id TEXT PRIMARY KEY, -- イベントID（ULID形式）
     session_id TEXT NOT NULL, -- セッションID（外部キー）
     user_id TEXT NOT NULL, -- ユーザーID（外部キー）
-    attempt_id TEXT NOT NULL, -- 試行ID（外部キー）
+    attempt_id TEXT, -- 試行ID（外部キー、問題非関連イベントではNULL）
     seq INTEGER NOT NULL, -- シーケンス番号（セッション内で一意）
     kind TEXT NOT NULL, -- イベント種別
     payload JSONB, -- イベント詳細データ
     client_ts TIMESTAMP
     WITH
         TIME ZONE, -- クライアント側タイムスタンプ
-        server_ts TIMESTAMP
+    server_ts TIMESTAMP
     WITH
         TIME ZONE DEFAULT NOW(), -- サーバー側タイムスタンプ
-        idempotency_key TEXT UNIQUE -- 冪等性キー（重複防止）
+    idempotency_key TEXT UNIQUE -- 冪等性キー（重複防止）
 );
 
 -- 外部キー制約

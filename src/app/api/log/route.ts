@@ -68,13 +68,7 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // 問題非関連イベントでattempt_idが無い場合はエラーとする（システム用attemptを作らない）
-    if (!attemptId) {
-      return NextResponse.json(
-        { success: false, error: 'attempt_id is required for non problem events' },
-        { status: 400 }
-      )
-    }
+    // 問題非関連イベントではattempt_idはNULL許可（attempt_idが無くてもOK）
 
     // 冪等性キーの生成（指定されていない場合）
     const idempotencyKey = body.idempotency_key || `${body.session_id}-${nextSeq}-${Date.now()}`
@@ -85,7 +79,7 @@ export async function POST(req: NextRequest) {
       event_id: eventId,
       session_id: body.session_id,
       user_id: body.user_id,
-      attempt_id: attemptId,
+      attempt_id: attemptId || null, // 問題非関連イベントではNULL許可
       seq: nextSeq,
       kind: body.kind || 'unknown',
       payload: body.payload || null,
