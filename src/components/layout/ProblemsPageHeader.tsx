@@ -8,7 +8,6 @@ import {
   DropdownMenuTrigger,
   DropdownMenuLabel,
   DropdownMenuSeparator,
-  DropdownMenuGroup,
 } from '@/components/ui/dropdown-menu'
 import {
   Dialog,
@@ -18,26 +17,24 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { Menu, RotateCcw, LogOut } from 'lucide-react'
+import { Menu, LogOut } from 'lucide-react'
 import { useState } from 'react'
 
 interface ProblemsPageHeaderProps {
   sessionInfo: { sessionId: string; userId: string; userName: string; userStudentId: string } | null
   onLogout: () => void
-  onResetAll: () => void
-  completedCount: number
 }
 
-export function ProblemsPageHeader({ sessionInfo, onLogout, onResetAll, completedCount }: ProblemsPageHeaderProps) {
-  const [showResetDialog, setShowResetDialog] = useState(false)
+export function ProblemsPageHeader({ sessionInfo, onLogout }: ProblemsPageHeaderProps) {
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false)
 
-  const handleResetClick = () => {
-    setShowResetDialog(true)
+  const handleLogoutClick = () => {
+    setShowLogoutDialog(true)
   }
 
-  const handleResetConfirm = () => {
-    setShowResetDialog(false)
-    onResetAll()
+  const handleLogoutConfirm = () => {
+    setShowLogoutDialog(false)
+    onLogout()
   }
 
   return (
@@ -67,20 +64,6 @@ export function ProblemsPageHeader({ sessionInfo, onLogout, onResetAll, complete
                         <p className="text-xs text-muted-foreground">{sessionInfo.userStudentId}</p>
                       </div>
                     </DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                  </>
-                )}
-
-                {/* クリア済みリセット */}
-                {sessionInfo && completedCount > 0 && (
-                  <>
-                    <DropdownMenuGroup>
-                      <DropdownMenuItem onClick={handleResetClick}>
-                        <RotateCcw className="mr-2 h-4 w-4" />
-                        <span>全クリア済みをリセット ({completedCount})</span>
-                      </DropdownMenuItem>
-                    </DropdownMenuGroup>
-                    <DropdownMenuSeparator />
                   </>
                 )}
 
@@ -88,7 +71,7 @@ export function ProblemsPageHeader({ sessionInfo, onLogout, onResetAll, complete
                 {sessionInfo && (
                   <>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={onLogout} variant="destructive">
+                    <DropdownMenuItem onClick={handleLogoutClick} variant="destructive">
                       <LogOut className="mr-2 h-4 w-4" />
                       <span>ログアウト</span>
                     </DropdownMenuItem>
@@ -100,22 +83,30 @@ export function ProblemsPageHeader({ sessionInfo, onLogout, onResetAll, complete
         </div>
       </div>
 
-      {/* リセット確認ダイアログ */}
-      <Dialog open={showResetDialog} onOpenChange={setShowResetDialog}>
+      {/* ログアウト確認ダイアログ */}
+      <Dialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>全クリア済みをリセット</DialogTitle>
-            <DialogDescription>
-              {completedCount}件のクリア済み問題をリセットしますか？この操作は取り消せません。
+            <DialogTitle>ログアウト</DialogTitle>
+            <DialogDescription className="space-y-2">
+              <p>
+                ログアウトすると、現在の学習状況は提出され、セッションが終了します。
+              </p>
+              <p className="font-medium text-destructive">
+                再度ログインすることはできません。新しいセッションとして開始されます。
+              </p>
+              <p>
+                ログアウトしますか？
+              </p>
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowResetDialog(false)}>
+            <Button variant="outline" onClick={() => setShowLogoutDialog(false)}>
               キャンセル
             </Button>
-            <Button variant="destructive" onClick={handleResetConfirm}>
-              <RotateCcw className="mr-2 h-4 w-4" />
-              リセット
+            <Button variant="destructive" onClick={handleLogoutConfirm}>
+              <LogOut className="mr-2 h-4 w-4" />
+              ログアウト
             </Button>
           </DialogFooter>
         </DialogContent>

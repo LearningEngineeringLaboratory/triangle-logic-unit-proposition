@@ -27,7 +27,6 @@ export function UserRegistrationDialog({
   const [studentId, setStudentId] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [checkingExisting, setCheckingExisting] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -35,10 +34,6 @@ export function UserRegistrationDialog({
     setIsLoading(true)
 
     try {
-      let userId: string
-      let userName: string
-      let isNewUser = false
-
       const trimmedName = name.trim()
       const trimmedStudentId = studentId.trim()
 
@@ -53,56 +48,31 @@ export function UserRegistrationDialog({
         throw new Error('学籍番号は半角英数字で入力してください')
       }
 
-      setCheckingExisting(true)
-
-      // 1. 既存ユーザーとしてログインを試行
-      const loginRes = await fetch('/api/login', {
+      // ユーザー登録（常に新規ユーザーを作成）
+      const registerRes = await fetch('/api/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ student_id: trimmedStudentId, name: trimmedName }),
+        body: JSON.stringify({ name: trimmedName, student_id: trimmedStudentId }),
       })
 
-      const loginData = await loginRes.json()
+      const registerData = await registerRes.json()
 
-      if (loginData.success) {
-        userId = loginData.data.user_id
-        userName = loginData.data.name
-      } else if (loginData.error === 'user_not_found') {
-        // 2. ユーザーが存在しない場合は新規登録
-        const registerRes = await fetch('/api/register', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name: trimmedName, student_id: trimmedStudentId }),
-        })
-
-        const registerData = await registerRes.json()
-
-        if (!registerData.success) {
-          throw new Error(registerData.error || 'ユーザー登録に失敗しました')
-        }
-
-        userId = registerData.data.user_id
-        userName = registerData.data.name
-        isNewUser = registerData.data.isNewUser
-      } else if (loginData.error === 'name_mismatch') {
-        throw new Error('学籍番号と名前が一致しません')
-      } else {
-        throw new Error(loginData.error || 'ログインに失敗しました')
+      if (!registerData.success) {
+        throw new Error(registerData.error || 'ユーザー登録に失敗しました')
       }
+
+      const userId = registerData.data.user_id
+      const userName = registerData.data.name
 
       // ユーザーIDをlocalStorageに保存
       setUserIdClient(userId)
 
-      // ログ記録（新規ユーザーの場合のみ）
-      if (isNewUser) {
-        await logUserRegistered({
-          name: userName,
-          studentId: trimmedStudentId,
-          userId,
-        })
-      }
-
-      setCheckingExisting(false)
+      // ログ記録
+      await logUserRegistered({
+        name: userName,
+        studentId: trimmedStudentId,
+        userId,
+      })
 
       // セッション作成
       const sessionRes = await fetch('/api/session/create', {
@@ -127,10 +97,9 @@ export function UserRegistrationDialog({
 
       onSuccess(userId, sessionId, userName, trimmedStudentId)
     } catch (err) {
-      console.error('Registration/Login error:', err)
+      console.error('Registration error:', err)
       setError(err instanceof Error ? err.message : 'エラーが発生しました')
       setIsLoading(false)
-      setCheckingExisting(false)
     }
   }
 
@@ -138,7 +107,7 @@ export function UserRegistrationDialog({
     <Dialog open={open} onOpenChange={() => {}}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>ユーザー登録/ログイン</DialogTitle>
+          <DialogTitle>ユーザー登録</DialogTitle>
           <DialogDescription>
             研究目的の教育アプリです。学籍番号（半角英数字）と名前を入力してください。
           </DialogDescription>
@@ -165,16 +134,15 @@ export function UserRegistrationDialog({
               required
               disabled={isLoading}
             />
-            {checkingExisting && (
-              <p className="text-xs text-muted-foreground">確認中...</p>
-            )}
           </div>
           {error && (
             <div className="text-sm text-destructive">{error}</div>
           )}
-          <Button type="submit" className="w-full" disabled={isLoading || checkingExisting}>
-            {isLoading ? '処理中...' : '開始する'}
-          </Button>
+          <div className="flex flex-col gap-2">
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? '処理中...' : '開始する'}
+            </Button>
+          </div>
         </form>
       </DialogContent>
     </Dialog>

@@ -30,43 +30,6 @@ export async function POST(req: NextRequest) {
 
     const supabase = getSupabaseAdmin()
 
-    // 既存ユーザーを検索
-    const { data: existingUser, error: searchError } = await supabase
-      .from('users')
-      .select('user_id, name, student_id')
-      .eq('student_id', body.student_id)
-      .single()
-
-    if (searchError && searchError.code !== 'PGRST116') {
-      // PGRST116は「行が見つからない」エラー（正常）
-      console.error('User search error:', searchError)
-      return NextResponse.json(
-        { success: false, error: 'database_error' },
-        { status: 500 }
-      )
-    }
-
-    // 既存ユーザーの場合
-    if (existingUser) {
-      // 名前が異なる場合はエラー
-      if (existingUser.name !== body.name) {
-        return NextResponse.json(
-          { success: false, error: 'name_mismatch' },
-          { status: 400 }
-        )
-      }
-
-      return NextResponse.json({
-        success: true,
-        data: {
-          user_id: existingUser.user_id,
-          name: existingUser.name,
-          student_id: existingUser.student_id,
-          isNewUser: false,
-        },
-      })
-    }
-
     // 新規ユーザーを作成
     const userId = generateUlid()
     const { data: newUser, error: insertError } = await supabase
@@ -93,7 +56,6 @@ export async function POST(req: NextRequest) {
         user_id: newUser.user_id,
         name: newUser.name,
         student_id: newUser.student_id,
-        isNewUser: true,
       },
     })
   } catch (err) {

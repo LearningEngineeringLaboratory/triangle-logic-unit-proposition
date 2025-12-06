@@ -28,7 +28,7 @@
 |-------------|----------|------|------|
 | user_id | TEXT | PRIMARY KEY | ULID形式のユニークID |
 | name | TEXT | NOT NULL | ユーザー名 |
-| student_id | TEXT | UNIQUE NOT NULL | 学籍番号（半角英数字、重複不可） |
+| student_id | TEXT | NOT NULL | 学籍番号（半角英数字、重複可） |
 | created_at | TIMESTAMP WITH TIME ZONE | DEFAULT NOW() | 登録日時 |
 
 **インデックス**:

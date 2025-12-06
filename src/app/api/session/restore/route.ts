@@ -34,7 +34,7 @@ export async function POST() {
       .single()
 
     if (sessionError || !session) {
-      // セッションが無効または期限切れ
+      // セッションが無効または期限切れ、またはDBに存在しない
       return NextResponse.json({
         success: true,
         data: null,

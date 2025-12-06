@@ -38,12 +38,6 @@ export function useSession() {
           userStudentId: session.user.student_id,
         })
         setNeedsRegistration(false)
-
-        // ログ記録
-        await logSessionRestored({
-          sessionId: session.session_id,
-          userId: session.user.user_id,
-        })
       } else {
         // セッションがない、または期限切れ
         setNeedsRegistration(true)

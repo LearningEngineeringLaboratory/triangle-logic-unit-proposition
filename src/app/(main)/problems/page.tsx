@@ -8,7 +8,6 @@ import { useSession } from '@/hooks/useSession'
 import { UserRegistrationDialog } from '@/components/features/auth/UserRegistrationDialog'
 import { ProblemsPageHeader } from '@/components/layout/ProblemsPageHeader'
 import { ProblemsListWithSetSelector } from '@/components/features/problem-list/ProblemsListWithSetSelector'
-import { useResetAll } from '@/hooks/useResetAll'
 
 export default function ProblemsPage() {
   const [problems, setProblems] = useState<Awaited<ReturnType<typeof getProblems>>>([])
@@ -16,11 +15,6 @@ export default function ProblemsPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [completedCount, setCompletedCount] = useState(0)
   const { sessionInfo, isLoading: isSessionLoading, needsRegistration, handleRegistrationSuccess, handleLogout } = useSession()
-
-  const { handleResetAll } = useResetAll({
-    sessionInfo,
-    onSuccess: () => setCompletedCount(0),
-  })
 
   useEffect(() => {
     const loadData = async () => {
@@ -46,8 +40,6 @@ export default function ProblemsPage() {
         <ProblemsPageHeader 
           sessionInfo={sessionInfo}
           onLogout={handleLogout}
-          onResetAll={handleResetAll}
-          completedCount={completedCount}
         />
         <div className="container mx-auto px-4 py-8">
           {/* 問題セットセレクターのSkeleton */}
@@ -79,8 +71,6 @@ export default function ProblemsPage() {
       <ProblemsPageHeader 
         sessionInfo={sessionInfo}
         onLogout={handleLogout}
-        onResetAll={handleResetAll}
-        completedCount={completedCount}
       />
       <div className="container mx-auto px-4 py-8">
         <ProblemsListWithSetSelector 
