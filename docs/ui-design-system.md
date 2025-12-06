@@ -334,7 +334,7 @@ const breakpoints = {
 
 ```tsx
 <div className="relative">
-  <div className="w-24 h-24 rounded-full bg-gradient-to-br from-success to-success/70 flex items-center justify-center shadow-xl animate-in zoom-in">
+  <div className="w-24 h-24 rounded-full bg-linear-to-br from-success to-success/70 flex items-center justify-center shadow-xl animate-in zoom-in">
     <Trophy className="w-12 h-12 text-white" />
   </div>
   <div className="absolute -bottom-2 -right-2 w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center text-sm font-bold">
@@ -351,7 +351,7 @@ const breakpoints = {
 ```tsx
 <div className="w-full bg-muted rounded-full h-3 overflow-hidden">
   <div 
-    className="h-full bg-gradient-to-r from-primary to-success transition-all duration-500 rounded-full"
+    className="h-full bg-linear-to-r from-primary to-success transition-all duration-500 rounded-full"
     style={{ width: `${progress}%` }}
   />
 </div>

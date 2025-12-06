@@ -88,18 +88,18 @@ export function ProblemsPageHeader({ sessionInfo, onLogout }: ProblemsPageHeader
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>ログアウト</DialogTitle>
-            <DialogDescription className="space-y-2">
-              <p>
-                ログアウトすると、現在の学習状況は提出され、セッションが終了します。
-              </p>
-              <p className="font-medium text-destructive">
-                再度ログインすることはできません。新しいセッションとして開始されます。
-              </p>
-              <p>
-                ログアウトしますか？
-              </p>
+            <DialogDescription>
+              ログアウトすると、現在の学習状況は提出され、セッションが終了します。
             </DialogDescription>
           </DialogHeader>
+          <div className="space-y-2 text-sm text-muted-foreground">
+            <div className="font-medium text-destructive">
+              再度ログインすることはできません。新しいセッションとして開始されます。
+            </div>
+            <div>
+              ログアウトしますか？
+            </div>
+          </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowLogoutDialog(false)}>
               キャンセル

@@ -27,7 +27,7 @@ export function ProblemCard({ problem, isCompleted }: ProblemCardProps) {
             </div>
           </CardHeader>
           <CardContent>
-            <p className="text-muted-foreground">{problem.argument}</p>
+            <p className="text-muted-foreground line-clamp-2">{problem.argument}</p>
           </CardContent>
         </Card>
       ) : (
@@ -39,7 +39,7 @@ export function ProblemCard({ problem, isCompleted }: ProblemCardProps) {
               </div>
             </CardHeader>
             <CardContent>
-              {problem.argument}
+              <p className="line-clamp-2">{problem.argument}</p>
             </CardContent>
           </Card>
         </Link>
