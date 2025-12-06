@@ -6,8 +6,6 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu'
 import {
   Dialog,
@@ -19,6 +17,7 @@ import {
 } from '@/components/ui/dialog'
 import { Menu, LogOut } from 'lucide-react'
 import { useState } from 'react'
+import { Badge } from '@/components/ui/badge'
 
 interface ProblemsPageHeaderProps {
   sessionInfo: { sessionId: string; userId: string; userName: string; userStudentId: string } | null
@@ -37,6 +36,9 @@ export function ProblemsPageHeader({ sessionInfo, onLogout }: ProblemsPageHeader
     onLogout()
   }
 
+  // ゲストユーザーかどうかを判定
+  const isGuestUser = sessionInfo?.userStudentId?.startsWith('unknownuser') ?? false
+
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
       <div className="container mx-auto px-4">
@@ -45,8 +47,25 @@ export function ProblemsPageHeader({ sessionInfo, onLogout }: ProblemsPageHeader
             単位命題三角ロジック演習システム
           </h1>
 
-          {/* ハンバーガーメニュー */}
-          <div className="flex items-center">
+          {/* ログイン情報とハンバーガーメニュー */}
+          <div className="flex items-center gap-3">
+            {/* ログイン情報 */}
+            {sessionInfo && (
+              <>
+                {isGuestUser ? (
+                  <Badge variant="outline" className="text-xs text-destructive border-destructive">
+                    ログインしていません
+                  </Badge>
+                ) : (
+                  <div className="flex flex-col items-end text-right">
+                    <p className="text-xs text-muted-foreground">{sessionInfo.userName}</p>
+                    <p className="text-xs text-muted-foreground">{sessionInfo.userStudentId}</p>
+                  </div>
+                )}
+              </>
+            )}
+
+            {/* ハンバーガーメニュー */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="sm" className="h-9 w-9 px-0">
@@ -55,27 +74,12 @@ export function ProblemsPageHeader({ sessionInfo, onLogout }: ProblemsPageHeader
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
-                {/* ログイン状況 */}
-                {sessionInfo && (
-                  <>
-                    <DropdownMenuLabel>
-                      <div className="flex flex-col space-y-1">
-                        <p className="text-sm font-medium">{sessionInfo.userName}</p>
-                        <p className="text-xs text-muted-foreground">{sessionInfo.userStudentId}</p>
-                      </div>
-                    </DropdownMenuLabel>
-                  </>
-                )}
-
                 {/* ログアウト */}
                 {sessionInfo && (
-                  <>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={handleLogoutClick} variant="destructive">
-                      <LogOut className="mr-2 h-4 w-4" />
-                      <span>ログアウト</span>
-                    </DropdownMenuItem>
-                  </>
+                  <DropdownMenuItem onClick={handleLogoutClick} variant="destructive">
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>ログアウト</span>
+                  </DropdownMenuItem>
                 )}
               </DropdownMenuContent>
             </DropdownMenu>
