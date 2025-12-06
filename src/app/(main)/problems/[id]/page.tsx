@@ -171,6 +171,13 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
     }
   }, [currentStep, problem, attemptId])
 
+  // セッションがない場合は問題選択画面にリダイレクト
+  useEffect(() => {
+    if (!isSessionLoading && !sessionInfo) {
+      router.push('/problems')
+    }
+  }, [isSessionLoading, sessionInfo, router])
+
   // 次の問題への遷移
   const handleNextProblem = () => {
     if (nextProblem) {
@@ -183,7 +190,12 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
     router.push('/problems')
   }
 
-  if (loading) {
+  // セッションがない場合はリダイレクト中なので何も表示しない
+  if (!isSessionLoading && !sessionInfo) {
+    return null
+  }
+
+  if (loading || isSessionLoading) {
     return <ProblemDetailLoading />
   }
 
