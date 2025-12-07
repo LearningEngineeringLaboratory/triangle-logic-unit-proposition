@@ -564,7 +564,10 @@ export function TriangleLogicFlow({
   }, [computedEdges, setEdges])
 
   return (
-    <div className="w-full h-full relative touch-action-none">
+    <div 
+      className="w-full h-full relative touch-action-none"
+      style={{ overscrollBehavior: 'none' }}
+    >
       <ReactFlow
         nodes={nodes}
         edges={flowEdges}

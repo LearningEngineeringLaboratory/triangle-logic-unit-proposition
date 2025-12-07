@@ -292,7 +292,10 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
   }
 
   return (
-    <div className="fixed inset-0 h-screen overflow-hidden bg-background flex flex-col touch-action-none">
+    <div 
+      className="fixed inset-0 h-dvh overflow-hidden bg-background flex flex-col touch-action-none"
+      style={{ overscrollBehavior: 'none' }}
+    >
       <Header 
         problemDisplay={<ProblemDisplay problem={problem} />}
       />
