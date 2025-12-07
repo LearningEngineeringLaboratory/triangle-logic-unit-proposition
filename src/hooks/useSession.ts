@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { logSessionRestored } from '@/lib/logging'
 import { setUserIdClient } from '@/lib/session-client'
 
@@ -11,12 +11,23 @@ interface SessionInfo {
   userStudentId: string
 }
 
+// グローバルなリクエストフラグ（アプリ全体で共有）
+let globalIsChecking = false
+
 export function useSession() {
   const [sessionInfo, setSessionInfo] = useState<SessionInfo | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [needsRegistration, setNeedsRegistration] = useState(false)
+  const isCheckingRef = useRef(false)
 
   const checkSession = useCallback(async () => {
+    // グローバルフラグとローカルフラグの両方をチェック
+    if (globalIsChecking || isCheckingRef.current) {
+      return
+    }
+    
+    globalIsChecking = true
+    isCheckingRef.current = true
     setIsLoading(true)
     try {
       // セッション復帰を試行
@@ -49,6 +60,8 @@ export function useSession() {
       setSessionInfo(null)
     } finally {
       setIsLoading(false)
+      isCheckingRef.current = false
+      globalIsChecking = false
     }
   }, [])
 

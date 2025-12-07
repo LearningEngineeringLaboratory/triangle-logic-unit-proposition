@@ -79,13 +79,6 @@ export function UserRegistrationDialog({
       // ユーザーIDをlocalStorageに保存
       setUserIdClient(userId)
 
-      // ログ記録
-      await logUserRegistered({
-        name: userName,
-        studentId: guestStudentId,
-        userId,
-      })
-
       // セッション作成
       const sessionRes = await fetch('/api/session/create', {
         method: 'POST',
@@ -100,6 +93,14 @@ export function UserRegistrationDialog({
       }
 
       const sessionId = sessionData.data.session_id
+
+      // ログ記録（セッション作成後に記録）
+      await logUserRegistered({
+        name: userName,
+        studentId: guestStudentId,
+        userId,
+        sessionId,
+      })
 
       // ログ記録
       await logSessionCreated({
@@ -154,13 +155,6 @@ export function UserRegistrationDialog({
       // ユーザーIDをlocalStorageに保存
       setUserIdClient(userId)
 
-      // ログ記録
-      await logUserRegistered({
-        name: userName,
-        studentId: trimmedStudentId,
-        userId,
-      })
-
       // セッション作成
       const sessionRes = await fetch('/api/session/create', {
         method: 'POST',
@@ -175,6 +169,14 @@ export function UserRegistrationDialog({
       }
 
       const sessionId = sessionData.data.session_id
+
+      // ログ記録（セッション作成後に記録）
+      await logUserRegistered({
+        name: userName,
+        studentId: trimmedStudentId,
+        userId,
+        sessionId,
+      })
 
       // ログ記録
       await logSessionCreated({

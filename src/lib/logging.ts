@@ -20,10 +20,9 @@ function getLogContext() {
 /**
  * ユーザー登録イベントを記録
  */
-export async function logUserRegistered(params: { name: string; studentId: string; userId: string }) {
-  const context = getLogContext()
+export async function logUserRegistered(params: { name: string; studentId: string; userId: string; sessionId?: string }) {
   await logEvent({
-    sessionId: context.sessionId ?? undefined,
+    sessionId: params.sessionId,
     userId: params.userId,
     kind: 'user_registered',
     payload: {

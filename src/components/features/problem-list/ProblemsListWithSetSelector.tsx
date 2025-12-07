@@ -6,19 +6,20 @@ import { Card, CardContent } from '@/components/ui/card'
 import { ProblemSetSelector } from './problem-set-selector'
 import { ProblemCard } from './ProblemCard'
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { useSession } from '@/hooks/useSession'
 
 interface ProblemsListWithSetSelectorProps {
   initialProblems: Problem[]
   problemSets: ProblemSet[]
   onCompletedCountChange: (count: number) => void
+  sessionInfo: { sessionId: string; userId: string; userName: string; userStudentId: string } | null
 }
 
 // 問題セット選択とそれに応じた問題一覧の表示、およびクリア済み問題数の集計を行うコンポーネント
 export function ProblemsListWithSetSelector({ 
   initialProblems, 
   problemSets, 
-  onCompletedCountChange 
+  onCompletedCountChange,
+  sessionInfo
 }: ProblemsListWithSetSelectorProps) {
   // 親から渡されたクリア済み問題数更新コールバックを常に最新に保つためのref
   const onCompletedCountChangeRef = useRef(onCompletedCountChange)
@@ -37,7 +38,8 @@ export function ProblemsListWithSetSelector({
   const [isInitialized, setIsInitialized] = useState(false)
   // クリア済みの problem_id の集合
   const [completedProblemIds, setCompletedProblemIds] = useState<Set<string>>(new Set())
-  const { sessionInfo } = useSession()
+  // フェッチ中の重複リクエストを防ぐためのref
+  const isFetchingRef = useRef(false)
 
   // 問題セット選択変更時に、選択状態を保持しつつ問題一覧を切り替える
   const handleSetChange = useCallback(async (setId: string | null) => {
@@ -81,11 +83,17 @@ export function ProblemsListWithSetSelector({
   // ログイン済みセッションに紐づく「クリア済み問題ID一覧」を取得し、カードの表示とカウンタに反映
   useEffect(() => {
     async function fetchCompletionStatus() {
+      // 既にフェッチ中の場合はスキップ
+      if (isFetchingRef.current) {
+        return
+      }
+      
       if (!sessionInfo) {
         setCompletedProblemIds(new Set<string>())
         return
       }
 
+      isFetchingRef.current = true
       try {
         const res = await fetch('/api/response/completion-status', {
           method: 'GET',
@@ -106,6 +114,8 @@ export function ProblemsListWithSetSelector({
         }
       } catch (err) {
         console.error('Error fetching completion status:', err)
+      } finally {
+        isFetchingRef.current = false
       }
     }
 

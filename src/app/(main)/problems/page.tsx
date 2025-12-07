@@ -77,6 +77,7 @@ export default function ProblemsPage() {
           initialProblems={problems} 
           problemSets={problemSets}
           onCompletedCountChange={setCompletedCount}
+          sessionInfo={sessionInfo}
         />
       </div>
       <UserRegistrationDialog

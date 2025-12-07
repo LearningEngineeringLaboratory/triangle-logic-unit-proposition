@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { ProblemDetail } from '@/lib/types'
 import { logAttemptStarted, logAttemptFinished } from '@/lib/logging'
 
@@ -9,6 +9,9 @@ interface UseProblemAttemptOptions {
   onComplete?: (attemptId: string) => void
 }
 
+// グローバルなリクエストフラグ（問題IDごとに管理）
+const globalAttemptStarting = new Map<string, boolean>()
+
 export function useProblemAttempt({ 
   problem, 
   sessionInfo, 
@@ -16,6 +19,7 @@ export function useProblemAttempt({
   onComplete 
 }: UseProblemAttemptOptions) {
   const [attemptId, setAttemptId] = useState<string | null>(null)
+  const isStartingRef = useRef(false)
 
   // attemptを開始
   useEffect(() => {
@@ -35,7 +39,18 @@ export function useProblemAttempt({
 
       const sessionId = sessionInfo.sessionId
       const userId = sessionInfo.userId
-      console.log('[debug] Attempt start:', { sessionId, userId, problemId: problem.problem_id })
+      const problemId = problem.problem_id
+      
+      // 既に開始中の場合はスキップ
+      if (isStartingRef.current || globalAttemptStarting.get(problemId)) {
+        console.log('[debug] Attempt start already in progress, skipping...')
+        return
+      }
+      
+      isStartingRef.current = true
+      globalAttemptStarting.set(problemId, true)
+      
+      console.log('[debug] Attempt start:', { sessionId, userId, problemId })
       
       if (sessionId && userId) {
         try {
@@ -67,9 +82,18 @@ export function useProblemAttempt({
           }
         } catch (err) {
           console.error('[error] Failed to start attempt (exception):', err)
+        } finally {
+          isStartingRef.current = false
+          if (problem) {
+            globalAttemptStarting.set(problem.problem_id, false)
+          }
         }
       } else {
         console.warn('[warn] Cannot start attempt - missing sessionId or userId:', { sessionId, userId })
+        isStartingRef.current = false
+        if (problem) {
+          globalAttemptStarting.set(problem.problem_id, false)
+        }
       }
     }
 
