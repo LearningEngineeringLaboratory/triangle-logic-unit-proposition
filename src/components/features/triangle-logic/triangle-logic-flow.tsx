@@ -564,7 +564,7 @@ export function TriangleLogicFlow({
   }, [computedEdges, setEdges])
 
   return (
-    <div className="w-full h-full relative">
+    <div className="w-full h-full relative touch-action-none">
       <ReactFlow
         nodes={nodes}
         edges={flowEdges}

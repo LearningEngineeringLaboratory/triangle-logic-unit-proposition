@@ -25,11 +25,11 @@ export function ProblemDetailLayout({ slots }: ProblemDetailLayoutProps) {
         {/* 中央行（flex-1）: モバイルは縦積み、LG以上で2カラム */}
         <div className="flex-1 min-h-0 flex flex-col gap-4 md:gap-0 md:grid md:grid-cols-[480px_1fr] overflow-hidden">
           {/* 左: ステップ（スクロールとフェードアウト効果は子コンポーネントで管理） */}
-          <div className="relative z-10 h-full overflow-hidden bg-background/95 shadow-[0_8px_24px_rgba(0,0,0,0.08)] dark:shadow-[0_8px_24px_rgba(0,0,0,0.35)] md:shadow-[6px_0_24px_rgba(0,0,0,0.12)] dark:md:shadow-[6px_0_24px_rgba(0,0,0,0.45)]">
+          <div className="relative z-10 h-full overflow-hidden bg-background/95 shadow-[0_8px_24px_rgba(0,0,0,0.08)] dark:shadow-[0_8px_24px_rgba(0,0,0,0.35)] md:shadow-[6px_0_24px_rgba(0,0,0,0.12)] dark:md:shadow-[6px_0_24px_rgba(0,0,0,0.45)] touch-action-pan-y">
             {slots.leftPanel}
           </div>
           {/* 右: 三角ロジック（モバイルでは最低高さを確保） */}
-          <div className="min-h-[360px] lg:min-h-0 lg:h-full overflow-hidden rounded-none border-0 bg-background">
+          <div className="min-h-[360px] lg:min-h-0 lg:h-full overflow-hidden rounded-none border-0 bg-background touch-action-none">
             {slots.rightPanel}
           </div>
         </div>
