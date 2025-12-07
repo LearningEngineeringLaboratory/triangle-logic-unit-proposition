@@ -563,10 +563,33 @@ export function TriangleLogicFlow({
     setEdges(computedEdges)
   }, [computedEdges, setEdges])
 
+  // ReactFlow内でのタッチ操作が画面スクロールとして扱われないようにする
+  // タッチイベントの伝播を防ぎ、親要素へのスクロールイベントを防止
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    // ReactFlow内でのタッチ操作は親要素に伝播させない
+    e.stopPropagation()
+  }, [])
+
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    // ReactFlow内でのタッチ操作は親要素に伝播させない
+    e.stopPropagation()
+    // 画面スクロールを防ぐ（ReactFlowのパン操作を優先）
+    // 注意: preventDefault()はReactFlowの操作を妨げない（touch-action: noneが設定されているため）
+    e.preventDefault()
+  }, [])
+
+  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
+    // ReactFlow内でのタッチ操作は親要素に伝播させない
+    e.stopPropagation()
+  }, [])
+
   return (
     <div 
       className="w-full h-full relative touch-action-none"
       style={{ overscrollBehavior: 'none' }}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
     >
       <ReactFlow
         nodes={nodes}
