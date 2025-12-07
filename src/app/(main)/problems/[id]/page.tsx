@@ -9,9 +9,9 @@ import { ProblemDetailLayout } from '@/components/features/problem-detail/Proble
 import { ProblemDisplay } from '@/components/features/problem-detail/ProblemDisplay'
 import { ClearDialog } from '@/components/features/problem-detail/ClearDialog'
 import { ProblemDetailFooter } from '@/components/features/problem-detail/ProblemDetailFooter'
-import { ProblemDetailLoading } from '@/components/features/problem-detail/ProblemDetailLoading'
 import { FeedbackDrawer } from '@/components/ui/feedback-drawer'
 import { Header } from '@/components/layout/Header'
+import { Loading } from '@/components/ui/loading'
 import { useProblemSteps } from '@/hooks/useProblemSteps'
 import { useAnswerCheck } from '@/hooks/useAnswerCheck'
 import { useProblemAttempt } from '@/hooks/useProblemAttempt'
@@ -196,7 +196,16 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
   }
 
   if (loading || isSessionLoading) {
-    return <ProblemDetailLoading />
+    return (
+      <div className="h-screen overflow-hidden flex flex-col">
+        <Header />
+        <div className="flex-1 overflow-hidden flex flex-col">
+          <div className="container mx-auto px-4 h-full flex items-center justify-center">
+            <Loading />
+          </div>
+        </div>
+      </div>
+    )
   }
 
   if (!problem) {

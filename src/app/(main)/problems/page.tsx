@@ -2,12 +2,12 @@
 
 import { getProblems, getProblemSets } from '@/lib/problems'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
-import { Skeleton } from '@/components/ui/skeleton'
 import { useState, useEffect } from 'react'
 import { useSession } from '@/hooks/useSession'
 import { UserRegistrationDialog } from '@/components/features/auth/UserRegistrationDialog'
 import { ProblemsPageHeader } from '@/components/layout/ProblemsPageHeader'
 import { ProblemsListWithSetSelector } from '@/components/features/problem-list/ProblemsListWithSetSelector'
+import { Loading } from '@/components/ui/loading'
 
 export default function ProblemsPage() {
   const [problems, setProblems] = useState<Awaited<ReturnType<typeof getProblems>>>([])
@@ -41,26 +41,8 @@ export default function ProblemsPage() {
           sessionInfo={sessionInfo}
           onLogout={handleLogout}
         />
-        <div className="container mx-auto px-4 py-8">
-          {/* 問題セットセレクターのSkeleton */}
-          <div className="mb-8">
-            <Skeleton className="h-12 w-64 rounded-xl mb-4" />
-          </div>
-
-          {/* 問題カードのSkeleton */}
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {[1, 2, 3, 4, 5, 6].map((i) => (
-              <Card key={i}>
-                <CardHeader>
-                  <Skeleton className="h-6 w-24 rounded-lg" />
-                </CardHeader>
-                <CardContent>
-                  <Skeleton className="h-4 w-full rounded-md mb-2" />
-                  <Skeleton className="h-4 w-5/6 rounded-md" />
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+        <div className="container mx-auto px-4 py-8 flex items-center justify-center min-h-[60vh]">
+          <Loading />
         </div>
       </>
     )

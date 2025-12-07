@@ -6,6 +6,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { ProblemSetSelector } from './problem-set-selector'
 import { ProblemCard } from './ProblemCard'
 import { useState, useEffect, useCallback, useRef } from 'react'
+import { Loading } from '@/components/ui/loading'
 
 interface ProblemsListWithSetSelectorProps {
   initialProblems: Problem[]
@@ -132,11 +133,15 @@ export function ProblemsListWithSetSelector({
       />
 
       {/* 選択中のセットに問題が無い場合の状態表示 */}
-      {problems.length === 0 ? (
+      {isLoading ? (
+        <div className="flex items-center justify-center py-12">
+          <Loading />
+        </div>
+      ) : problems.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
             <p className="text-muted-foreground text-lg">
-              {isLoading ? '読み込み中...' : selectedSetId ? 'このセットに問題が見つかりませんでした' : '問題セットを選択してください'}
+              {selectedSetId ? 'このセットに問題が見つかりませんでした' : '問題セットを選択してください'}
             </p>
           </CardContent>
         </Card>
