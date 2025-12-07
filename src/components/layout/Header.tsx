@@ -8,7 +8,7 @@ interface HeaderProps {
 
 export function Header({ problemDisplay }: HeaderProps) {
   return (
-    <header className="sticky top-0 z-50 w-full">
+    <header className="shrink-0 z-50 w-full touch-action-none">
       {/* 論証ボックス */}
       {problemDisplay && (
         <div className="w-full px-[4px]">
