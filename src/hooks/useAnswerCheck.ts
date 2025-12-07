@@ -1,12 +1,9 @@
 import { useCallback } from 'react'
 import { ProblemDetail, NodeValues, Step2State, Step4State, Step5State } from '@/lib/types'
 import { 
-  normalizeStep4Variants, 
-  normalizeStep5Variants, 
-  extractActiveLinks, 
-  findMatchingStep4VariantIndex,
-  premisesSetsMatch,
-  createNodeValueResolver
+  createNodeValueResolver,
+  validateStep4Links,
+  validateStep5Premises
 } from '@/lib/answer-validation'
 import { TriangleLink, StepsState } from '@/lib/types'
 import { logClientCheck, mapUiToDbState, calculateValidityAndVerification } from '@/lib/utils'
@@ -35,11 +32,6 @@ export function useAnswerCheck({ problem, nodeValues, steps, currentStep, sessio
 
     let isCorrect = false
     const resolveNodeValue = createNodeValueResolver(nodeValues)
-
-    const correctStep4Variants = normalizeStep4Variants(problem.correct_answers.step4)
-    const correctStep5Variants = normalizeStep5Variants(problem.correct_answers.step5)
-    const getActiveStep4LinksWithValues = () =>
-      extractActiveLinks(steps.step4?.links, resolveNodeValue)
 
     switch (stepNumber) {
       case 1: {
@@ -106,24 +98,48 @@ export function useAnswerCheck({ problem, nodeValues, steps, currentStep, sessio
         break
       }
       case 4: {
-        const activeUiLinks4 = getActiveStep4LinksWithValues()
-        const matchedVariantIndex = findMatchingStep4VariantIndex(correctStep4Variants, activeUiLinks4)
-        isCorrect = matchedVariantIndex !== -1
+        const step4State = steps.step4 as Step4State | undefined
+        const step4Links = step4State?.links ?? []
+        const step2State = steps.step2 as Step2State | undefined
+        const step2Links = step2State?.links ?? []
+        
+        // Step4の答え合わせ: antecedent→XXX→consequentの必須リンクをチェック
+        const step4Xxx = validateStep4Links(
+          step4Links,
+          step2Links,
+          resolveNodeValue,
+          nodeValues.antecedent,
+          nodeValues.consequent
+        )
+        
+        isCorrect = step4Xxx !== null
         break
       }
       case 5: {
         const step5State = steps.step5 as Step5State | undefined
         const userPremises = step5State?.premises ?? []
-        const step4ActiveLinks = getActiveStep4LinksWithValues()
-        const matchedStep4Variant = findMatchingStep4VariantIndex(correctStep4Variants, step4ActiveLinks)
-
-        const candidatePremiseVariants =
-          matchedStep4Variant !== -1 && matchedStep4Variant < correctStep5Variants.length
-            ? [correctStep5Variants[matchedStep4Variant]]
-            : correctStep5Variants
-
-        const premisesMatch = candidatePremiseVariants.some(variant => premisesSetsMatch(variant, userPremises))
-        isCorrect = premisesMatch
+        
+        // Step4で使用されたXXXを特定
+        const step4State = steps.step4 as Step4State | undefined
+        const step4Links = step4State?.links ?? []
+        const step2State = steps.step2 as Step2State | undefined
+        const step2Links = step2State?.links ?? []
+        
+        const step4Xxx = validateStep4Links(
+          step4Links,
+          step2Links,
+          resolveNodeValue,
+          nodeValues.antecedent,
+          nodeValues.consequent
+        )
+        
+        // Step5の答え合わせ: Step4のXXXを使用してpremisesを検証
+        isCorrect = validateStep5Premises(
+          userPremises,
+          step4Xxx,
+          nodeValues.antecedent,
+          nodeValues.consequent
+        )
         break
       }
     }

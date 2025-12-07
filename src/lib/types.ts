@@ -150,8 +150,10 @@ export interface CorrectAnswers {
     validity?: boolean // 非推奨: inference_typeから計算される
     verification?: boolean // 非推奨: inference_typeから計算される
   }
-  step4?: Step4Answer | ActiveTriangleLink[] | ActiveTriangleLink[][]
-  step5?: Step5Answer | PremiseSelection[] | PremiseSelection[][]
+  // Step4とStep5の正解は、Step1とStep2のデータから自動計算されるため、DBには保存不要
+  // ただし、後方互換性のために型定義には残している
+  step4?: Step4Answer | ActiveTriangleLink[] | ActiveTriangleLink[][] // 非推奨: Step1とStep2から自動計算される
+  step5?: Step5Answer | PremiseSelection[] | PremiseSelection[][] // 非推奨: Step1とStep4から自動計算される
 }
 
 export interface NodeValues {
