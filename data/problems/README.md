@@ -20,18 +20,18 @@
 | `step1_consequent` | Step1の後件 | ❌ | `Rである` |
 | `step2_links` | Step2のリンク（\|区切り、各リンクは from,to 形式） | ❌ | `Pである,Qである\|Qである,Rである` |
 | `step3_inference_type` | Step3の推論形式 | ❌ | `演繹推論` / `仮説推論` / `非形式推論` |
-| `step3_validity` | Step3の妥当性（true/false、空欄可） | ❌ | `true` |
-| `step3_verification` | Step3の検証結果（true/false、空欄可） | ❌ | `true` |
-| `step4_links` | Step4のリンク（\|区切り、各リンクは from,to,active 形式、複数パターンは \|\| で区切る、オプション） | ❌ | `Pである,Qである,true\|Qである,Rである,true` または `Pである,Qである,true\|Qである,Rである,true\|\|Pである,Rである,true` |
-| `step5_premises` | Step5の前提（\|区切り、各前提は antecedent,consequent 形式、複数パターンは \|\| で区切る、オプション） | ❌ | `Pである,Qである\|Qである,Rである` または `Pである,Qである\|Qである,Rである\|\|Pである,Rである` |
+
+**注意**: 
+- `step3_validity`と`step3_verification`は不要（`inference_type`から自動計算されます）
+- `step4_links`と`step5_premises`は不要（Step1とStep2から自動計算されます）
 
 #### 使用例
 
 ```csv
-problem_id,argument,version,options,step1_antecedent,step1_consequent,step2_links,step3_inference_type,step3_validity,step3_verification,step4_links,step5_premises
-TLU-A-v1.0.0,"PであるならばQである。また，QであるならばRである。したがって，PであるならばRである。",1.0.0,"Pである,Qである,Rである",Pである,Rである,"Pである,Qである|Qである,Rである",演繹推論,true,true,,
-TLU-B-v1.0.0,"PであるならばQである。また，QであるならばRである。したがって，RであるならばSである。",1.0.0,"Pである,Qである,Rである,Sである",Rである,Sである,,非形式推論,false,,,
-TLU-1-02-v1.0.0,"カラスは卵を産む生き物であり，鳥は卵を産む生き物である．とすると，カラスは鳥である．",1.0.0,"カラスである,鳥である,卵を産む生き物である",カラスである,鳥である,"カラスである,卵を産む生き物である|鳥である,卵を産む生き物である",仮説推論,false,true,"卵を産む生き物である,カラスである,true|卵を産む生き物である,鳥である,false|鳥である,卵を産む生き物である,true","カラスである,卵を産む生き物である|卵を産む生き物である,鳥である"
+problem_id,argument,version,options,step1_antecedent,step1_consequent,step2_links,step3_inference_type
+TLU-A-v1.0.0,"PであるならばQである。また，QであるならばRである。したがって，PであるならばRである。",1.0.0,"Pである,Qである,Rである",Pである,Rである,"Pである,Qである|Qである,Rである",演繹推論
+TLU-B-v1.0.0,"PであるならばQである。また，QであるならばRである。したがって，RであるならばSである。",1.0.0,"Pである,Qである,Rである,Sである",Rである,Sである,,非形式推論
+TLU-1-02-v1.0.0,"カラスは卵を産む生き物であり，鳥は卵を産む生き物である．とすると，カラスは鳥である．",1.0.0,"カラスである,鳥である,卵を産む生き物である",カラスである,鳥である,"カラスである,卵を産む生き物である|鳥である,卵を産む生き物である",仮説推論
 ```
 
 #### インポート方法
@@ -120,83 +120,63 @@ npx tsx scripts/import-from-json.ts data/problems/problems.json
 - リンクがある場合: `Pである,Qである|Qである,Rである` （`from,to`形式を`|`で区切る）
 - 組立不可の場合: 空欄（空文字列）
 
-#### Step3（推論形式と妥当性）
+#### Step3（推論形式）
+
+**重要**: `validity`と`verification`は`inference_type`から自動計算されるため、DBには保存不要です。
 
 ```json
 {
   "step3": {
-    "inference_type": "演繹推論",  // "演繹推論" / "仮説推論" / "非形式推論"
-    "validity": true,              // true / false
-    "verification": true           // true / false
+    "inference_type": "演繹推論"  // "演繹推論" / "仮説推論" / "非形式推論"
   }
 }
 ```
 
-#### Step4（オプション：妥当性のある三角ロジック）
+**自動計算ルール:**
+- `演繹推論` → `validity: true`, `verification: true`
+- `仮説推論` → `validity: false`, `verification: true`
+- `非形式推論` → `validity: false`, `verification: false`
 
-Step3で演繹推論以外の場合のみ使用。各リンクに`active`フラグが必要。
+#### Step4（妥当性のある三角ロジック）
 
-**単一パターンの場合:**
-```json
-{
-  "step4": [
-    {"from": "カラスである", "to": "卵を産む生き物である", "active": true},
-    {"from": "卵を産む生き物である", "to": "鳥である", "active": true},
-    {"from": "鳥である", "to": "卵を産む生き物である", "active": false}
-  ]
-}
-```
+**重要**: Step4の答え合わせは、Step1とStep2のデータから自動計算されるため、DBには保存不要です。
 
-**複数パターンの場合（2次元配列）:**
-```json
-{
-  "step4": [
-    [{"from": "人間である", "to": "サルである", "active": true}, ...],
-    [{"from": "人間である", "to": "肺呼吸である", "active": true}, ...],
-    ...
-  ]
-}
-```
+- Step2のリンクからPremiseNode（XXX）を抽出
+- 必須リンクの存在確認:
+  - `from: antecedent, to: XXX, active: true` が存在
+  - `from: XXX, to: consequent, active: true` が存在
+- それ以外のリンクはすべて`active: false`
 
-**CSVでの記述方法:**
-- 単一パターン: `from,to,active|from,to,active` （例: `カラスである,卵を産む生き物である,true|卵を産む生き物である,鳥である,true`）
-- 複数パターン: `from,to,active|...||from,to,active|...` （`||`でパターンを区切る）
-- `active`は`true`/`false`（空欄の場合は`true`がデフォルト）
+#### Step5（妥当性のある三項論証）
 
-#### Step5（オプション：妥当性のある三項論証）
+**重要**: Step5の答え合わせは、Step1とStep4のデータから自動計算されるため、DBには保存不要です。
 
-Step3で演繹推論以外の場合のみ使用。
+- Step4で使用されたXXXを特定
+- 以下の2つのpremisesが存在（順序不問）:
+  - `{ antecedent: Step1のantecedent, consequent: XXX }`
+  - `{ antecedent: XXX, consequent: Step1のconsequent }`
 
-**単一パターンの場合:**
-```json
-{
-  "step5": [
-    {"antecedent": "カラスである", "consequent": "卵を産む生き物である"},
-    {"antecedent": "卵を産む生き物である", "consequent": "鳥である"}
-  ]
-}
-```
+## 答え合わせ処理の仕様
 
-**複数パターンの場合（2次元配列）:**
-```json
-{
-  "step5": [
-    [{"antecedent": "人間である", "consequent": "サルである"}, {"antecedent": "サルである", "consequent": "二足歩行である"}],
-    [{"antecedent": "人間である", "consequent": "肺呼吸である"}, {"antecedent": "肺呼吸である", "consequent": "二足歩行である"}],
-    ...
-  ]
-}
-```
+### DBに保存が必要なデータ
 
-**CSVでの記述方法:**
-- 単一パターン: `antecedent,consequent|antecedent,consequent` （例: `カラスである,卵を産む生き物である|卵を産む生き物である,鳥である`）
-- 複数パターン: `antecedent,consequent|...||antecedent,consequent|...` （`||`でパターンを区切る）
-```
+- **Step1**: `antecedent`, `consequent`（必須）
+- **Step2**: リンク配列 `[{from, to}, ...]`（必須、組立不可の場合は空配列）
+- **Step3**: `inference_type`のみ（必須）
+
+### 自動計算されるデータ
+
+- **Step3**: `validity`と`verification`は`inference_type`から自動計算
+- **Step4**: Step1とStep2から自動判定（DB保存不要）
+- **Step5**: Step1とStep4から自動判定（DB保存不要）
+
+詳細は `src/lib/utils.ts` の `calculateValidityAndVerification()` と `src/lib/answer-validation.ts` を参照してください。
 
 ## 注意事項
 
 1. **problem_id の一意性**: 同じ `problem_id` でインポートすると、既存のデータが更新されます（UPSERT）
 2. **文字エンコーディング**: CSVファイルは UTF-8 で保存してください
 3. **カンマを含む文字列**: CSVでカンマを含む文字列（論証文など）はダブルクォートで囲んでください
-4. **真偽値**: `true` / `false` / `1` / `0` / `yes` / `no` / `y` / `n` のいずれかで記述可能
-5. **空欄**: オプション項目は空欄でも構いません
+4. **空欄**: オプション項目は空欄でも構いません
+5. **Step3のvalidity/verification**: CSVには記述不要（`inference_type`から自動計算されます）
+6. **Step4とStep5**: CSVには記述不要（Step1とStep2から自動計算されます）

@@ -1,11 +1,28 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import { ProblemDetail, StepsState, Step1State, Step2State, Step3State, Step4State, Step5State } from '@/lib/types'
+
+/**
+ * Step3のinference_typeに基づいてtotalStepsを計算
+ * - 演繹推論: 3ステップ（Step4、Step5は不要）
+ * - 仮説推論/非形式推論: 5ステップ（Step4、Step5に進む）
+ */
+function calculateTotalSteps(steps: StepsState, defaultTotalSteps: number = 3): number {
+  const step3 = steps.step3
+  if (step3?.inferenceType === '演繹推論') {
+    return 3
+  }
+  if (step3?.inferenceType === '仮説推論' || step3?.inferenceType === '非形式推論') {
+    return 5
+  }
+  // Step3が未完了またはinference_typeが未設定の場合はデフォルト値を使用
+  return defaultTotalSteps
+}
 
 // ステップ管理用のカスタムフック
 export function useProblemSteps(problem: ProblemDetail | null) {
-  const totalSteps = problem?.total_steps || 3 // デフォルトは3ステップ
+  const defaultTotalSteps = problem?.total_steps || 3 // デフォルトは3ステップ
   const [currentStep, setCurrentStep] = useState(1)
   
   // ステップ状態の初期化
@@ -33,26 +50,18 @@ export function useProblemSteps(problem: ProblemDetail | null) {
       verification: null,
     }
     
-    // Step4: リンクの活性/非活性（5ステップの場合のみ）
-    if (totalSteps >= 4) {
-      steps.step4 = {
-        isPassed: false,
-        links: [],
-      }
-    }
-    
-    // Step5: 論証構成（5ステップの場合のみ）
-    if (totalSteps >= 5) {
-      steps.step5 = {
-        isPassed: false,
-        premises: [],
-      }
-    }
+    // Step4とStep5は、Step3のinference_typeに基づいて動的に追加される
+    // 初期化時点では追加しない（Step3完了時に追加）
     
     return steps
-  }, [totalSteps])
+  }, [])
 
   const [steps, setSteps] = useState<StepsState>(initializeSteps)
+
+  // Step3のinference_typeに基づいてtotalStepsを動的に計算
+  const totalSteps = useMemo(() => {
+    return calculateTotalSteps(steps, defaultTotalSteps)
+  }, [steps, defaultTotalSteps])
 
   // ステップ状態の復元
   const restoreSteps = useCallback((restoredSteps: StepsState) => {
@@ -61,13 +70,43 @@ export function useProblemSteps(problem: ProblemDetail | null) {
 
   // ステップの更新
   const updateStep = useCallback((stepNumber: number, updates: Partial<Step1State | Step2State | Step3State | Step4State | Step5State>) => {
-    setSteps(prev => ({
-      ...prev,
-      [`step${stepNumber}` as keyof StepsState]: {
-        ...prev[`step${stepNumber}` as keyof StepsState],
-        ...updates,
-      },
-    }))
+    setSteps(prev => {
+      const newSteps = {
+        ...prev,
+        [`step${stepNumber}` as keyof StepsState]: {
+          ...prev[`step${stepNumber}` as keyof StepsState],
+          ...updates,
+        },
+      }
+      
+      // Step3が更新され、inference_typeが設定された場合、Step4とStep5を追加/削除
+      if (stepNumber === 3 && 'inferenceType' in updates) {
+        const step3 = newSteps.step3 as Step3State | undefined
+        const inferenceType = step3?.inferenceType
+        
+        if (inferenceType === '演繹推論') {
+          // 演繹推論の場合、Step4とStep5を削除
+          delete newSteps.step4
+          delete newSteps.step5
+        } else if (inferenceType === '仮説推論' || inferenceType === '非形式推論') {
+          // 仮説推論または非形式推論の場合、Step4とStep5を追加
+          if (!newSteps.step4) {
+            newSteps.step4 = {
+              isPassed: false,
+              links: [],
+            }
+          }
+          if (!newSteps.step5) {
+            newSteps.step5 = {
+              isPassed: false,
+              premises: [],
+            }
+          }
+        }
+      }
+      
+      return newSteps
+    })
   }, [])
 
   // ステップの進行

@@ -1,7 +1,7 @@
 'use client'
 
 import { getProblem, getNextProblemInSet, getCurrentProblemOrder, getProblemsBySet } from '@/lib/problems'
-import { Problem, ProblemDetail, NodeValues, StepsState } from '@/lib/types'
+import { Problem, ProblemDetail, NodeValues, StepsState, Step3State } from '@/lib/types'
 import { notFound } from 'next/navigation'
 import { ProblemStepDisplay } from '@/components/features/problem-detail/problem-step-display'
 import { TriangleLogicFlow } from '@/components/features/triangle-logic/triangle-logic-flow'
@@ -267,10 +267,27 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
       setFeedbackType('success')
       setFeedbackVisible(true)
       const updatedState = { ...currentStateFragment, isPassed: true }
+      
+      // Step3の場合、inference_typeを確認
+      const isDeductiveInference = stepNumber === 3 && 
+        'inferenceType' in updatedState && 
+        (updatedState as { inferenceType?: string }).inferenceType === '演繹推論'
+      
       updateStep(stepNumber, updatedState)
       
       setTimeout(() => {
         setFeedbackVisible(false)
+        
+        // Step3が「演繹推論」の場合、問題を完了とする
+        if (isDeductiveInference) {
+          // 問題完了時はattemptを完了
+          if (attemptId && sessionInfo) {
+            finishAttempt(true)
+          }
+          setIsClearOpen(true)
+          return
+        }
+        
         if (stepNumber < totalSteps) {
           goToNextStep()
         } else {

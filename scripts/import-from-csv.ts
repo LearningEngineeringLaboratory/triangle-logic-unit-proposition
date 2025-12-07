@@ -23,6 +23,10 @@ import * as fs from 'fs'
 import * as path from 'path'
 import { parse } from 'csv-parse/sync'
 import { createClient } from '@supabase/supabase-js'
+import { config } from 'dotenv'
+
+// .env.localファイルを読み込む
+config({ path: path.join(__dirname, '../.env.local') })
 
 // 真偽値文字列をbooleanに変換
 function parseBoolean(value: string): boolean {
@@ -79,98 +83,14 @@ function buildProblemFromRow(headers: string[], row: string[]): any {
     correctAnswers.step2 = []
   }
   
-  // Step3
+  // Step3: inference_typeのみ（validityとverificationは自動計算されるため不要）
   if (data.step3_inference_type) {
-    const step3: any = {
+    correctAnswers.step3 = {
       inference_type: data.step3_inference_type.trim()
     }
-    
-    if (data.step3_validity !== undefined && data.step3_validity !== '') {
-      step3.validity = parseBoolean(data.step3_validity)
-    }
-    
-    if (data.step3_verification !== undefined && data.step3_verification !== '') {
-      step3.verification = parseBoolean(data.step3_verification)
-    }
-    
-    correctAnswers.step3 = step3
   }
   
-  // Step4（オプション）: リンクの配列形式（activeフラグ付き）
-  // 複数パターンがある場合は || で区切る（2次元配列）
-  if (data.step4_links) {
-    // 複数パターンがあるかチェック（|| で区切られているか）
-    if (data.step4_links.includes('||')) {
-      // 2次元配列（複数パターン）
-      const patterns = data.step4_links.split('||').map(patternStr => {
-        const links = patternStr.split('|').map(link => {
-          const parts = link.split(',').map(s => s.trim())
-          if (parts.length < 2) {
-            throw new Error('step4_linksの形式が正しくありません（from,to,active形式で|区切り）')
-          }
-          const [from, to, activeStr] = parts
-          return {
-            from,
-            to,
-            active: activeStr ? parseBoolean(activeStr) : true // デフォルトはtrue
-          }
-        }).filter(link => link.from && link.to)
-        return links
-      }).filter(pattern => pattern.length > 0)
-      
-      if (patterns.length > 0) {
-        correctAnswers.step4 = patterns
-      }
-    } else {
-      // 1次元配列（単一パターン）
-      const links = data.step4_links.split('|').map(link => {
-        const parts = link.split(',').map(s => s.trim())
-        if (parts.length < 2) {
-          throw new Error('step4_linksの形式が正しくありません（from,to,active形式で|区切り）')
-        }
-        const [from, to, activeStr] = parts
-        return {
-          from,
-          to,
-          active: activeStr ? parseBoolean(activeStr) : true // デフォルトはtrue
-        }
-      }).filter(link => link.from && link.to)
-      
-      if (links.length > 0) {
-        correctAnswers.step4 = links
-      }
-    }
-  }
-  
-  // Step5（オプション）: 前提の配列形式
-  // 複数パターンがある場合は || で区切る（2次元配列）
-  if (data.step5_premises) {
-    // 複数パターンがあるかチェック（|| で区切られているか）
-    if (data.step5_premises.includes('||')) {
-      // 2次元配列（複数パターン）
-      const patterns = data.step5_premises.split('||').map(patternStr => {
-        const premises = patternStr.split('|').map(p => {
-          const [antecedent, consequent] = p.split(',').map(s => s.trim())
-          return { antecedent, consequent }
-        }).filter(p => p.antecedent && p.consequent)
-        return premises
-      }).filter(pattern => pattern.length > 0)
-      
-      if (patterns.length > 0) {
-        correctAnswers.step5 = patterns
-      }
-    } else {
-      // 1次元配列（単一パターン）
-      const premises = data.step5_premises.split('|').map(p => {
-        const [antecedent, consequent] = p.split(',').map(s => s.trim())
-        return { antecedent, consequent }
-      }).filter(p => p.antecedent && p.consequent)
-      
-      if (premises.length > 0) {
-        correctAnswers.step5 = premises
-      }
-    }
-  }
+  // Step4とStep5は不要（Step1とStep2から自動計算される）
   
   return {
     problem_id: data.problem_id.trim(),
@@ -252,9 +172,19 @@ async function main() {
   
   if (!supabaseUrl || !serviceRoleKey) {
     console.error('\n❌ 環境変数が設定されていません:')
-    console.error('   SUPABASE_URL または NEXT_PUBLIC_SUPABASE_URL')
-    console.error('   SUPABASE_SERVICE_ROLE_KEY または SUPABASE_SERVICE_ROLE')
-    console.error('\n.env.local ファイルに設定してください')
+    if (!supabaseUrl) {
+      console.error('   ❌ SUPABASE_URL または NEXT_PUBLIC_SUPABASE_URL が設定されていません')
+    } else {
+      console.log('   ✅ Supabase URL: 設定済み')
+    }
+    if (!serviceRoleKey) {
+      console.error('   ❌ SUPABASE_SERVICE_ROLE_KEY または SUPABASE_SERVICE_ROLE が設定されていません')
+      console.error('\n   💡 .env.local ファイルに以下を追加してください:')
+      console.error('      SUPABASE_SERVICE_ROLE_KEY=your_service_role_key')
+      console.error('\n   Supabaseダッシュボード → Settings → API → service_role key から取得できます')
+    } else {
+      console.log('   ✅ Service Role Key: 設定済み')
+    }
     process.exit(1)
   }
   
