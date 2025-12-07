@@ -1,44 +1,74 @@
-# 問題データファイル
+# 問題データ管理
 
-## ファイル構成
+このディレクトリには、問題データのインポート用ファイルが含まれます。
 
-- `problems.json`: 既存の問題データ（全問題）
-- `new-problems.json`: **新規追加用の問題データ**（このファイルに記述）
+## ファイル形式
 
-## 新規問題の追加方法
+### CSV形式（推奨）
 
-### 1. `new-problems.json`に問題を記述
+`problems.csv` ファイルを使用して、問題データを一括投入できます。
 
-`new-problems.json`を開いて、以下の形式で問題を追加してください：
+#### CSVフォーマット
+
+| 列名 | 説明 | 必須 | 例 |
+|------|------|------|-----|
+| `problem_id` | 問題ID（一意） | ✅ | `TLU-A-v1.0.0` |
+| `argument` | 論証文（問題文） | ✅ | `PであるならばQである。また，QであるならばRである。したがって，PであるならばRである。` |
+| `version` | 問題バージョン | ✅ | `1.0.0` |
+| `options` | 選択肢（カンマ区切り） | ❌ | `Pである,Qである,Rである` |
+| `step1_antecedent` | Step1の前件 | ❌ | `Pである` |
+| `step1_consequent` | Step1の後件 | ❌ | `Rである` |
+| `step2_links` | Step2のリンク（\|区切り、各リンクは from,to 形式） | ❌ | `Pである,Qである\|Qである,Rである` |
+| `step3_inference_type` | Step3の推論形式 | ❌ | `演繹推論` / `仮説推論` / `非形式推論` |
+| `step3_validity` | Step3の妥当性（true/false、空欄可） | ❌ | `true` |
+| `step3_verification` | Step3の検証結果（true/false、空欄可） | ❌ | `true` |
+| `step4_links` | Step4のリンク（\|区切り、各リンクは from,to,active 形式、複数パターンは \|\| で区切る、オプション） | ❌ | `Pである,Qである,true\|Qである,Rである,true` または `Pである,Qである,true\|Qである,Rである,true\|\|Pである,Rである,true` |
+| `step5_premises` | Step5の前提（\|区切り、各前提は antecedent,consequent 形式、複数パターンは \|\| で区切る、オプション） | ❌ | `Pである,Qである\|Qである,Rである` または `Pである,Qである\|Qである,Rである\|\|Pである,Rである` |
+
+#### 使用例
+
+```csv
+problem_id,argument,version,options,step1_antecedent,step1_consequent,step2_links,step3_inference_type,step3_validity,step3_verification,step4_links,step5_premises
+TLU-A-v1.0.0,"PであるならばQである。また，QであるならばRである。したがって，PであるならばRである。",1.0.0,"Pである,Qである,Rである",Pである,Rである,"Pである,Qである|Qである,Rである",演繹推論,true,true,,
+TLU-B-v1.0.0,"PであるならばQである。また，QであるならばRである。したがって，RであるならばSである。",1.0.0,"Pである,Qである,Rである,Sである",Rである,Sである,,非形式推論,false,,,
+TLU-1-02-v1.0.0,"カラスは卵を産む生き物であり，鳥は卵を産む生き物である．とすると，カラスは鳥である．",1.0.0,"カラスである,鳥である,卵を産む生き物である",カラスである,鳥である,"カラスである,卵を産む生き物である|鳥である,卵を産む生き物である",仮説推論,false,true,"卵を産む生き物である,カラスである,true|卵を産む生き物である,鳥である,false|鳥である,卵を産む生き物である,true","カラスである,卵を産む生き物である|卵を産む生き物である,鳥である"
+```
+
+#### インポート方法
+
+```bash
+npx tsx scripts/import-from-csv.ts data/problems/problems.csv
+```
+
+### JSON形式
+
+`problems.json` ファイルを使用して、問題データを一括投入できます。
+
+#### JSONフォーマット
 
 ```json
 [
   {
-    "problem_id": "TLU-1-12-v1.0.0",
-    "argument": "猫は動物であり，動物は生き物である．とすると，猫は生き物である．",
-    "options": [
-      "猫である",
-      "動物である",
-      "生き物である"
-    ],
+    "problem_id": "TLU-A-v1.0.0",
+    "argument": "PであるならばQである。また，QであるならばRである。したがって，PであるならばRである。",
+    "options": ["Pである", "Qである", "Rである"],
     "correct_answers": {
       "step1": {
-        "antecedent": "猫である",
-        "consequent": "生き物である"
+        "antecedent": "Pである",
+        "consequent": "Rである"
       },
-      "step2": [
-        {
-          "from": "猫である",
-          "to": "動物である"
+      "step2": {
+        "premise": "Qである",
+        "link_directions": {
+          "antecedent-link": true,
+          "consequent-link": true
         },
-        {
-          "from": "動物である",
-          "to": "生き物である"
-        }
-      ],
+        "impossible": false
+      },
       "step3": {
         "inference_type": "演繹推論",
-        "validity": true
+        "validity": true,
+        "verification": true
       }
     },
     "version": "1.0.0"
@@ -46,179 +76,127 @@
 ]
 ```
 
-### 2. データ構造の説明
-
-#### `problem_id`
-- 問題の一意なID
-- 形式: `TLU-[番号]-v[バージョン]`
-- 例: `TLU-1-12-v1.0.0`
-
-#### `argument`
-- 論証文（問題文）
-- 例: `"PであるならばQである。また，QであるならばRである。したがって，PであるならばRである。"`
-
-#### `options`
-- 単位命題の選択肢（配列）
-- 全ステップで共通の選択肢
-
-#### `correct_answers.step1`
-- 導出命題の前件・後件
-```json
-{
-  "antecedent": "前件",
-  "consequent": "後件"
-}
-```
-
-#### `correct_answers.step2`
-- 正解リンクの配列
-- **重要**: 配列形式で記述
-```json
-[
-  { "from": "始点", "to": "終点" },
-  { "from": "始点", "to": "終点" }
-]
-```
-- 組立不可の場合は空配列 `[]`
-
-#### `correct_answers.step3`
-- 推論形式と妥当性
-```json
-{
-  "inference_type": "演繹推論" | "仮説推論" | "非形式推論",
-  "validity": true | false
-}
-```
-
-#### `correct_answers.step4`（5ステップ問題の場合のみ）
-- リンクの活性/非活性
-```json
-[
-  { "from": "始点", "to": "終点", "active": true },
-  { "from": "始点", "to": "終点", "active": false }
-]
-```
-
-#### `correct_answers.step5`（5ステップ問題の場合のみ）
-- 妥当性のある三項論証
-```json
-[
-  { "antecedent": "前件", "consequent": "後件" },
-  { "antecedent": "前件", "consequent": "後件" }
-]
-```
-
-### 3. データの検証
-
-JSONファイルを保存したら、以下のコマンドで検証できます：
+#### インポート方法
 
 ```bash
-npx tsx scripts/import-from-json.ts data/problems/new-problems.json
+npx tsx scripts/import-from-json.ts data/problems/problems.json
 ```
 
-このコマンドは：
-- JSONファイルの構文をチェック
-- 必須フィールドの存在を確認
-- データ構造の妥当性を検証
-- SQL文を生成（参考用）
+## データ構造の詳細
 
-### 4. Supabaseに追加
+### correct_answers の構造
 
-検証が成功したら、このチャットで以下のように依頼してください：
+#### Step1（導出命題）
 
+```json
+{
+  "step1": {
+    "antecedent": "Pである",
+    "consequent": "Rである"
+  }
+}
 ```
-data/problems/new-problems.json の内容をSupabaseに追加してください
+
+#### Step2（所与命題）
+
+**リンクがある場合:**
+```json
+{
+  "step2": [
+    {"from": "Pである", "to": "Qである"},
+    {"from": "Qである", "to": "Rである"}
+  ]
+}
 ```
 
-AIが自動的に：
-1. JSONファイルを読み込み
-2. データを検証
-3. Supabase MCPを使用して追加
-4. 結果を確認・報告
+**組立不可の場合（空配列）:**
+```json
+{
+  "step2": []
+}
+```
+
+**CSVでの記述方法:**
+- リンクがある場合: `Pである,Qである|Qである,Rである` （`from,to`形式を`|`で区切る）
+- 組立不可の場合: 空欄（空文字列）
+
+#### Step3（推論形式と妥当性）
+
+```json
+{
+  "step3": {
+    "inference_type": "演繹推論",  // "演繹推論" / "仮説推論" / "非形式推論"
+    "validity": true,              // true / false
+    "verification": true           // true / false
+  }
+}
+```
+
+#### Step4（オプション：妥当性のある三角ロジック）
+
+Step3で演繹推論以外の場合のみ使用。各リンクに`active`フラグが必要。
+
+**単一パターンの場合:**
+```json
+{
+  "step4": [
+    {"from": "カラスである", "to": "卵を産む生き物である", "active": true},
+    {"from": "卵を産む生き物である", "to": "鳥である", "active": true},
+    {"from": "鳥である", "to": "卵を産む生き物である", "active": false}
+  ]
+}
+```
+
+**複数パターンの場合（2次元配列）:**
+```json
+{
+  "step4": [
+    [{"from": "人間である", "to": "サルである", "active": true}, ...],
+    [{"from": "人間である", "to": "肺呼吸である", "active": true}, ...],
+    ...
+  ]
+}
+```
+
+**CSVでの記述方法:**
+- 単一パターン: `from,to,active|from,to,active` （例: `カラスである,卵を産む生き物である,true|卵を産む生き物である,鳥である,true`）
+- 複数パターン: `from,to,active|...||from,to,active|...` （`||`でパターンを区切る）
+- `active`は`true`/`false`（空欄の場合は`true`がデフォルト）
+
+#### Step5（オプション：妥当性のある三項論証）
+
+Step3で演繹推論以外の場合のみ使用。
+
+**単一パターンの場合:**
+```json
+{
+  "step5": [
+    {"antecedent": "カラスである", "consequent": "卵を産む生き物である"},
+    {"antecedent": "卵を産む生き物である", "consequent": "鳥である"}
+  ]
+}
+```
+
+**複数パターンの場合（2次元配列）:**
+```json
+{
+  "step5": [
+    [{"antecedent": "人間である", "consequent": "サルである"}, {"antecedent": "サルである", "consequent": "二足歩行である"}],
+    [{"antecedent": "人間である", "consequent": "肺呼吸である"}, {"antecedent": "肺呼吸である", "consequent": "二足歩行である"}],
+    ...
+  ]
+}
+```
+
+**CSVでの記述方法:**
+- 単一パターン: `antecedent,consequent|antecedent,consequent` （例: `カラスである,卵を産む生き物である|卵を産む生き物である,鳥である`）
+- 複数パターン: `antecedent,consequent|...||antecedent,consequent|...` （`||`でパターンを区切る）
+```
 
 ## 注意事項
 
-1. **問題IDの重複**: 既存の問題IDと重複しないように注意
-2. **JSON形式**: 正しいJSON形式で記述（カンマ、クォートなど）
-3. **Step2の構造**: 必ず配列形式 `[{...}, {...}]` で記述
-4. **文字エスケープ**: シングルクォート（'）は自動的にエスケープされます
-
-## 例: 3ステップ問題（演繹推論）
-
-```json
-{
-  "problem_id": "TLU-1-12-v1.0.0",
-  "argument": "猫は動物であり，動物は生き物である．とすると，猫は生き物である．",
-  "options": ["猫である", "動物である", "生き物である"],
-  "correct_answers": {
-    "step1": {
-      "antecedent": "猫である",
-      "consequent": "生き物である"
-    },
-    "step2": [
-      { "from": "猫である", "to": "動物である" },
-      { "from": "動物である", "to": "生き物である" }
-    ],
-    "step3": {
-      "inference_type": "演繹推論",
-      "validity": true
-    }
-  },
-  "version": "1.0.0"
-}
-```
-
-## 例: 組立不可の問題
-
-```json
-{
-  "problem_id": "TLU-1-13-v1.0.0",
-  "argument": "問題文...",
-  "options": ["選択肢1", "選択肢2"],
-  "correct_answers": {
-    "step1": {
-      "antecedent": "前件",
-      "consequent": "後件"
-    },
-    "step2": [],  // 空配列（組立不可）
-    "step3": {
-      "inference_type": "非形式推論",
-      "validity": false
-    }
-  },
-  "version": "1.0.0"
-}
-```
-
-## 例: 5ステップ問題（仮説推論）
-
-```json
-{
-  "problem_id": "TLU-1-14-v1.0.0",
-  "argument": "問題文...",
-  "options": ["選択肢1", "選択肢2", "選択肢3"],
-  "correct_answers": {
-    "step1": {
-      "antecedent": "前件",
-      "consequent": "後件"
-    },
-    "step2": [
-      { "from": "始点", "to": "終点" }
-    ],
-    "step3": {
-      "inference_type": "仮説推論",
-      "validity": false
-    },
-    "step4": [
-      { "from": "始点", "to": "終点", "active": true },
-      { "from": "始点", "to": "終点", "active": false }
-    ],
-    "step5": [
-      { "antecedent": "前件", "consequent": "後件" },
-      { "antecedent": "前件", "consequent": "後件" }
-    ]
-  },
-  "version": "1.0.0"
-}
-```
-
+1. **problem_id の一意性**: 同じ `problem_id` でインポートすると、既存のデータが更新されます（UPSERT）
+2. **文字エンコーディング**: CSVファイルは UTF-8 で保存してください
+3. **カンマを含む文字列**: CSVでカンマを含む文字列（論証文など）はダブルクォートで囲んでください
+4. **真偽値**: `true` / `false` / `1` / `0` / `yes` / `no` / `y` / `n` のいずれかで記述可能
+5. **空欄**: オプション項目は空欄でも構いません

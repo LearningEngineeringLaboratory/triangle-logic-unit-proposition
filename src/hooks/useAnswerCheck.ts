@@ -9,7 +9,7 @@ import {
   createNodeValueResolver
 } from '@/lib/answer-validation'
 import { TriangleLink, StepsState } from '@/lib/types'
-import { logClientCheck, mapUiToDbState } from '@/lib/utils'
+import { logClientCheck, mapUiToDbState, calculateValidityAndVerification } from '@/lib/utils'
 import { getUserIdClient } from '@/lib/session-client'
 
 interface UseAnswerCheckOptions {
@@ -89,13 +89,20 @@ export function useAnswerCheck({ problem, nodeValues, steps, currentStep, sessio
         if (!step3State) break
         const expectedStep3 = problem.correct_answers.step3
         if (!expectedStep3) break
-        const verificationMatches =
-          expectedStep3.verification === undefined ||
-          step3State.verification === expectedStep3.verification
-        isCorrect =
-          step3State.inferenceType === expectedStep3.inference_type &&
-          step3State.validity === expectedStep3.validity &&
-          verificationMatches
+        
+        // inference_typeからvalidityとverificationを計算
+        const correctCalculated = calculateValidityAndVerification(expectedStep3.inference_type)
+        
+        // inference_typeが一致しているか確認
+        const inferenceTypeMatches = step3State.inferenceType === expectedStep3.inference_type
+        
+        // validityとverificationは、inference_typeから計算した値と一致しているか確認
+        const validityMatches = step3State.validity === correctCalculated.validity
+        const verificationMatches = 
+          step3State.verification === null || 
+          step3State.verification === correctCalculated.verification
+        
+        isCorrect = inferenceTypeMatches && validityMatches && verificationMatches
         break
       }
       case 4: {

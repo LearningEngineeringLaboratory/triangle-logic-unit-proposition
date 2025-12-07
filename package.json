@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "import:csv": "tsx scripts/import-from-csv.ts",
+    "import:json": "tsx scripts/import-from-json.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
@@ -46,6 +48,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "csv-parse": "^6.1.0",
     "eslint": "^9",
     "eslint-config-next": "^16.0.6",
     "tailwindcss": "^4",

@@ -145,8 +145,10 @@ export interface CorrectAnswers {
   step2?: Step2Answer | TriangleLink[]
   step3?: {
     inference_type: string
-    validity: boolean
-    verification?: boolean
+    // validityとverificationは、inference_typeから自動計算されるため、DBには保存不要
+    // ただし、後方互換性のために型定義には残している
+    validity?: boolean // 非推奨: inference_typeから計算される
+    verification?: boolean // 非推奨: inference_typeから計算される
   }
   step4?: Step4Answer | ActiveTriangleLink[] | ActiveTriangleLink[][]
   step5?: Step5Answer | PremiseSelection[] | PremiseSelection[][]

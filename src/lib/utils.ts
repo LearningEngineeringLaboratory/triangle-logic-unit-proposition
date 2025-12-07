@@ -196,6 +196,32 @@ export function normalizeValidity(v: unknown): boolean | null {
   return null
 }
 
+/**
+ * inference_typeからvalidityとverificationを計算する
+ * - 演繹推論: validity=true, verification=true
+ * - 仮説推論: validity=false, verification=true
+ * - 非形式推論: validity=false, verification=false
+ */
+export function calculateValidityAndVerification(inferenceType: string | null | undefined): {
+  validity: boolean | null
+  verification: boolean | null
+} {
+  if (!inferenceType) {
+    return { validity: null, verification: null }
+  }
+
+  switch (inferenceType) {
+    case '演繹推論':
+      return { validity: true, verification: true }
+    case '仮説推論':
+      return { validity: false, verification: true }
+    case '非形式推論':
+      return { validity: false, verification: false }
+    default:
+      return { validity: null, verification: null }
+  }
+}
+
 export function normalizeStateFragment(stepNumber: 1 | 2 | 3, incoming: unknown) {
   if (!isRecord(incoming)) return {}
   if (stepNumber === 1) {
@@ -296,18 +322,27 @@ export function isStepCorrect(correctAnswers: CorrectAnswers | undefined, stepNu
   if (stepNumber === 3) {
     const fragment = incoming as Partial<Step3State> & { inference_type?: string }
     const expected = correct as { inference_type?: string; validity?: boolean; verification?: boolean } | undefined
-    const left = {
-      inference_type: fragment?.inferenceType ?? fragment?.inference_type,
-      validity: normalizeValidity(fragment?.validity),
-      verification: typeof fragment?.verification === 'boolean' ? fragment.verification : undefined,
-    }
-    const right = {
-      inference_type: expected?.inference_type,
-      validity: normalizeValidity(expected?.validity),
-      verification: expected?.verification,
-    }
-    const verificationMatches = right.verification === undefined || left.verification === right.verification
-    return Boolean(left.inference_type === right.inference_type && left.validity === right.validity && verificationMatches)
+    
+    // ユーザーの回答
+    const userInferenceType = fragment?.inferenceType ?? fragment?.inference_type
+    const userCalculated = calculateValidityAndVerification(userInferenceType)
+    const userValidity = normalizeValidity(fragment?.validity)
+    const userVerification = typeof fragment?.verification === 'boolean' ? fragment.verification : null
+    
+    // 正解（DBから取得したinference_typeのみを使用）
+    const correctInferenceType = expected?.inference_type
+    const correctCalculated = calculateValidityAndVerification(correctInferenceType)
+    
+    // inference_typeが一致しているか確認
+    const inferenceTypeMatches = userInferenceType === correctInferenceType
+    
+    // validityとverificationは、inference_typeから計算した値と一致しているか確認
+    const validityMatches = userValidity === correctCalculated.validity
+    const verificationMatches = 
+      userVerification === null || 
+      userVerification === correctCalculated.verification
+    
+    return Boolean(inferenceTypeMatches && validityMatches && verificationMatches)
   }
 
   return false
