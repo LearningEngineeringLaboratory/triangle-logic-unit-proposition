@@ -167,7 +167,7 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
 
   // Step4に遷移したときに、Step2のリンクをStep4のリンクに初期化
   useEffect(() => {
-    if (currentStep === 4 && problem && (problem.total_steps ?? 3) >= 4) {
+    if (currentStep === 4 && problem && totalSteps >= 4) {
       const step2Links = steps.step2?.links || []
       const step4Links = steps.step4?.links || []
       
@@ -186,7 +186,7 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
         })
       }
     }
-  }, [currentStep, problem, steps.step2, steps.step4, updateStep])
+  }, [currentStep, problem, totalSteps, steps.step2, steps.step4, updateStep])
 
 
   // ステップ遷移時にattemptsテーブルのcurrent_stepを更新
@@ -325,6 +325,7 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
             <ProblemStepDisplay
                 problem={problem}
                 currentStep={currentStep}
+                totalSteps={totalSteps}
                 inferenceTypeValue={steps.step3?.inferenceType || ''}
                 validityValue={steps.step3?.validity === null ? '' : (steps.step3?.validity ? '妥当' : '非妥当')}
                 verificationValue={steps.step3?.verification === null ? '' : (steps.step3?.verification ? '高い' : '低い')}

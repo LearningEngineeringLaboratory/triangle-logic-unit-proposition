@@ -12,6 +12,7 @@ import { useStepScroll } from './use-step-scroll'
 interface ProblemStepDisplayProps {
   problem: ProblemDetail
   currentStep: number
+  totalSteps?: number // Step3のinference_typeに基づいて動的に計算されたtotalSteps
   inferenceTypeValue?: string
   validityValue?: string
   verificationValue?: string
@@ -46,6 +47,7 @@ const getStepStatus = (stepsState: StepsState, currentStep: number, stepNumber: 
 export function ProblemStepDisplay({
   problem,
   currentStep,
+  totalSteps: propTotalSteps,
   inferenceTypeValue = '',
   validityValue = '',
   verificationValue = '',
@@ -61,7 +63,8 @@ export function ProblemStepDisplay({
 }: ProblemStepDisplayProps) {
   const { scrollContainerRef, showScrollTop, scrollToTop } = useStepScroll(currentStep)
 
-  const totalSteps = problem?.total_steps || 3
+  // propTotalStepsが渡されている場合はそれを使用、なければproblem.total_stepsを使用（後方互換性）
+  const totalSteps = propTotalSteps ?? problem?.total_steps ?? 3
   const steps = buildStepDefinitions(totalSteps)
   const optionList = problem?.options && problem.options.length > 0 ? problem.options : ['選択肢が設定されていません']
 

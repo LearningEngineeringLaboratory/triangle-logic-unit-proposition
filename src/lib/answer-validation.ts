@@ -188,16 +188,23 @@ export function validateStep4Links(
     }
     
     // それ以外のリンクがすべてactive:falseになっているか確認
-    const otherLinksActive = step4Links.some(link => {
+    // 必須リンク以外のリンクで、activeがtrueまたはundefinedのものがあるかチェック
+    const hasOtherActiveLinks = step4Links.some(link => {
       const fromValue = resolveNodeValue(link.from)
       const toValue = resolveNodeValue(link.to)
       const isRequiredLink = 
         (fromValue === antecedentValue && toValue === xxx && link.active === true) ||
         (fromValue === xxx && toValue === consequentValue && link.active === true)
-      return !isRequiredLink && link.active !== false
+      
+      // 必須リンク以外で、activeがfalseでない（trueまたはundefined）リンクがあるか
+      if (!isRequiredLink) {
+        return link.active !== false // activeがfalseでない = trueまたはundefined
+      }
+      return false
     })
     
-    if (!otherLinksActive) {
+    // 必須リンク以外にactiveなリンクがない場合、正解
+    if (!hasOtherActiveLinks) {
       return xxx // 正解: このXXXが使用されている
     }
   }
