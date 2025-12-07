@@ -8,16 +8,14 @@ import Link from 'next/link'
 interface ProblemDetailFooterProps {
   problemNumber: number
   totalProblems: number
-  completedSteps: number
-  totalSteps: number
+  completedProblems: number
   onAnswerCheck: () => void | Promise<void>
 }
 
 export function ProblemDetailFooter({
   problemNumber,
   totalProblems,
-  completedSteps,
-  totalSteps,
+  completedProblems,
   onAnswerCheck,
 }: ProblemDetailFooterProps) {
   return (
@@ -39,21 +37,12 @@ export function ProblemDetailFooter({
             </div>
             <div className="flex-1">
               {(() => {
-                // 完了した問題数（現在の問題より前の問題は完了と仮定）
-                const completedProblems = problemNumber - 1
-                // 現在の問題の進捗率（ステップ進捗を考慮）
-                const currentProblemProgress = totalSteps > 0 ? completedSteps / totalSteps : 0
-                // 全体の進捗率 = (完了した問題数 + 現在の問題の進捗) / 総問題数
-                const overallProgress = ((completedProblems + currentProblemProgress) / totalProblems) * 100
+                // 完了した問題数のみで進捗率を計算
+                const overallProgress = (completedProblems / totalProblems) * 100
                 return <Progress value={overallProgress} className="h-2" />
               })()}
             </div>
           </>
-        )}
-        {totalProblems === 0 && (
-          <div className="text-sm font-medium text-foreground">
-            問題{problemNumber}
-          </div>
         )}
       </div>
       

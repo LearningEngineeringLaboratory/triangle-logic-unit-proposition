@@ -45,6 +45,7 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
   })
   const [isProblemCompleted, setIsProblemCompleted] = useState(false)
   const [isCheckingCompletion, setIsCheckingCompletion] = useState(true) // クリア済みチェック中かどうか
+  const [completedProblemsCount, setCompletedProblemsCount] = useState(0) // 完了した問題数
   const previousStepRef = useRef<number>(1)
 
   // ノードの値を更新するコールバック
@@ -138,7 +139,15 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
 
       setIsCheckingCompletion(true)
       try {
-        const res = await fetch('/api/response/completion-status', {
+        // 選択されている問題セットIDを取得
+        const savedSetId = localStorage.getItem('selectedProblemSetId')
+        
+        // APIリクエストURLを構築（setIdが存在する場合はクエリパラメータに追加）
+        const url = savedSetId 
+          ? `/api/response/completion-status?setId=${encodeURIComponent(savedSetId)}`
+          : '/api/response/completion-status'
+        
+        const res = await fetch(url, {
           method: 'GET',
           headers: { 'Content-Type': 'application/json' },
         })
@@ -148,6 +157,12 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
           const completedProblemIds = Array.isArray(data.data.completedProblemIds) 
             ? data.data.completedProblemIds as string[]
             : []
+          
+          // 完了した問題数を設定
+          const completedCount = typeof data.data.completedCount === 'number' 
+            ? data.data.completedCount 
+            : completedProblemIds.length
+          setCompletedProblemsCount(completedCount)
           
           if (completedProblemIds.includes(problem.problem_id)) {
             setIsProblemCompleted(true)
@@ -377,8 +392,7 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
           <ProblemDetailFooter
             problemNumber={problemNumber}
             totalProblems={totalProblems}
-            completedSteps={completedSteps}
-            totalSteps={totalSteps}
+            completedProblems={completedProblemsCount}
             onAnswerCheck={handleAnswerCheck}
           />
         )
