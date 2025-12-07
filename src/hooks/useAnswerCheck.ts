@@ -122,39 +122,39 @@ export function useAnswerCheck({ problem, nodeValues, steps, currentStep, sessio
     }
 
     // ログ送信（研究用）- ノード文字列ラベルを含む
-    const sessionId = sessionInfo?.sessionId || null
-    const userId = sessionInfo?.userId || getUserIdClient()
-    
-    // payloadにノード文字列ラベルと正誤判定結果を追加
-    const payloadWithLabels = {
-      ...currentStateFragment,
-      isPassed: isCorrect, // 正誤判定結果を明示的に設定
-      node_labels: {
-        antecedent: nodeValues.antecedent,
-        consequent: nodeValues.consequent,
-        premiseNodes: nodeValues.premiseNodes.map(node => ({
-          id: node.id,
-          label: node.value,
-        })),
-      },
+    // sessionInfoが存在する場合のみログを送信（sessionIdとuserIdが必須のため）
+    if (sessionInfo?.sessionId && sessionInfo?.userId) {
+      // payloadにノード文字列ラベルと正誤判定結果を追加
+      const payloadWithLabels = {
+        ...currentStateFragment,
+        isPassed: isCorrect, // 正誤判定結果を明示的に設定
+        node_labels: {
+          antecedent: nodeValues.antecedent,
+          consequent: nodeValues.consequent,
+          premiseNodes: nodeValues.premiseNodes.map(node => ({
+            id: node.id,
+            label: node.value,
+          })),
+        },
+      }
+      
+      // stateをDB形式に変換（現在のステップのisPassedをisCorrectの結果で上書き）
+      const dbState = mapUiToDbState(
+        steps as StepsState,
+        nodeValues,
+        { stepNumber, isPassed: isCorrect }
+      )
+      
+      logClientCheck({
+        sessionId: sessionInfo.sessionId,
+        userId: sessionInfo.userId,
+        problemId: problem.problem_id,
+        step: stepNumber,
+        isCorrect,
+        payload: payloadWithLabels,
+        state: dbState,
+      })
     }
-    
-    // stateをDB形式に変換（現在のステップのisPassedをisCorrectの結果で上書き）
-    const dbState = mapUiToDbState(
-      steps as StepsState,
-      nodeValues,
-      { stepNumber, isPassed: isCorrect }
-    )
-    
-    logClientCheck({
-      sessionId: sessionId ?? undefined,
-      userId: userId ?? undefined,
-      problemId: problem.problem_id,
-      step: stepNumber,
-      isCorrect,
-      payload: payloadWithLabels,
-      state: dbState,
-    })
 
     return isCorrect
   }, [problem, nodeValues, steps, sessionInfo])

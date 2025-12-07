@@ -322,6 +322,15 @@ export async function logClientCheck(params: {
   payload?: unknown
   state?: unknown // イベント送信時の問題の全ての回答状況（全ステップの回答状態をJSONB形式で保存）
 }) {
+  // session_idとuser_idが必須のため、どちらかが欠落している場合は送信しない
+  if (!params.sessionId || !params.userId) {
+    console.warn('[logClientCheck] Skipping log - missing sessionId or userId:', { 
+      sessionId: params.sessionId, 
+      userId: params.userId 
+    })
+    return
+  }
+
   try {
     await fetch('/api/log', {
       method: 'POST',
@@ -356,6 +365,16 @@ export async function logEvent(params: {
   state?: unknown // イベント送信時の問題の全ての回答状況（全ステップの回答状態をJSONB形式で保存）
   idempotencyKey?: string
 }): Promise<void> {
+  // session_idとuser_idが必須のため、どちらかが欠落している場合は送信しない
+  if (!params.sessionId || !params.userId) {
+    console.warn('[logEvent] Skipping log - missing sessionId or userId:', { 
+      kind: params.kind,
+      sessionId: params.sessionId, 
+      userId: params.userId 
+    })
+    return
+  }
+
   try {
     await fetch('/api/log', {
       method: 'POST',

@@ -41,7 +41,8 @@ export async function POST(req: NextRequest) {
 
     const nextSeq = maxSeqData?.seq ? maxSeqData.seq + 1 : 1
 
-    // attempt_idが指定されていない場合は、最新のattempt_idを取得（問題関連イベントの場合のみ）
+    // attempt_idが指定されていない場合は、進行中のattempt_idを取得（問題関連イベントの場合のみ）
+    // 注意: 完了済みのattempt_idは使用しない（過去のattemptと混同を防ぐため）
     let attemptId = body.attempt_id
     if (!attemptId && body.problem_id) {
       const { data: latestAttempt, error: attemptError } = await supabase
@@ -57,15 +58,17 @@ export async function POST(req: NextRequest) {
 
       if (!attemptError && latestAttempt) {
         attemptId = latestAttempt.attempt_id
+      } else {
+        // 進行中のattemptがない場合、attempt_idはnullとして記録
+        // これは問題が完了した後の操作や、attemptが存在しない場合に発生する可能性がある
+        console.warn('[warn] No in_progress attempt found for problem-related event:', { 
+          kind: body.kind, 
+          problem_id: body.problem_id,
+          session_id: body.session_id,
+          user_id: body.user_id,
+          note: 'Event will be recorded with attempt_id=null'
+        })
       }
-    }
-
-    // 問題関連イベントでattempt_idが取得できない場合はエラー
-    if (!attemptId && body.problem_id) {
-      return NextResponse.json(
-        { success: false, error: 'attempt_id is required for problem-related events' },
-        { status: 400 }
-      )
     }
 
     // 問題非関連イベントではattempt_idはNULL許可（attempt_idが無くてもOK）
