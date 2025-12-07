@@ -43,6 +43,8 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
     consequent: '',
     premiseNodes: []
   })
+  const [isProblemCompleted, setIsProblemCompleted] = useState(false)
+  const [isCheckingCompletion, setIsCheckingCompletion] = useState(true) // クリア済みチェック中かどうか
   const previousStepRef = useRef<number>(1)
 
   // ノードの値を更新するコールバック
@@ -60,11 +62,12 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
     goToNextStep,
   } = useProblemSteps(problem)
 
-  // Attempt管理
+  // Attempt管理（クリア済みチェックが完了するまで待機）
   const { attemptId, updateCurrentStep, finishAttempt } = useProblemAttempt({
     problem,
     sessionInfo,
-    isSessionLoading,
+    isSessionLoading: isSessionLoading || isCheckingCompletion, // クリア済みチェック中もローディング扱い
+    isCompleted: isProblemCompleted,
   })
 
   // 答え合わせロジック
@@ -126,6 +129,41 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
     fetchData()
   }, [params])
 
+  // クリア済み問題のチェック（problemとsessionInfoが利用可能になったら実行）
+  useEffect(() => {
+    async function checkCompletionStatus() {
+      if (!problem || !sessionInfo || loading || isSessionLoading) {
+        return
+      }
+
+      setIsCheckingCompletion(true)
+      try {
+        const res = await fetch('/api/response/completion-status', {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' },
+        })
+        const data = await res.json()
+        
+        if (data.success && data.data) {
+          const completedProblemIds = Array.isArray(data.data.completedProblemIds) 
+            ? data.data.completedProblemIds as string[]
+            : []
+          
+          if (completedProblemIds.includes(problem.problem_id)) {
+            setIsProblemCompleted(true)
+            router.push('/problems')
+          }
+        }
+      } catch (err) {
+        console.error('Error checking completion status:', err)
+      } finally {
+        setIsCheckingCompletion(false)
+      }
+    }
+
+    checkCompletionStatus()
+  }, [problem, sessionInfo, loading, isSessionLoading, router])
+
 
   // Step4に遷移したときに、Step2のリンクをStep4のリンクに初期化
   useEffect(() => {
@@ -177,6 +215,7 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
       router.push('/problems')
     }
   }, [isSessionLoading, sessionInfo, router])
+
 
   // 次の問題への遷移
   const handleNextProblem = () => {

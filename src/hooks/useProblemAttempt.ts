@@ -6,6 +6,7 @@ interface UseProblemAttemptOptions {
   problem: ProblemDetail | null
   sessionInfo: { sessionId: string; userId: string } | null
   isSessionLoading: boolean
+  isCompleted?: boolean // クリア済み問題の場合はAttemptを作成しない
   onComplete?: (attemptId: string) => void
 }
 
@@ -16,6 +17,7 @@ export function useProblemAttempt({
   problem, 
   sessionInfo, 
   isSessionLoading,
+  isCompleted = false,
   onComplete 
 }: UseProblemAttemptOptions) {
   const [attemptId, setAttemptId] = useState<string | null>(null)
@@ -26,6 +28,12 @@ export function useProblemAttempt({
     async function startAttempt() {
       if (isSessionLoading) {
         console.log('[debug] Waiting for session info to load...')
+        return
+      }
+
+      // クリア済み問題の場合はAttemptを作成しない
+      if (isCompleted) {
+        console.log('[debug] Problem is already completed, skipping attempt creation')
         return
       }
 
@@ -98,7 +106,7 @@ export function useProblemAttempt({
     }
 
     startAttempt()
-  }, [sessionInfo, problem, isSessionLoading, onComplete])
+  }, [sessionInfo, problem, isSessionLoading, isCompleted, onComplete])
 
   const updateCurrentStep = async (currentStep: number) => {
     if (!attemptId) return
