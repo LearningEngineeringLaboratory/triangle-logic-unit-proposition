@@ -1,13 +1,17 @@
 'use client'
 
 import { PremiseSelection, ProblemDetail, StepsState } from '@/lib/types'
-import { AlertCircle, ArrowUp } from 'lucide-react'
+import { ArrowUp } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
-import { Step3QuestionInputs } from './step3-question-inputs'
-import { Step5ArgumentInput } from './step5-argument-input'
-import { buildStepDefinitions } from './step-definitions'
 import { useStepScroll } from './use-step-scroll'
+import {
+  Step1Component,
+  Step2Component,
+  Step3Component,
+  Step4Component,
+  Step5Component,
+} from './step-components'
 
 interface ProblemStepDisplayProps {
   problem: ProblemDetail
@@ -44,6 +48,7 @@ const getStepStatus = (stepsState: StepsState, currentStep: number, stepNumber: 
   return 'future'
 }
 
+
 export function ProblemStepDisplay({
   problem,
   currentStep,
@@ -65,14 +70,57 @@ export function ProblemStepDisplay({
 
   // propTotalStepsが渡されている場合はそれを使用、なければproblem.total_stepsを使用（後方互換性）
   const totalSteps = propTotalSteps ?? problem?.total_steps ?? 3
-  const steps = buildStepDefinitions(totalSteps)
   const optionList = problem?.options && problem.options.length > 0 ? problem.options : ['選択肢が設定されていません']
 
-  const visibleSteps = steps.filter((_, index) => index < currentStep - 1).reverse()
-  const currentStepData = steps[currentStep - 1]
+  // 過去のステップ番号のリスト
+  const visibleStepNumbers = Array.from({ length: currentStep - 1 }, (_, i) => currentStep - 1 - i)
 
-  if (!currentStepData) {
-    return null
+  // ステップ番号に応じて適切なコンポーネントをレンダリング
+  const renderStepComponent = (stepNumber: number, isCurrentStep = true, isPastStep = false, isCompleted = false) => {
+    const baseProps = {
+      problem,
+      currentStep,
+      stepsState,
+      attemptId,
+      sessionInfo,
+      nodeValues,
+      stepNumber,
+      isCurrentStep,
+      isPastStep,
+      isCompleted,
+    }
+
+    switch (stepNumber) {
+      case 1:
+        return <Step1Component {...baseProps} />
+      case 2:
+        return <Step2Component {...baseProps} />
+      case 3:
+        return (
+          <Step3Component
+            {...baseProps}
+            inferenceTypeValue={inferenceTypeValue}
+            validityValue={validityValue}
+            verificationValue={verificationValue}
+            onInferenceTypeChange={onInferenceTypeChange}
+            onValidityChange={onValidityChange}
+            onVerificationChange={onVerificationChange}
+          />
+        )
+      case 4:
+        return <Step4Component {...baseProps} />
+      case 5:
+        return (
+          <Step5Component
+            {...baseProps}
+            optionList={optionList}
+            step5Premises={step5Premises}
+            onStep5PremiseChange={onStep5PremiseChange}
+          />
+        )
+      default:
+        return null
+    }
   }
 
   return (
@@ -81,61 +129,15 @@ export function ProblemStepDisplay({
       <div className="flex-1" ref={scrollContainerRef}>
         <div className="space-y-0 p-6 pt-8">
           {/* 現在のステップ（最上部に表示） */}
-          <div className="px-2 pb-6" id={`current-step-${currentStepData.number}`}>
-            <div className="flex items-center gap-3 mb-4">
-              <h3 className="text-lg font-semibold text-foreground">
-                Step {currentStepData.number}: {currentStepData.title}
-              </h3>
-            </div>
-            <p className="text-base leading-relaxed text-foreground whitespace-pre-line mb-6">
-              {currentStepData.content}
-            </p>
-            {currentStepData.hint && (
-              <div className="mb-6 rounded-xl border-2 border-warning/30 bg-warning/10 p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <AlertCircle className="h-5 w-5 text-warning" aria-hidden="true" />
-                  <span className="text-base font-semibold text-warning">ヒント</span>
-                </div>
-                <p className="text-sm leading-relaxed text-foreground whitespace-pre-line">{currentStepData.hint}</p>
-              </div>
-            )}
-
-            {/* ステップ3の入力フィールド */}
-            {currentStepData.number === 3 && (
-              <Step3QuestionInputs
-                inferenceTypeValue={inferenceTypeValue}
-                validityValue={validityValue}
-                verificationValue={verificationValue}
-                onInferenceTypeChange={onInferenceTypeChange}
-                onValidityChange={onValidityChange}
-                onVerificationChange={onVerificationChange}
-                attemptId={attemptId}
-                problemId={problem.problem_id}
-                sessionInfo={sessionInfo}
-                stepsState={stepsState}
-                nodeValues={nodeValues}
-              />
-            )}
-
-            {/* ステップ5の入力フィールド */}
-            {currentStepData.number === 5 && (
-              <Step5ArgumentInput
-                optionList={optionList}
-                step5Premises={step5Premises}
-                onStep5PremiseChange={onStep5PremiseChange}
-                stepsState={stepsState}
-                attemptId={attemptId}
-                problemId={problem.problem_id}
-                sessionInfo={sessionInfo}
-                nodeValues={nodeValues}
-              />
-            )}
+          <div className="px-2 pb-6" id={`current-step-${currentStep}`}>
+            {/* 各ステップコンポーネントがタイトル、コンテンツ、ヒント、UIをすべて含む */}
+            {renderStepComponent(currentStep, true, false)}
           </div>
         </div>
       </div>
 
       {/* 過去のステップ（Accordionで折りたたみ可能） */}
-      {visibleSteps.length > 0 && (
+      {visibleStepNumbers.length > 0 && (
         <div className="border-t border-border bg-background">
           <Accordion type="single" collapsible className="w-full">
             <AccordionItem value="previous-steps" className="border-none">
@@ -144,27 +146,14 @@ export function ProblemStepDisplay({
               </AccordionTrigger>
               <AccordionContent className="px-6 pt-4 pb-6 bg-background">
                 <div className="space-y-0">
-                  {visibleSteps.map((step, index) => {
-                    const status = getStepStatus(stepsState, currentStep, step.number)
+                  {visibleStepNumbers.map((stepNumber, index) => {
+                    const status = getStepStatus(stepsState, currentStep, stepNumber)
                     const isCompleted = status === 'completed'
 
                     return (
-                      <div key={step.number} className={index > 0 ? 'border-t border-border pt-6 mt-6' : ''}>
-                        <div className="flex items-center gap-3 mb-4">
-                          <div className="flex items-center gap-2">
-                            <h3 className="text-base font-semibold text-muted-foreground/70">
-                              Step {step.number}: {step.title}
-                            </h3>
-                          </div>
-                          {isCompleted && (
-                            <span className="ml-auto text-xs bg-success/10 text-success px-3 py-1.5 rounded-full border border-success/20 font-medium">
-                              完了
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-sm leading-relaxed text-muted-foreground/70 whitespace-pre-line">
-                          {step.content}
-                        </p>
+                      <div key={stepNumber} className={index > 0 ? 'border-t border-border pt-6 mt-6' : ''}>
+                        {/* 各ステップコンポーネントが過去のステップ表示用のUIも含む（完了バッジも含む） */}
+                        {renderStepComponent(stepNumber, false, true, isCompleted)}
                       </div>
                     )
                   })}
