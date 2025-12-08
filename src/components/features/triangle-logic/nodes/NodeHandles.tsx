@@ -71,14 +71,11 @@ export function NodeHandles({ nodeId, showHandles = true }: NodeHandlesProps) {
               left: 134,
               width: 20,
               height: 20,
-              backgroundColor: 'transparent',
-              border: 'none',
-              borderRadius: '50%',
-              // ニューモーフィズムの凹んだ効果（内側の影）
-              boxShadow: `
-                inset 2px 2px 4px rgba(0, 0, 0, 0.15),
-                inset -2px -2px 4px rgba(255, 255, 255, 0.8)
-              `,
+              backgroundColor: '#d5e6ff', // 少し灰色の背景
+              borderWidth: '1px',
+              borderStyle: 'solid',
+              borderColor: '#d6dfec',
+              borderRadius: '40%',
               // 常に最前面に出して、矢印ドラッグを優先
               zIndex: 50,
             }}
@@ -95,7 +92,6 @@ export function NodeHandles({ nodeId, showHandles = true }: NodeHandlesProps) {
                 color: 'oklch(0.36 0.14 279)',
                 transform: 'rotate(45deg)',
                 fontWeight: 'bold',
-                textShadow: '1px 1px 4px rgba(0, 0, 0, 0.3)',
               }}
             >
               →

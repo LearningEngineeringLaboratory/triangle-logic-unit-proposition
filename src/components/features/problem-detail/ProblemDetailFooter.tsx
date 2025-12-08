@@ -31,13 +31,18 @@ export function ProblemDetailFooter({
       {/* 進捗（中央配置） */}
       <div className="flex items-center gap-4 flex-1 justify-center max-w-md mx-auto">
         {totalProblems > 0 && (
-          <div className="flex-1">
-            {(() => {
-              // 完了した問題数のみで進捗率を計算
-              const overallProgress = (completedProblems / totalProblems) * 100
-              return <Progress value={overallProgress} className="h-2" />
-            })()}
-          </div>
+          <>
+            <div className="flex-1">
+              {(() => {
+                // 完了した問題数のみで進捗率を計算
+                const overallProgress = (completedProblems / totalProblems) * 100
+                return <Progress value={overallProgress} className="h-2" />
+              })()}
+            </div>
+            <div className="text-xs font-medium text-muted-foreground whitespace-nowrap px-3 py-1.5 rounded-md bg-background border-2 border-border">
+              問題{problemNumber}/{totalProblems}
+            </div>
+          </>
         )}
       </div>
       
