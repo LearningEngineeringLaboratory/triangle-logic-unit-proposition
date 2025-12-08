@@ -51,7 +51,7 @@ export const Step5Component = ({
           )}
         </div>
         <div className="text-sm leading-relaxed text-muted-foreground/70 whitespace-pre-line">
-          修正した三角ロジックをもとに、妥当性のある三項論証を構成しましょう。
+          Step4で作成したマップをもとに、この論証の導出命題を演繹的に導く三項論証を構成してください。
         </div>
       </>
     )

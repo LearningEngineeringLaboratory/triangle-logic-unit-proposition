@@ -15,7 +15,24 @@ interface Step4ComponentProps extends BaseStepComponentProps {
  * 完全に独立したステップコンポーネント。
  * タイトル、コンテンツ、UIをすべて含む。
  */
-export const Step4Component = ({ stepNumber, isCurrentStep = true, isPastStep = false, isCompleted = false }: Step4ComponentProps) => {
+export const Step4Component = ({
+  stepNumber,
+  isCurrentStep = true,
+  isPastStep = false,
+  isCompleted = false,
+  nodeValues,
+}: Step4ComponentProps) => {
+  const antecedentLabel = nodeValues?.antecedent ?? 'P'
+  const consequentLabel = nodeValues?.consequent ?? 'Q'
+  const instructionContent = (
+    <>
+      マップを修正し、この論証の導出命題である
+      <br />
+      「<span className="font-semibold">{antecedentLabel}ならば{consequentLabel}</span>」
+      <br />
+      を演繹的に導くの構造を作成してください。
+    </>
+  )
   if (isPastStep) {
     // 過去のステップ表示用（簡易版）
     return (
@@ -33,7 +50,7 @@ export const Step4Component = ({ stepNumber, isCurrentStep = true, isPastStep = 
           )}
         </div>
         <div className="text-sm leading-relaxed text-muted-foreground/70 whitespace-pre-line">
-          三角ロジックを修正して妥当性のある論証になるような三角ロジックを構成しましょう。
+          {instructionContent}
         </div>
       </>
     )
@@ -48,7 +65,7 @@ export const Step4Component = ({ stepNumber, isCurrentStep = true, isPastStep = 
         </h3>
       </div>
       <div className="text-base leading-relaxed text-foreground whitespace-pre-line mb-6">
-        三角ロジックを修正して妥当性のある論証になるような三角ロジックを構成しましょう。
+        {instructionContent}
       </div>
       {/* Step4は三角ロジックフローで操作するため、特別なUIは不要 */}
     </>
