@@ -107,6 +107,7 @@ export function useTriangleEdges({
           type: 'triangleEdge',
           selectable: isStep4NewLink,
           data: {
+            label: 'ならば',
             isActive,
             isToggleable: !isDerivedLink && isStep2Link,
             isDeletable: isStep4NewLink,

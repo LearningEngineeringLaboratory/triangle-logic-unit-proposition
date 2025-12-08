@@ -217,7 +217,9 @@ export function TriangleEdge({ id, source, target, style, data }: TriangleEdgePr
             className="nodrag nopan"
             style={{
               position: 'absolute',
-              transform: `translate(-50%, -50%) translate(${labelX}px, ${labelY}px)`,
+              left: labelX,
+              top: labelY,
+              transform: 'translate(-50%, -50%) translate(25px, -20px)',
               pointerEvents: 'all',
             }}
           >
@@ -225,10 +227,10 @@ export function TriangleEdge({ id, source, target, style, data }: TriangleEdgePr
               variant={isActive ? 'default' : 'outline'}
               size="sm"
               onClick={onToggle}
-              className="h-6 w-6 rounded-full p-0"
+              className="h-5 px-2 rounded-full text-[8px] leading-tight"
               title={isActive ? '非表示にする' : '表示する'}
             >
-              {isActive ? '●' : '○'}
+              {isActive ? 'ON' : 'OFF'}
             </Button>
           </div>
         </EdgeLabelRenderer>
