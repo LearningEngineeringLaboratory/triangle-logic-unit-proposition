@@ -54,7 +54,7 @@ export const Step1Component = ({ stepNumber, isCurrentStep = true, isPastStep = 
         画面右側のエリアで選択肢を選択してください。
       </div>
       <StepTermDefinition>
-        * 導出命題：論証で前提から導かれる命題、結論となる命題のこと。「したがって」や「よって」などの接続詞がある命題に着目しましょう。
+        * 導出命題：論証において前提から導かれる命題、結論となる命題のこと。「したがって」などの接続詞がある命題に着目しましょう。
       </StepTermDefinition>
       <StepHint>
       「PであるならばQである。したがって、PであるならばRである。なぜならば、QであるならばRであるからである。」という論証の場合、導出命題は「PであるならばRである」となります。

@@ -130,7 +130,7 @@ export const Step3Component = ({
     <>
       <div className="flex items-center gap-3 mb-4">
         <h3 className="text-lg font-semibold text-foreground">
-          Step {stepNumber}: 推論形式と妥当性の判別
+          Step {stepNumber}: 推論形式の判別
         </h3>
       </div>
       <div className="text-base leading-relaxed text-foreground whitespace-pre-line mb-6">

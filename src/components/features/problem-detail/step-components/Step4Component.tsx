@@ -42,7 +42,7 @@ export const Step4Component = ({
         <div className="flex items-center gap-3 mb-4">
           <div className="flex items-center gap-2">
             <h3 className="text-base font-semibold text-muted-foreground/70">
-              Step {stepNumber}: 妥当性のある三角ロジックの構成
+              Step {stepNumber}: 演繹推論となる三角ロジックの構成
             </h3>
           </div>
           {isCompleted && (
@@ -63,7 +63,7 @@ export const Step4Component = ({
     <>
       <div className="flex items-center gap-3 mb-4">
         <h3 className="text-lg font-semibold text-foreground">
-          Step {stepNumber}: 妥当性のある三角ロジックの構成
+          Step {stepNumber}: 演繹推論となる三角ロジックの構成
         </h3>
       </div>
       <div className="text-base leading-relaxed text-foreground whitespace-pre-line mb-6">
