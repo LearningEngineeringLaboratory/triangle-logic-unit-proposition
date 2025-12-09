@@ -26,11 +26,13 @@ export const Step4Component = ({
   const consequentLabel = nodeValues?.consequent ?? 'Q'
   const instructionContent = (
     <>
-      マップを修正し、この論証の導出命題である
+      三角ロジックを修正し、この論証の導出命題である
       <br />
       「<span className="font-semibold">{antecedentLabel}ならば{consequentLabel}</span>」
       <br />
-      を演繹的に導くの構造を作成してください。
+      を演繹推論として導く論証を構成してください。
+      複数パターンある場合は、成り立つパターンのうち一つを作成してください。<br />
+      また、不要な接続があれば非表示にしてください。
     </>
   )
   if (isPastStep) {
@@ -67,7 +69,6 @@ export const Step4Component = ({
       <div className="text-base leading-relaxed text-foreground whitespace-pre-line mb-6">
         {instructionContent}
       </div>
-      {/* Step4は三角ロジックフローで操作するため、特別なUIは不要 */}
     </>
   )
 }

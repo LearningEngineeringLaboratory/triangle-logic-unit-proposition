@@ -1,7 +1,8 @@
 'use client'
 
-import { AlertCircle } from 'lucide-react'
 import { BaseStepComponentProps } from './step-component-props'
+import { StepHint } from './StepHint'
+import { StepTermDefinition } from './StepTermDefinition'
 
 interface Step1ComponentProps extends BaseStepComponentProps {
   stepNumber: number
@@ -49,18 +50,15 @@ export const Step1Component = ({ stepNumber, isCurrentStep = true, isPastStep = 
         </h3>
       </div>
       <div className="text-base leading-relaxed text-foreground whitespace-pre-line mb-6">
-        この論証が導いている命題（導出命題）を構成しましょう。
+        この論証の導出命題* を構成しましょう。<br />
+        画面右側のエリアで選択肢を選択してください。
       </div>
-      <div className="mb-6 rounded-xl border-2 border-warning/30 bg-warning/10 p-4">
-        <div className="flex items-center gap-2 mb-2">
-          <AlertCircle className="h-5 w-5 text-warning" aria-hidden="true" />
-          <span className="text-base font-semibold text-warning">ヒント</span>
-        </div>
-        <div className="text-sm leading-relaxed text-foreground whitespace-pre-line">
-          「したがって」や「よって」、「とすると」などの接続詞がある命題に着目しましょう。
-        </div>
-      </div>
-      {/* Step1は三角ロジックフローで操作するため、特別なUIは不要 */}
+      <StepTermDefinition>
+        * 導出命題：論証で前提から導かれる命題、結論となる命題のこと。「したがって」や「よって」などの接続詞がある命題に着目しましょう。
+      </StepTermDefinition>
+      <StepHint>
+      「PであるならばQである。したがって、PであるならばRである。なぜならば、QであるならばRであるからである。」という論証の場合、導出命題は「PであるならばRである」となります。
+      </StepHint>
     </>
   )
 }

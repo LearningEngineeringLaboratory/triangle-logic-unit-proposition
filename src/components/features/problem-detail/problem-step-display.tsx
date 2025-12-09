@@ -5,13 +5,11 @@ import { ArrowUp } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import { useStepScroll } from './use-step-scroll'
-import {
-  Step1Component,
-  Step2Component,
-  Step3Component,
-  Step4Component,
-  Step5Component,
-} from './step-components'
+import { Step1Component } from './step-components/Step1Component'
+import { Step2Component } from './step-components/Step2Component'
+import { Step3Component } from './step-components/Step3Component'
+import { Step4Component } from './step-components/Step4Component'
+import { Step5Component } from './step-components/Step5Component'
 
 interface ProblemStepDisplayProps {
   problem: ProblemDetail

@@ -1,7 +1,11 @@
 'use client'
 
+import Image from 'next/image'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { logSelectDropdown } from '@/lib/logging'
+import { mapUiToDbState } from '@/lib/utils'
 import { BaseStepComponentProps } from './step-component-props'
-import { Step3QuestionInputs } from '../step3-question-inputs'
+import { StepTermDefinition } from './StepTermDefinition'
 
 interface Step3ComponentProps extends BaseStepComponentProps {
   stepNumber: number
@@ -62,6 +66,65 @@ export const Step3Component = ({
     )
   }
 
+  // ログ送信関数
+  const emitLog = (controlId: string, value: string, updatedSteps: typeof stepsState & { step3?: any }) => {
+    const dbState = nodeValues ? mapUiToDbState(updatedSteps, nodeValues) : null
+    logSelectDropdown({
+      controlId,
+      value,
+      attemptId: attemptId ?? undefined,
+      problemId: problem.problem_id,
+      sessionId: sessionInfo?.sessionId ?? '',
+      userId: sessionInfo?.userId ?? '',
+      state: dbState,
+    }).catch(console.error)
+  }
+
+  const handleVerificationChange = (value: string) => {
+    onVerificationChange?.(value)
+    if (sessionInfo && problem.problem_id && stepsState) {
+      const currentStep3 = stepsState.step3 || { isPassed: false, inferenceType: '', validity: null, verification: null }
+      const updatedSteps = {
+        ...stepsState,
+        step3: {
+          ...currentStep3,
+          verification: value === '高い',
+        },
+      }
+      emitLog('step3-verification', value, updatedSteps)
+    }
+  }
+
+  const handleValidityChange = (value: string) => {
+    onValidityChange?.(value)
+    if (sessionInfo && problem.problem_id && stepsState) {
+      const currentStep3 = stepsState.step3 || { isPassed: false, inferenceType: '', validity: null, verification: null }
+      const updatedSteps = {
+        ...stepsState,
+        step3: {
+          ...currentStep3,
+          validity: value === '妥当',
+        },
+      }
+      emitLog('step3-validity', value, updatedSteps)
+    }
+  }
+
+  const handleInferenceTypeChange = (value: string) => {
+    onInferenceTypeChange?.(value)
+    if (sessionInfo && problem.problem_id && stepsState) {
+      const currentStep3 = stepsState.step3 || { isPassed: false, inferenceType: '', validity: null, verification: null }
+      const updatedSteps = {
+        ...stepsState,
+        step3: {
+          ...currentStep3,
+          inferenceType: value,
+        },
+      }
+      emitLog('step3-inference_type', value, updatedSteps)
+    }
+  }
+
   // 現在のステップ表示用（完全版）
   return (
     <>
@@ -71,21 +134,78 @@ export const Step3Component = ({
         </h3>
       </div>
       <div className="text-base leading-relaxed text-foreground whitespace-pre-line mb-6">
-        構成した三角ロジックをもとに、この論証の推論形式と妥当性を答えましょう。
+        構成した三角ロジックをもとに、以下の問題に答えましょう。
       </div>
-      <Step3QuestionInputs
-        inferenceTypeValue={inferenceTypeValue}
-        validityValue={validityValue}
-        verificationValue={verificationValue}
-        onInferenceTypeChange={onInferenceTypeChange}
-        onValidityChange={onValidityChange}
-        onVerificationChange={onVerificationChange}
-        attemptId={attemptId}
-        problemId={problem.problem_id}
-        sessionInfo={sessionInfo}
-        stepsState={stepsState}
-        nodeValues={nodeValues}
-      />
+      <div className="mb-6">
+        <div className="flex flex-col gap-4 w-full max-w-3xl">
+          <div className="flex flex-col gap-2 mt-6">
+            <span className="text-sm font-medium text-foreground">
+              問題1. この論証は推論として論理的ですか？ここで、論理的であるとは、形式論理を満たす論証* であることを意味します。
+            </span>
+            <Select value={verificationValue} onValueChange={handleVerificationChange}>
+              <SelectTrigger className={`w-full h-14 rounded-xl border-2 text-lg py-3 ${verificationValue ? '' : 'animate-glow-pulse'}`}>
+                <SelectValue placeholder="選択してください" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="高い">推論として論理的である</SelectItem>
+                <SelectItem value="低い">推論として論理的でない</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex flex-col gap-2 mt-6">
+            <span className="text-sm font-medium text-foreground">
+              問題2. この論証は、所与命題を正しいと仮定したとき、導出命題は必ず正しいといえますか？
+            </span>
+            <Select value={validityValue} onValueChange={handleValidityChange}>
+              <SelectTrigger className={`w-full h-14 rounded-xl border-2 text-lg py-3 ${validityValue ? '' : 'animate-glow-pulse'}`}>
+                <SelectValue placeholder="選択してください" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="妥当">常に正しい</SelectItem>
+                <SelectItem value="非妥当">常に正しいとはいえない</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex flex-col gap-2 mt-6">
+            <span className="text-sm font-medium text-foreground">問題3. この論証の推論形式を答えてください。</span>
+            <Select value={inferenceTypeValue} onValueChange={handleInferenceTypeChange}>
+              <SelectTrigger className={`w-full h-14 rounded-xl border-2 text-lg py-3 ${inferenceTypeValue ? '' : 'animate-glow-pulse'}`}>
+                <SelectValue placeholder="選択してください" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="演繹推論">演繹推論*</SelectItem>
+                <SelectItem value="仮説推論">仮説推論*</SelectItem>
+                <SelectItem value="非形式推論">非形式推論*</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <StepTermDefinition>
+            <p className="text-sm leading-relaxed text-foreground whitespace-pre-line mb-4">
+              * 形式論理を満たす論証：推論として論理的な構造を持つ論証のこと。以下のような構造を持つ推論のことを指します。
+            </p>
+            <div className="mb-4">
+              <Image
+                src="/images/steps/formal-structure.png"
+                alt="演繹構造の図"
+                width={600}
+                height={400}
+                className="rounded-lg w-full h-auto"
+              />
+            </div>
+            <p className="text-sm leading-relaxed text-foreground whitespace-pre-line mb-4">
+              * 演繹推論：推論として論理的であり、さらに、所与命題を正しいと仮定したときに導出命題が必ず正しいといえる推論のこと。
+            </p>
+            <p className="text-sm leading-relaxed text-foreground whitespace-pre-line mb-4">
+              * 仮説推論：推論として論理的であるが、所与命題を正しいと仮定しても導出命題が必ず正しいとはいえない推論のこと。
+            </p>
+            <p className="text-sm leading-relaxed text-foreground whitespace-pre-line mb-4">
+              * 非形式推論：推論として論理的ではない推論。推論として論理的ではない場合、所与命題を正しいと仮定しても導出命題が必ず正しいといえません。
+            </p>
+          </StepTermDefinition>
+        </div>
+      </div>
     </>
   )
 }

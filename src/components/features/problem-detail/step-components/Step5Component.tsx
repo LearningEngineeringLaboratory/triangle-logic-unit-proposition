@@ -41,7 +41,7 @@ export const Step5Component = ({
         <div className="flex items-center gap-3 mb-4">
           <div className="flex items-center gap-2">
             <h3 className="text-base font-semibold text-muted-foreground/70">
-              Step {stepNumber}: 妥当性のある三項論証を構成
+              Step {stepNumber}: 演繹推論となる三項論証を構成
             </h3>
           </div>
           {isCompleted && (
@@ -62,11 +62,11 @@ export const Step5Component = ({
     <>
       <div className="flex items-center gap-3 mb-4">
         <h3 className="text-lg font-semibold text-foreground">
-          Step {stepNumber}: 妥当性のある三項論証を構成
+          Step {stepNumber}: 演繹推論となる論証を構成
         </h3>
       </div>
       <div className="text-base leading-relaxed text-foreground whitespace-pre-line mb-6">
-        修正した三角ロジックをもとに、妥当性のある三項論証を構成しましょう。
+        修正した三角ロジックをもとに、導出命題を演繹推論として導く論証を構成しましょう。
       </div>
       <Step5ArgumentInput
         optionList={optionList}

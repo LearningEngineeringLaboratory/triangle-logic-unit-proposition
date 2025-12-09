@@ -1,6 +1,8 @@
 'use client'
 
 import { BaseStepComponentProps } from './step-component-props'
+import { StepTermDefinition } from './StepTermDefinition'
+import { StepHint } from './StepHint'
 
 interface Step2ComponentProps extends BaseStepComponentProps {
   stepNumber: number
@@ -52,13 +54,19 @@ export const Step2Component = ({ stepNumber, isCurrentStep = true, isPastStep = 
         </h3>
       </div>
       <div className="text-base leading-relaxed text-foreground whitespace-pre-line mb-6">
-        この論証の前提となる命題（所与命題）を構成しましょう。
+        この論証の所与命題* を構成しましょう。<br />
+        
         {'\n\n'}
-        1. 前提に必要な部品を追加
+        1. 画面右側のエリア下部から必要な命題を追加してください。
         {'\n'}
-        2. 論証が表す意味と同じになるように、リンクを接続
+        2. 論証が表す意味と同じになるように、命題右下の矢印を他の命題に接続してください。
       </div>
-      {/* Step2は三角ロジックフローで操作するため、特別なUIは不要 */}
+      <StepTermDefinition>
+        * 所与命題：論証で事実としている命題、前提となる命題のこと。
+      </StepTermDefinition>
+      <StepHint>
+      「PであるならばQである。したがって、PであるならばRである。なぜならば、QであるならばRであるからである。」という論証の場合、所与命題は「PであるならばQである」と「QであるならばRである」になります。
+      </StepHint>
     </>
   )
 }
