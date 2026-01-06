@@ -162,3 +162,35 @@ export interface NodeValues {
   premiseNodes: Array<{ id: string; value: string }>
 }
 
+// 比較実験用の型定義（2ステップ構成）
+export interface LogicalSymbolStep1State extends StepState {
+  premise1: { antecedent: string; consequent: string }
+  premise2: { antecedent: string; consequent: string }
+  conclusion: { antecedent: string; consequent: string }
+}
+
+export interface LogicalSymbolStep2State extends StepState {
+  isLogical: boolean | null // true=はい, false=いいえ
+  isValid: boolean | null // true=はい, false=いいえ
+  inferenceType: string // '演繹推論' | '仮説推論' | '非形式推論'
+}
+
+export interface LogicalSymbolStepsState {
+  step1?: LogicalSymbolStep1State
+  step2?: LogicalSymbolStep2State
+}
+
+// 比較実験用の正解データ構造
+export interface LogicalSymbolCorrectAnswers {
+  step1?: {
+    premise1: { antecedent: string; consequent: string }
+    premise2: { antecedent: string; consequent: string }
+    conclusion: { antecedent: string; consequent: string }
+  }
+  step2?: {
+    is_logical: boolean
+    is_valid: boolean
+    inference_type: string
+  }
+}
+

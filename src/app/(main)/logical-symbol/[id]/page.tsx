@@ -1,0 +1,455 @@
+'use client'
+
+import { getProblem, getNextProblemInSet, getCurrentProblemOrder, getProblemsBySet } from '@/lib/problems'
+import { Problem, ProblemDetail } from '@/lib/types'
+import { notFound } from 'next/navigation'
+import { LogicalSymbolLayout } from '@/components/features/logical-symbol/LogicalSymbolLayout'
+import { ProblemDisplay } from '@/components/features/problem-detail/ProblemDisplay'
+import { LogicalSymbolClearDialog } from '@/components/features/logical-symbol/LogicalSymbolClearDialog'
+import { LogicalSymbolDetailFooter } from '@/components/features/logical-symbol/LogicalSymbolDetailFooter'
+import { FeedbackDrawer } from '@/components/ui/feedback-drawer'
+import { Header } from '@/components/layout/Header'
+import { Loading } from '@/components/ui/loading'
+import { useProblemStepsLogicalSymbol } from '@/hooks/useProblemStepsLogicalSymbol'
+import { useProblemAttempt } from '@/hooks/useProblemAttempt'
+import { useEffect, useState, useRef } from 'react'
+import { useRouter } from 'next/navigation'
+import { logStepNavigationLogicalSymbol, logCheckAnswerLogicalSymbol, logStepCompletedLogicalSymbol } from '@/lib/logging-logical-symbol'
+import { useSession } from '@/hooks/useSession'
+import { Step1Form } from '@/components/features/logical-symbol/Step1Form'
+import { Step2Form } from '@/components/features/logical-symbol/Step2Form'
+import { checkAnswerLogicalSymbol } from '@/lib/answer-validation-logical-symbol'
+import { LogicalSymbolStepsState } from '@/lib/types'
+import { mapLogicalSymbolUiToDbState, mapLogicalSymbolDbToUiState } from '@/lib/utils'
+
+interface LogicalSymbolPageProps {
+  params: Promise<{
+    id: string
+  }>
+}
+
+export default function LogicalSymbolPage({ params }: LogicalSymbolPageProps) {
+  const router = useRouter()
+  const { sessionInfo, isLoading: isSessionLoading } = useSession()
+  const [problem, setProblem] = useState<ProblemDetail | null>(null)
+  const [problemNumber, setProblemNumber] = useState(1)
+  const [loading, setLoading] = useState(true)
+  const [nextProblem, setNextProblem] = useState<Problem | null>(null)
+  const [isLastProblem, setIsLastProblem] = useState(false)
+  const [totalProblems, setTotalProblems] = useState<number>(0)
+  const [isClearOpen, setIsClearOpen] = useState(false)
+  const [feedbackVisible, setFeedbackVisible] = useState(false)
+  const [feedbackType, setFeedbackType] = useState<'success' | 'error'>('success')
+  const [isProblemCompleted, setIsProblemCompleted] = useState(false)
+  const [isCheckingCompletion, setIsCheckingCompletion] = useState(true)
+  const [completedProblemsCount, setCompletedProblemsCount] = useState(0)
+  const previousStepRef = useRef<number>(1)
+
+  // ステップ管理
+  const {
+    steps,
+    currentStep,
+    totalSteps,
+    completedSteps,
+    updateStep,
+    goToNextStep,
+    restoreSteps,
+    setCurrentStep,
+  } = useProblemStepsLogicalSymbol()
+
+  // Attempt管理
+  const { attemptId, updateCurrentStep, finishAttempt } = useProblemAttempt({
+    problem,
+    sessionInfo,
+    isSessionLoading: isSessionLoading || isCheckingCompletion,
+    isCompleted: isProblemCompleted,
+  })
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const resolvedParams = await params
+        const problemData = await getProblem(resolvedParams.id)
+
+        if (!problemData) {
+          notFound()
+        }
+
+        setProblem(problemData)
+        const savedSetId = localStorage.getItem('selectedProblemSetId')
+        if (savedSetId) {
+          const currentOrder = await getCurrentProblemOrder(savedSetId, resolvedParams.id)
+          if (currentOrder !== null) {
+            setProblemNumber(currentOrder)
+          }
+
+          const problemsInSet = await getProblemsBySet(savedSetId)
+          setTotalProblems(problemsInSet.length)
+
+          const nextProblemData = await getNextProblemInSet(savedSetId, resolvedParams.id)
+          if (nextProblemData) {
+            setNextProblem(nextProblemData)
+            setIsLastProblem(false)
+          } else {
+            setIsLastProblem(true)
+          }
+        } else {
+          const match = resolvedParams.id.match(/TLU-(\d+)-/)
+          const order = match ? parseInt(match[1]) : 1
+          setProblemNumber(order)
+          setTotalProblems(0)
+        }
+      } catch (error) {
+        console.error('Error fetching data:', error)
+        notFound()
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchData()
+  }, [params])
+
+  // クリア済み問題のチェック
+  useEffect(() => {
+    async function checkCompletionStatus() {
+      if (!problem || !sessionInfo || loading || isSessionLoading) {
+        return
+      }
+
+      setIsCheckingCompletion(true)
+      try {
+        const savedSetId = localStorage.getItem('selectedProblemSetId')
+        const url = savedSetId 
+          ? `/api/response/completion-status?setId=${encodeURIComponent(savedSetId)}`
+          : '/api/response/completion-status'
+        
+        const res = await fetch(url, {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' },
+        })
+        const data = await res.json()
+        
+        if (data.success && data.data) {
+          const completedProblemIds = Array.isArray(data.data.completedProblemIds) 
+            ? data.data.completedProblemIds as string[]
+            : []
+          
+          const completedCount = typeof data.data.completedCount === 'number' 
+            ? data.data.completedCount 
+            : completedProblemIds.length
+          setCompletedProblemsCount(completedCount)
+          
+          if (completedProblemIds.includes(problem.problem_id)) {
+            setIsProblemCompleted(true)
+            router.push('/logical-symbol')
+          }
+        }
+      } catch (err) {
+        console.error('Error checking completion status:', err)
+      } finally {
+        setIsCheckingCompletion(false)
+      }
+    }
+
+    checkCompletionStatus()
+  }, [problem, sessionInfo, loading, isSessionLoading, router])
+
+  // セッション復帰時の状態復元
+  useEffect(() => {
+    async function restoreState() {
+      if (!problem || !sessionInfo || loading || isSessionLoading) {
+        return
+      }
+
+      try {
+        // responsesテーブルから状態を取得
+        const res = await fetch(`/api/response/get?problem_id=${encodeURIComponent(problem.problem_id)}`, {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' },
+        })
+        
+        if (res.ok) {
+          const data = await res.json()
+          if (data.success && data.data?.state) {
+            // DBの状態をUIの状態に変換
+            const restoredSteps = mapLogicalSymbolDbToUiState(data.data.state as Record<string, unknown>)
+            restoreSteps(restoredSteps)
+            
+            // 現在のステップを復元
+            if (data.data.current_step) {
+              setCurrentStep(data.data.current_step)
+              previousStepRef.current = data.data.current_step
+            }
+          }
+        }
+      } catch (err) {
+        console.error('Error restoring state:', err)
+      }
+    }
+
+    restoreState()
+  }, [problem, sessionInfo, loading, isSessionLoading, restoreSteps, setCurrentStep])
+
+  // 状態の保存（ステップ更新時）
+  useEffect(() => {
+    async function saveState() {
+      if (!problem || !sessionInfo || !attemptId || loading) {
+        return
+      }
+
+      try {
+        const dbState = mapLogicalSymbolUiToDbState(steps)
+        
+        await fetch('/api/response/save', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            session_id: sessionInfo.sessionId,
+            user_id: sessionInfo.userId,
+            problem_id: problem.problem_id,
+            problem_number: problemNumber,
+            state: dbState,
+            current_step: currentStep,
+            is_completed: completedSteps === totalSteps,
+          }),
+        }).catch((err) => {
+          console.error('Failed to save state:', err)
+        })
+      } catch (err) {
+        console.error('Error saving state:', err)
+      }
+    }
+
+    // デバウンス: 500ms後に保存
+    const timeoutId = setTimeout(saveState, 500)
+    return () => clearTimeout(timeoutId)
+  }, [steps, currentStep, problem, sessionInfo, attemptId, problemNumber, completedSteps, totalSteps, loading])
+
+  // ステップ遷移時にattemptsテーブルのcurrent_stepを更新
+  useEffect(() => {
+    if (currentStep !== previousStepRef.current && attemptId && updateCurrentStep) {
+      updateCurrentStep(currentStep)
+    }
+  }, [currentStep, attemptId, updateCurrentStep])
+
+  // ステップ遷移のログ記録
+  useEffect(() => {
+    if (currentStep !== previousStepRef.current && problem && attemptId) {
+      logStepNavigationLogicalSymbol({
+        fromStep: previousStepRef.current,
+        toStep: currentStep,
+        attemptId,
+        problemId: problem.problem_id,
+        sessionId: sessionInfo?.sessionId,
+        userId: sessionInfo?.userId,
+      }).catch(console.error)
+      previousStepRef.current = currentStep
+    }
+  }, [currentStep, problem, attemptId, sessionInfo])
+
+  // セッションがない場合は問題選択画面にリダイレクト
+  useEffect(() => {
+    if (!isSessionLoading && !sessionInfo) {
+      router.push('/logical-symbol')
+    }
+  }, [isSessionLoading, sessionInfo, router])
+
+  const handleNextProblem = () => {
+    if (nextProblem) {
+      router.push(`/logical-symbol/${nextProblem.problem_id}`)
+    }
+  }
+
+  const handleBackToProblems = () => {
+    router.push('/logical-symbol')
+  }
+
+  if (!isSessionLoading && !sessionInfo) {
+    return null
+  }
+
+  if (loading || isSessionLoading) {
+    return (
+      <div className="h-screen overflow-hidden flex flex-col">
+        <Header />
+        <div className="flex-1 overflow-hidden flex flex-col">
+          <div className="container mx-auto px-4 h-full flex items-center justify-center">
+            <Loading />
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (!problem) {
+    notFound()
+  }
+
+  // 答え合わせ処理
+  const handleAnswerCheck = async () => {
+    if (!problem) return
+
+    const stepNumber = currentStep as 1 | 2
+    const currentStateFragment = steps[`step${stepNumber}` as keyof LogicalSymbolStepsState]
+    
+    if (!currentStateFragment) return
+
+    // 答え合わせボタンクリックのログ記録
+    if (sessionInfo && attemptId) {
+      await logCheckAnswerLogicalSymbol({
+        step: stepNumber,
+        attemptId,
+        problemId: problem.problem_id,
+        sessionId: sessionInfo.sessionId,
+        userId: sessionInfo.userId,
+        state: steps,
+      }).catch(console.error)
+    }
+
+    const isCorrect = checkAnswerLogicalSymbol(stepNumber, steps, problem)
+
+    if (isCorrect) {
+      setFeedbackType('success')
+      setFeedbackVisible(true)
+      const updatedState = { ...currentStateFragment, isPassed: true }
+      
+      updateStep(stepNumber, updatedState)
+
+      // ステップ完了のログ記録
+      if (sessionInfo && attemptId) {
+        await logStepCompletedLogicalSymbol({
+          step: stepNumber,
+          isCorrect: true,
+          attemptId,
+          problemId: problem.problem_id,
+          sessionId: sessionInfo.sessionId,
+          userId: sessionInfo.userId,
+          state: { ...steps, [`step${stepNumber}`]: updatedState },
+        }).catch(console.error)
+      }
+      
+      setTimeout(() => {
+        setFeedbackVisible(false)
+        
+        if (stepNumber < totalSteps) {
+          goToNextStep()
+        } else {
+          // 問題完了時はattemptを完了
+          if (attemptId && sessionInfo) {
+            finishAttempt(true)
+          }
+          setIsClearOpen(true)
+        }
+      }, 1500)
+    } else {
+      setFeedbackType('error')
+      setFeedbackVisible(true)
+
+      // ステップ完了のログ記録（不正解）
+      if (sessionInfo && attemptId) {
+        await logStepCompletedLogicalSymbol({
+          step: stepNumber,
+          isCorrect: false,
+          attemptId,
+          problemId: problem.problem_id,
+          sessionId: sessionInfo.sessionId,
+          userId: sessionInfo.userId,
+          state: steps,
+        }).catch(console.error)
+      }
+      
+      setTimeout(() => {
+        setFeedbackVisible(false)
+      }, 2000)
+    }
+  }
+
+  // 現在のステップの状態を取得（ログ記録用）
+  const getCurrentState = () => {
+    return steps
+  }
+
+  return (
+    <div 
+      className="fixed inset-0 h-dvh overflow-hidden bg-background flex flex-col touch-action-none"
+      style={{ overscrollBehavior: 'none' }}
+    >
+      <Header 
+        problemDisplay={<ProblemDisplay problem={problem} />}
+      />
+      
+      <LogicalSymbolLayout slots={{
+        header: null,
+        content: (
+          <div className="space-y-8">
+            {/* ステップ表示 */}
+            <div className="space-y-4">
+              <h2 className="text-2xl font-bold text-foreground">
+                Step {currentStep}: {currentStep === 1 ? '所与命題と導出命題の構成' : '推論形式と妥当性の判別'}
+              </h2>
+              
+              {currentStep === 1 && (
+                <div className="space-y-4">
+                  <p className="text-base leading-relaxed text-foreground">
+                    この論証の所与命題と導出命題を構成しましょう。
+                  </p>
+                  <Step1Form
+                    problem={problem}
+                    step1State={steps.step1!}
+                    onStep1Change={(updates) => updateStep(1, updates)}
+                    attemptId={attemptId}
+                    sessionInfo={sessionInfo}
+                    currentState={getCurrentState()}
+                  />
+                </div>
+              )}
+              
+              {currentStep === 2 && (
+                <div className="space-y-4">
+                  <p className="text-base leading-relaxed text-foreground">
+                    Step1で答えた内容をもとに、以下の問題に答えましょう。
+                  </p>
+                  <Step2Form
+                    problem={problem}
+                    step1State={steps.step1!}
+                    step2State={steps.step2!}
+                    onStep2Change={(updates) => updateStep(2, updates)}
+                    attemptId={attemptId}
+                    sessionInfo={sessionInfo}
+                    currentState={getCurrentState()}
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+        ),
+        footer: (
+          <LogicalSymbolDetailFooter
+            problemNumber={problemNumber}
+            totalProblems={totalProblems}
+            completedProblems={completedProblemsCount}
+            onAnswerCheck={handleAnswerCheck}
+          />
+        )
+      }} />
+      
+      <LogicalSymbolClearDialog
+        isOpen={isClearOpen}
+        onOpenChange={setIsClearOpen}
+        isLastProblem={isLastProblem}
+        onBackToProblems={handleBackToProblems}
+        onNextProblem={handleNextProblem}
+        nextProblem={nextProblem}
+      />
+      
+      <FeedbackDrawer
+        open={feedbackVisible}
+        onOpenChange={setFeedbackVisible}
+        variant={feedbackType}
+        title={feedbackType === 'success' ? '正解です！' : 'もう一度考えてみましょう'}
+      />
+    </div>
+  )
+}
+

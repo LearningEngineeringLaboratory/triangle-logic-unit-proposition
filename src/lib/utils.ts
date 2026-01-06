@@ -189,6 +189,83 @@ export function mapDbToUiState(db: Record<string, unknown>): StepsState {
 
 // ---- クライアント側答え合わせユーティリティ ----
 
+// 比較実験用の状態変換関数
+import type { LogicalSymbolStepsState } from './types'
+
+export function mapLogicalSymbolUiToDbState(
+  ui: LogicalSymbolStepsState
+): Record<string, unknown> {
+  const db: Record<string, unknown> = {}
+  
+  if (ui.step1) {
+    db.step1 = {
+      is_passed: ui.step1.isPassed,
+      premise1: {
+        antecedent: ui.step1.premise1.antecedent,
+        consequent: ui.step1.premise1.consequent,
+      },
+      premise2: {
+        antecedent: ui.step1.premise2.antecedent,
+        consequent: ui.step1.premise2.consequent,
+      },
+      conclusion: {
+        antecedent: ui.step1.conclusion.antecedent,
+        consequent: ui.step1.conclusion.consequent,
+      },
+    }
+  }
+  
+  if (ui.step2) {
+    db.step2 = {
+      is_passed: ui.step2.isPassed,
+      is_logical: ui.step2.isLogical,
+      is_valid: ui.step2.isValid,
+      inference_type: ui.step2.inferenceType,
+    }
+  }
+  
+  return db
+}
+
+export function mapLogicalSymbolDbToUiState(db: Record<string, unknown>): LogicalSymbolStepsState {
+  const ui: LogicalSymbolStepsState = {}
+  
+  if (isRecord(db.step1)) {
+    const step1 = db.step1
+    const premise1 = isRecord(step1.premise1) ? step1.premise1 : {}
+    const premise2 = isRecord(step1.premise2) ? step1.premise2 : {}
+    const conclusion = isRecord(step1.conclusion) ? step1.conclusion : {}
+    
+    ui.step1 = {
+      isPassed: Boolean(step1.is_passed),
+      premise1: {
+        antecedent: String(premise1.antecedent ?? ''),
+        consequent: String(premise1.consequent ?? ''),
+      },
+      premise2: {
+        antecedent: String(premise2.antecedent ?? ''),
+        consequent: String(premise2.consequent ?? ''),
+      },
+      conclusion: {
+        antecedent: String(conclusion.antecedent ?? ''),
+        consequent: String(conclusion.consequent ?? ''),
+      },
+    }
+  }
+  
+  if (isRecord(db.step2)) {
+    const step2 = db.step2
+    ui.step2 = {
+      isPassed: Boolean(step2.is_passed),
+      isLogical: typeof step2.is_logical === 'boolean' ? step2.is_logical : null,
+      isValid: typeof step2.is_valid === 'boolean' ? step2.is_valid : null,
+      inferenceType: String(step2.inference_type ?? ''),
+    }
+  }
+  
+  return ui
+}
+
 export function normalizeValidity(v: unknown): boolean | null {
   if (typeof v === 'boolean') return v
   if (v === '妥当') return true
