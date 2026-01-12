@@ -148,51 +148,6 @@ CREATE INDEX idx_events_server_ts ON events (server_ts);
 CREATE UNIQUE INDEX idx_events_session_seq ON events (session_id, seq);
 
 -- ==============================================
--- 6. responses テーブル（回答状態）
--- ==============================================
-CREATE TABLE responses (
-    response_id TEXT PRIMARY KEY, -- 回答ID（ULID形式）
-    session_id TEXT NOT NULL, -- セッションID（外部キー）
-    user_id TEXT NOT NULL, -- ユーザーID（外部キー）
-    problem_id TEXT NOT NULL, -- 問題ID（外部キー）
-    problem_number INTEGER NOT NULL, -- 問題番号（1, 2, 3...）
-    state JSONB NOT NULL, -- 全ステップの回答状態（JSONB形式）
-    current_step INTEGER NOT NULL DEFAULT 1, -- 現在のステップ番号
-    is_completed BOOLEAN NOT NULL DEFAULT FALSE, -- 問題全体の完了状態
-    created_at TIMESTAMP
-    WITH
-        TIME ZONE DEFAULT NOW(), -- 作成日時
-        updated_at TIMESTAMP
-    WITH
-        TIME ZONE DEFAULT NOW() -- 更新日時
-);
-
--- 外部キー制約
-ALTER TABLE responses
-ADD CONSTRAINT fk_responses_session_id FOREIGN KEY (session_id) REFERENCES sessions (session_id) ON DELETE CASCADE;
-
-ALTER TABLE responses
-ADD CONSTRAINT fk_responses_user_id FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE;
-
-ALTER TABLE responses
-ADD CONSTRAINT fk_responses_problem_id FOREIGN KEY (problem_id) REFERENCES problems (problem_id) ON DELETE CASCADE;
-
--- インデックス
-CREATE INDEX idx_responses_session_id ON responses (session_id);
-
-CREATE INDEX idx_responses_user_id ON responses (user_id);
-
-CREATE INDEX idx_responses_problem_id ON responses (problem_id);
-
-CREATE INDEX idx_responses_problem_number ON responses (problem_number);
-
-CREATE INDEX idx_responses_current_step ON responses (current_step);
-
-CREATE INDEX idx_responses_is_completed ON responses (is_completed);
-
-CREATE INDEX idx_responses_updated_at ON responses (updated_at);
-
--- ==============================================
 -- 7. Row Level Security (RLS) 設定
 -- ==============================================
 
@@ -206,8 +161,6 @@ ALTER TABLE sessions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE attempts ENABLE ROW LEVEL SECURITY;
 
 ALTER TABLE events ENABLE ROW LEVEL SECURITY;
-
-ALTER TABLE responses ENABLE ROW LEVEL SECURITY;
 
 -- users テーブルのRLSポリシー
 -- ユーザーは自分のデータのみアクセス可能
@@ -240,11 +193,6 @@ CREATE POLICY "Users can access their own events" ON events FOR ALL USING (
     user_id = current_setting ('app.current_user_id', true)
 );
 
--- responses テーブルのRLSポリシー
--- ユーザーは自分の回答状態のみアクセス可能
-CREATE POLICY "Users can access their own responses" ON responses FOR ALL USING (
-    user_id = current_setting ('app.current_user_id', true)
-);
 
 -- ==============================================
 -- 8. 更新日時の自動更新関数
@@ -260,10 +208,6 @@ $$ language 'plpgsql';
 -- 更新日時トリガーを設定
 CREATE TRIGGER update_problems_updated_at 
   BEFORE UPDATE ON problems 
-  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
-CREATE TRIGGER update_responses_updated_at 
-  BEFORE UPDATE ON responses 
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- ==============================================

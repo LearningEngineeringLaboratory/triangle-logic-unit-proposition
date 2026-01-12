@@ -12,7 +12,6 @@ export default function LogicalSymbolPage() {
   const [problems, setProblems] = useState<Awaited<ReturnType<typeof getProblems>>>([])
   const [problemSets, setProblemSets] = useState<Awaited<ReturnType<typeof getProblemSets>>>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [completedCount, setCompletedCount] = useState(0)
   const { sessionInfo, isLoading: isSessionLoading, needsRegistration, handleRegistrationSuccess, handleLogout } = useSession()
 
   useEffect(() => {
@@ -57,7 +56,6 @@ export default function LogicalSymbolPage() {
         <LogicalSymbolProblemsList 
           initialProblems={problems} 
           problemSets={problemSets}
-          onCompletedCountChange={setCompletedCount}
           sessionInfo={sessionInfo}
         />
       </main>

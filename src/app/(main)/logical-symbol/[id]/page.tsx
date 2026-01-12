@@ -20,7 +20,6 @@ import { Step1Form } from '@/components/features/logical-symbol/Step1Form'
 import { Step2Form } from '@/components/features/logical-symbol/Step2Form'
 import { checkAnswerLogicalSymbol } from '@/lib/answer-validation-logical-symbol'
 import { LogicalSymbolStepsState } from '@/lib/types'
-import { mapLogicalSymbolUiToDbState, mapLogicalSymbolDbToUiState } from '@/lib/utils'
 import { StepHint } from '@/components/features/problem-detail/step-components/StepHint'
 import { StepTermDefinition } from '@/components/features/problem-detail/step-components/StepTermDefinition'
 
@@ -42,9 +41,7 @@ export default function LogicalSymbolPage({ params }: LogicalSymbolPageProps) {
   const [isClearOpen, setIsClearOpen] = useState(false)
   const [feedbackVisible, setFeedbackVisible] = useState(false)
   const [feedbackType, setFeedbackType] = useState<'success' | 'error'>('success')
-  const [isProblemCompleted, setIsProblemCompleted] = useState(false)
-  const [isCheckingCompletion, setIsCheckingCompletion] = useState(true)
-  const [completedProblemsCount, setCompletedProblemsCount] = useState(0)
+  const [completedProblemsCount] = useState(0)
   const previousStepRef = useRef<number>(1)
 
   // ステップ管理
@@ -63,8 +60,8 @@ export default function LogicalSymbolPage({ params }: LogicalSymbolPageProps) {
   const { attemptId, updateCurrentStep, finishAttempt } = useProblemAttempt({
     problem,
     sessionInfo,
-    isSessionLoading: isSessionLoading || isCheckingCompletion,
-    isCompleted: isProblemCompleted,
+    isSessionLoading,
+    isCompleted: false,
   })
 
   useEffect(() => {
@@ -112,121 +109,7 @@ export default function LogicalSymbolPage({ params }: LogicalSymbolPageProps) {
     fetchData()
   }, [params])
 
-  // クリア済み問題のチェック
-  useEffect(() => {
-    async function checkCompletionStatus() {
-      if (!problem || !sessionInfo || loading || isSessionLoading) {
-        return
-      }
-
-      setIsCheckingCompletion(true)
-      try {
-        const savedSetId = localStorage.getItem('selectedProblemSetId')
-        const url = savedSetId 
-          ? `/api/response/completion-status?setId=${encodeURIComponent(savedSetId)}`
-          : '/api/response/completion-status'
-        
-        const res = await fetch(url, {
-          method: 'GET',
-          headers: { 'Content-Type': 'application/json' },
-        })
-        const data = await res.json()
-        
-        if (data.success && data.data) {
-          const completedProblemIds = Array.isArray(data.data.completedProblemIds) 
-            ? data.data.completedProblemIds as string[]
-            : []
-          
-          const completedCount = typeof data.data.completedCount === 'number' 
-            ? data.data.completedCount 
-            : completedProblemIds.length
-          setCompletedProblemsCount(completedCount)
-          
-          if (completedProblemIds.includes(problem.problem_id)) {
-            setIsProblemCompleted(true)
-            router.push('/logical-symbol')
-          }
-        }
-      } catch (err) {
-        console.error('Error checking completion status:', err)
-      } finally {
-        setIsCheckingCompletion(false)
-      }
-    }
-
-    checkCompletionStatus()
-  }, [problem, sessionInfo, loading, isSessionLoading, router])
-
-  // セッション復帰時の状態復元
-  useEffect(() => {
-    async function restoreState() {
-      if (!problem || !sessionInfo || loading || isSessionLoading) {
-        return
-      }
-
-      try {
-        // responsesテーブルから状態を取得
-        const res = await fetch(`/api/response/get?problem_id=${encodeURIComponent(problem.problem_id)}`, {
-          method: 'GET',
-          headers: { 'Content-Type': 'application/json' },
-        })
-        
-        if (res.ok) {
-          const data = await res.json()
-          if (data.success && data.data?.state) {
-            // DBの状態をUIの状態に変換
-            const restoredSteps = mapLogicalSymbolDbToUiState(data.data.state as Record<string, unknown>)
-            restoreSteps(restoredSteps)
-            
-            // 現在のステップを復元
-            if (data.data.current_step) {
-              setCurrentStep(data.data.current_step)
-              previousStepRef.current = data.data.current_step
-            }
-          }
-        }
-      } catch (err) {
-        console.error('Error restoring state:', err)
-      }
-    }
-
-    restoreState()
-  }, [problem, sessionInfo, loading, isSessionLoading, restoreSteps, setCurrentStep])
-
-  // 状態の保存（ステップ更新時）
-  useEffect(() => {
-    async function saveState() {
-      if (!problem || !sessionInfo || !attemptId || loading) {
-        return
-      }
-
-      try {
-        const dbState = mapLogicalSymbolUiToDbState(steps)
-        
-        await fetch('/api/response/save', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            session_id: sessionInfo.sessionId,
-            user_id: sessionInfo.userId,
-            problem_id: problem.problem_id,
-            problem_number: problemNumber,
-            state: dbState,
-            current_step: currentStep,
-            is_completed: completedSteps === totalSteps,
-          }),
-        }).catch((err) => {
-          console.error('Failed to save state:', err)
-        })
-      } catch (err) {
-        console.error('Error saving state:', err)
-      }
-    }
-
-    // デバウンス: 500ms後に保存
-    const timeoutId = setTimeout(saveState, 500)
-    return () => clearTimeout(timeoutId)
-  }, [steps, currentStep, problem, sessionInfo, attemptId, problemNumber, completedSteps, totalSteps, loading])
+  // DBによる完了判定や状態復元は行わない（イベントログのみで管理）
 
   // ステップ遷移時にattemptsテーブルのcurrent_stepを更新
   useEffect(() => {

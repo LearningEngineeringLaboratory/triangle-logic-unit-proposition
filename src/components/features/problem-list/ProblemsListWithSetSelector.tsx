@@ -5,13 +5,12 @@ import { Problem, ProblemSet } from '@/lib/types'
 import { Card, CardContent } from '@/components/ui/card'
 import { ProblemSetSelector } from './problem-set-selector'
 import { ProblemCard } from './ProblemCard'
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Loading } from '@/components/ui/loading'
 
 interface ProblemsListWithSetSelectorProps {
   initialProblems: Problem[]
   problemSets: ProblemSet[]
-  onCompletedCountChange: (count: number) => void
   sessionInfo: { sessionId: string; userId: string; userName: string; userStudentId: string } | null
 }
 
@@ -19,16 +18,8 @@ interface ProblemsListWithSetSelectorProps {
 export function ProblemsListWithSetSelector({ 
   initialProblems, 
   problemSets, 
-  onCompletedCountChange,
   sessionInfo
 }: ProblemsListWithSetSelectorProps) {
-  // 親から渡されたクリア済み問題数更新コールバックを常に最新に保つためのref
-  const onCompletedCountChangeRef = useRef(onCompletedCountChange)
-  
-  useEffect(() => {
-    onCompletedCountChangeRef.current = onCompletedCountChange
-  }, [onCompletedCountChange])
-  
   // 表示対象の問題一覧（問題セット未選択時は空にしてメッセージのみ表示）
   const [problems, setProblems] = useState<Problem[]>([])
   // 現在選択されている問題セットID（null の場合は全体）
@@ -37,10 +28,8 @@ export function ProblemsListWithSetSelector({
   const [isLoading, setIsLoading] = useState(false)
   // localStorage からの初期復元が完了したかどうか
   const [isInitialized, setIsInitialized] = useState(false)
-  // クリア済みの problem_id の集合
-  const [completedProblemIds, setCompletedProblemIds] = useState<Set<string>>(new Set())
-  // フェッチ中の重複リクエストを防ぐためのref
-  const isFetchingRef = useRef(false)
+  // クリア状態はイベントログのみで管理するため常に未完とする
+  const [completedProblemIds] = useState<Set<string>>(new Set())
 
   // 問題セット選択変更時に、選択状態を保持しつつ問題一覧を切り替える
   const handleSetChange = useCallback(async (setId: string | null) => {
@@ -80,48 +69,6 @@ export function ProblemsListWithSetSelector({
       setIsInitialized(true)
     }
   }, [problemSets, isInitialized, handleSetChange])
-
-  // ログイン済みセッションに紐づく「クリア済み問題ID一覧」を取得し、カードの表示とカウンタに反映
-  useEffect(() => {
-    async function fetchCompletionStatus() {
-      // 既にフェッチ中の場合はスキップ
-      if (isFetchingRef.current) {
-        return
-      }
-      
-      if (!sessionInfo) {
-        setCompletedProblemIds(new Set<string>())
-        return
-      }
-
-      isFetchingRef.current = true
-      try {
-        const res = await fetch('/api/response/completion-status', {
-          method: 'GET',
-          headers: { 'Content-Type': 'application/json' },
-        })
-        const data = await res.json()
-        
-        if (data.success && data.data) {
-          const completedIds = new Set<string>(
-            Array.isArray(data.data.completedProblemIds) 
-              ? data.data.completedProblemIds as string[]
-              : []
-          )
-          setCompletedProblemIds(completedIds)
-          onCompletedCountChangeRef.current(completedIds.size)
-        } else {
-          onCompletedCountChangeRef.current(0)
-        }
-      } catch (err) {
-        console.error('Error fetching completion status:', err)
-      } finally {
-        isFetchingRef.current = false
-      }
-    }
-
-    fetchCompletionStatus()
-  }, [sessionInfo])
 
   return (
     <>
