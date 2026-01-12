@@ -74,13 +74,14 @@ CREATE TABLE attempts (
     session_id TEXT NOT NULL, -- セッションID（外部キー）
     user_id TEXT NOT NULL, -- ユーザーID（外部キー）
     problem_id TEXT NOT NULL, -- 問題ID（外部キー）
+    system_type TEXT NOT NULL DEFAULT 'triangle_logic' CHECK (system_type IN ('triangle_logic', 'logical_symbol')), -- システム種別（triangle_logic: 既存システム, logical_symbol: 比較実験システム）
     started_at TIMESTAMP
     WITH
         TIME ZONE DEFAULT NOW(), -- 開始日時
-        finished_at TIMESTAMP
+    finished_at TIMESTAMP
     WITH
         TIME ZONE, -- 終了日時（NULL=進行中）
-        status TEXT NOT NULL DEFAULT 'in_progress' -- ステータス（in_progress, completed, abandoned）
+    status TEXT NOT NULL DEFAULT 'in_progress' -- ステータス（in_progress, completed, abandoned）
 );
 
 -- 外部キー制約
@@ -103,6 +104,10 @@ CREATE INDEX idx_attempts_problem_id ON attempts (problem_id);
 CREATE INDEX idx_attempts_status ON attempts (status);
 
 CREATE INDEX idx_attempts_started_at ON attempts (started_at);
+
+CREATE INDEX idx_attempts_system_type_status ON attempts (system_type, status);
+
+CREATE INDEX idx_attempts_system_type_problem_id ON attempts (system_type, problem_id);
 
 -- ==============================================
 -- 5. events テーブル（操作ログ）

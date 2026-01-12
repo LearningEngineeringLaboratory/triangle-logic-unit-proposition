@@ -6,6 +6,7 @@ interface StartAttemptBody {
   session_id: string
   user_id: string
   problem_id: string
+  system_type?: 'triangle_logic' | 'logical_symbol' // システム種別（デフォルト: triangle_logic）
 }
 
 export async function POST(req: NextRequest) {
@@ -21,13 +22,17 @@ export async function POST(req: NextRequest) {
 
     const supabase = getSupabaseAdmin()
 
-    // 既存の進行中attemptを確認
+    // システム種別を設定（デフォルト: triangle_logic）
+    const systemType = body.system_type || 'triangle_logic'
+
+    // 既存の進行中attemptを確認（同じシステム種別で）
     const { data: existingAttempt, error: checkError } = await supabase
       .from('attempts')
       .select('attempt_id')
       .eq('session_id', body.session_id)
       .eq('user_id', body.user_id)
       .eq('problem_id', body.problem_id)
+      .eq('system_type', systemType)
       .eq('status', 'in_progress')
       .order('started_at', { ascending: false })
       .limit(1)
@@ -54,6 +59,7 @@ export async function POST(req: NextRequest) {
       session_id: body.session_id,
       user_id: body.user_id,
       problem_id: body.problem_id,
+      system_type: systemType,
       started_at: new Date().toISOString(),
       status: 'in_progress' as const,
       current_step: 1, // 初期ステップは1

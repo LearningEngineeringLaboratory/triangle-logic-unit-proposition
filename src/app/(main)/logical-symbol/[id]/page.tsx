@@ -41,7 +41,8 @@ export default function LogicalSymbolPage({ params }: LogicalSymbolPageProps) {
   const [isClearOpen, setIsClearOpen] = useState(false)
   const [feedbackVisible, setFeedbackVisible] = useState(false)
   const [feedbackType, setFeedbackType] = useState<'success' | 'error'>('success')
-  const [completedProblemsCount] = useState(0)
+  const [completedProblemsCount, setCompletedProblemsCount] = useState(0)
+  const [isProblemCompleted, setIsProblemCompleted] = useState(false)
   const previousStepRef = useRef<number>(1)
 
   // ステップ管理
@@ -61,7 +62,8 @@ export default function LogicalSymbolPage({ params }: LogicalSymbolPageProps) {
     problem,
     sessionInfo,
     isSessionLoading,
-    isCompleted: false,
+    isCompleted: isProblemCompleted,
+    systemType: 'logical_symbol',
   })
 
   useEffect(() => {
@@ -109,7 +111,51 @@ export default function LogicalSymbolPage({ params }: LogicalSymbolPageProps) {
     fetchData()
   }, [params])
 
-  // DBによる完了判定や状態復元は行わない（イベントログのみで管理）
+  // クリア済み問題のチェック（problemとsessionInfoが利用可能になったら実行）
+  useEffect(() => {
+    async function checkCompletionStatus() {
+      if (!problem || !sessionInfo || loading || isSessionLoading) {
+        return
+      }
+
+      try {
+        // 選択されている問題セットIDを取得
+        const savedSetId = localStorage.getItem('selectedProblemSetId')
+        
+        // APIリクエストURLを構築（setIdが存在する場合はクエリパラメータに追加）
+        const url = savedSetId 
+          ? `/api/attempt/completion-status?setId=${encodeURIComponent(savedSetId)}&systemType=logical_symbol`
+          : '/api/attempt/completion-status?systemType=logical_symbol'
+        
+        const res = await fetch(url, {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' },
+        })
+        const data = await res.json()
+        
+        if (data.success && data.data) {
+          const completedProblemIds = Array.isArray(data.data.completedProblemIds) 
+            ? data.data.completedProblemIds as string[]
+            : []
+          
+          // 完了した問題数を設定
+          const completedCount = typeof data.data.completedCount === 'number' 
+            ? data.data.completedCount 
+            : completedProblemIds.length
+          setCompletedProblemsCount(completedCount)
+          
+          if (completedProblemIds.includes(problem.problem_id)) {
+            setIsProblemCompleted(true)
+            router.push('/logical-symbol')
+          }
+        }
+      } catch (err) {
+        console.error('Error checking completion status:', err)
+      }
+    }
+
+    checkCompletionStatus()
+  }, [problem, sessionInfo, loading, isSessionLoading, router])
 
   // ステップ遷移時にattemptsテーブルのcurrent_stepを更新
   useEffect(() => {

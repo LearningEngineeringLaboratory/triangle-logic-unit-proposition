@@ -43,9 +43,8 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
     consequent: '',
     premiseNodes: []
   })
+  const [completedProblemsCount, setCompletedProblemsCount] = useState(0)
   const [isProblemCompleted, setIsProblemCompleted] = useState(false)
-  const [isCheckingCompletion, setIsCheckingCompletion] = useState(true) // クリア済みチェック中かどうか
-  const [completedProblemsCount, setCompletedProblemsCount] = useState(0) // 完了した問題数
   const previousStepRef = useRef<number>(1)
 
   // ノードの値を更新するコールバック
@@ -63,12 +62,13 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
     goToNextStep,
   } = useProblemSteps(problem)
 
-  // Attempt管理（クリア済みチェックが完了するまで待機）
+  // Attempt管理
   const { attemptId, updateCurrentStep, finishAttempt } = useProblemAttempt({
     problem,
     sessionInfo,
-    isSessionLoading: isSessionLoading || isCheckingCompletion, // クリア済みチェック中もローディング扱い
+    isSessionLoading,
     isCompleted: isProblemCompleted,
+    systemType: 'triangle_logic',
   })
 
   // 答え合わせロジック
@@ -137,15 +137,14 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
         return
       }
 
-      setIsCheckingCompletion(true)
       try {
         // 選択されている問題セットIDを取得
         const savedSetId = localStorage.getItem('selectedProblemSetId')
         
         // APIリクエストURLを構築（setIdが存在する場合はクエリパラメータに追加）
         const url = savedSetId 
-          ? `/api/response/completion-status?setId=${encodeURIComponent(savedSetId)}`
-          : '/api/response/completion-status'
+          ? `/api/attempt/completion-status?setId=${encodeURIComponent(savedSetId)}&systemType=triangle_logic`
+          : '/api/attempt/completion-status?systemType=triangle_logic'
         
         const res = await fetch(url, {
           method: 'GET',
@@ -171,14 +170,11 @@ export default function ProblemDetailPage({ params }: ProblemDetailPageProps) {
         }
       } catch (err) {
         console.error('Error checking completion status:', err)
-      } finally {
-        setIsCheckingCompletion(false)
       }
     }
 
     checkCompletionStatus()
   }, [problem, sessionInfo, loading, isSessionLoading, router])
-
 
   // Step4に遷移したときに、Step2のリンクをStep4のリンクに初期化
   useEffect(() => {

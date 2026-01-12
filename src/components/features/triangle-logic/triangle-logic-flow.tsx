@@ -142,7 +142,7 @@ export function TriangleLogicFlow({
     // ノードIDを生成（useTriangleNodesと同じロジック）
     const newNodeId = `premise-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`
     originalAddPremiseNode(value)
-    
+
     // ログ記録（create_nodeイベントとして記録）
     // nodeValuesはuseEffectで更新されるため、少し遅延してから記録
     // または、追加予定のノードを含めて計算
@@ -326,7 +326,7 @@ export function TriangleLogicFlow({
         }
         const newLinks = [...links, newLink]
         onLinksChange?.(newLinks)
-        
+
         // ログ記録（ノードIDと文字列ラベルを含む）
         // nodeValuesが最新の状態を反映していることを確認するため、
         // nodesから直接計算する
@@ -346,7 +346,7 @@ export function TriangleLogicFlow({
               }))
             }
           })()
-          
+
           if (latestNodeValues) {
             const resolveNodeValue = createNodeValueResolver(latestNodeValues)
             // 更新後の状態を計算してstateを生成
@@ -381,7 +381,7 @@ export function TriangleLogicFlow({
         }
         const newActiveLinks = [...activeLinks, newLink]
         onActiveLinksChange?.(newActiveLinks)
-        
+
         // ログ記録（ノードIDと文字列ラベルを含む）
         if (sessionInfo && problemId && nodeValues && steps) {
           const resolveNodeValue = createNodeValueResolver(nodeValues)
@@ -437,7 +437,7 @@ export function TriangleLogicFlow({
   // リンク変更時のログ記録付きコールバック
   const handleLinksChange = useCallback((newLinks: TriangleLink[]) => {
     onLinksChange?.(newLinks)
-    
+
     // 削除されたリンクを検出してログ記録
     if (sessionInfo && problemId && nodeValues && steps) {
       const resolveNodeValue = createNodeValueResolver(nodeValues)
@@ -451,7 +451,7 @@ export function TriangleLogicFlow({
         },
       }
       const dbState = mapUiToDbState(updatedSteps, nodeValues ?? undefined)
-      const deletedLinks = links.filter(link => 
+      const deletedLinks = links.filter(link =>
         !newLinks.some(newLink => newLink.from === link.from && newLink.to === link.to)
       )
       deletedLinks.forEach(link => {
@@ -473,7 +473,7 @@ export function TriangleLogicFlow({
   // アクティブリンク変更時のログ記録付きコールバック
   const handleActiveLinksChange = useCallback((newActiveLinks: ActiveTriangleLink[]) => {
     onActiveLinksChange?.(newActiveLinks)
-    
+
     // 活性/非活性の変更を検出してログ記録
     if (sessionInfo && problemId && nodeValues && steps) {
       const resolveNodeValue = createNodeValueResolver(nodeValues)
@@ -537,7 +537,7 @@ export function TriangleLogicFlow({
           }).catch(console.error)
         }
       })
-      
+
       // 新しく追加されたリンクを検出
       newActiveLinks.forEach(newLink => {
         const oldLink = activeLinks.find(
@@ -584,7 +584,7 @@ export function TriangleLogicFlow({
   }, [])
 
   return (
-    <div 
+    <div
       className="w-full h-full relative touch-action-none"
       style={{ overscrollBehavior: 'none' }}
       onTouchStart={handleTouchStart}

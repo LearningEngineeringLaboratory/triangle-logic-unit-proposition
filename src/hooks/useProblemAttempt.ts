@@ -7,6 +7,7 @@ interface UseProblemAttemptOptions {
   sessionInfo: { sessionId: string; userId: string } | null
   isSessionLoading: boolean
   isCompleted?: boolean // クリア済み問題の場合はAttemptを作成しない
+  systemType?: 'triangle_logic' | 'logical_symbol' // システム種別（デフォルト: triangle_logic）
   onComplete?: (attemptId: string) => void
 }
 
@@ -18,6 +19,7 @@ export function useProblemAttempt({
   sessionInfo, 
   isSessionLoading,
   isCompleted = false,
+  systemType = 'triangle_logic',
   onComplete 
 }: UseProblemAttemptOptions) {
   const [attemptId, setAttemptId] = useState<string | null>(null)
@@ -69,6 +71,7 @@ export function useProblemAttempt({
               session_id: sessionId,
               user_id: userId,
               problem_id: problem.problem_id,
+              system_type: systemType,
             }),
           })
           const attemptData = await attemptRes.json()
