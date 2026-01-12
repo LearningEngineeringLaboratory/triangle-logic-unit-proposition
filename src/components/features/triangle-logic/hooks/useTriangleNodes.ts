@@ -22,7 +22,7 @@ export function useTriangleNodes({ currentStep, options, setNodes, onNodeDelete,
   // Step1の基本ノードを初期化
   useEffect(() => {
     if (currentStep >= 1) {
-      const step1YPosition = currentStep >= 2 ? 0 : 100
+      const step1YPosition = currentStep >= 2 ? 200 : 100
       
       const baseNodes: Node[] = [
         {
@@ -125,7 +125,7 @@ export function useTriangleNodes({ currentStep, options, setNodes, onNodeDelete,
       value,
       position: { 
         x: 250 + (premiseNodes.length * 80), // 横にずらして配置
-        y: 200 + (premiseNodes.length * 40)  // 縦にも少しずらして配置
+        y: -200 + (premiseNodes.length * 40)  // 縦にも少しずらして配置（上方向に移動）
       }
     }
     

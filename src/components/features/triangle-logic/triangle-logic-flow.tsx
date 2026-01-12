@@ -91,6 +91,38 @@ export function TriangleLogicFlow({
   // ReactFlowの状態管理
   const [nodes, setNodes, onNodesChange] = useNodesState([] as Node[])
   const [flowEdges, setEdges, onEdgesChange] = useEdgesState([] as Edge[])
+  
+  // ReactFlowインスタンスを保持（ビューポート制御用）
+  const reactFlowInstanceRef = useRef<any>(null)
+  const previousStepRef = useRef<number>(currentStep)
+
+  // Step2に移行した時にビューポートを下方向にシフト
+  useEffect(() => {
+    // Step1からStep2に移行した時のみビューポートを下方向にシフト
+    if (previousStepRef.current === 1 && currentStep === 2 && reactFlowInstanceRef.current) {
+      const instance = reactFlowInstanceRef.current
+      
+      // fitViewが実行された後にビューポートをシフトするため、少し遅延させる
+      // ノードの位置変更が反映されるまで待つ
+      setTimeout(() => {
+        if (reactFlowInstanceRef.current) {
+          const viewport = instance.getViewport()
+          
+          // ビューポートを下方向に100pxシフト（Y座標が100から200に移動した分）
+          instance.setViewport(
+            {
+              x: viewport.x,
+              y: viewport.y + 300, // 下方向に移動するため、Y座標を減らす
+              zoom: viewport.zoom,
+            },
+            { duration: 300 } // アニメーション付きで移動
+          )
+        }
+      }, 200) // fitViewとノード位置変更の反映を待つため、200ms遅延
+    }
+    
+    previousStepRef.current = currentStep
+  }, [currentStep])
 
   // ノードの値をメモ化（他のコールバックより前に定義）
   const nodeValues = useMemo(() => {
@@ -599,6 +631,9 @@ export function TriangleLogicFlow({
         onNodeDragStop={handleNodeDragStop}
         onConnect={onConnect}
         isValidConnection={isValidConnection}
+        onInit={(instance) => {
+          reactFlowInstanceRef.current = instance
+        }}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
         connectionLineComponent={TriangleConnectionLine}
