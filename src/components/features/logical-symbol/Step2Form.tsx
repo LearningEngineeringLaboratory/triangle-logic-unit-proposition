@@ -61,7 +61,7 @@ export function Step2Form({
       {/* 問題1: 論理的か */}
       <div className="flex flex-col gap-2">
         <span className="text-sm font-medium text-foreground">
-          問題1. この論証は論理的ですか？
+          問題1. この論証は推論として論理的ですか？
         </span>
         <Select
           value={isLogicalValue}
@@ -86,7 +86,7 @@ export function Step2Form({
       {/* 問題2: 妥当か */}
       <div className="flex flex-col gap-2">
         <span className="text-sm font-medium text-foreground">
-          問題2. この論証は所与命題を真とした場合、導出命題は真であると言えますか？
+          問題2. この論証は、所与命題を正しいと仮定したとき、導出命題は必ず正しいといえますか？
         </span>
         <Select
           value={isValidValue}

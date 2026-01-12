@@ -23,16 +23,16 @@ export function PropositionForm({
   // 読み取り専用の場合のテキスト表示
   if (readOnly) {
     return (
-      <div className="space-y-4">
+      <div className="space-y-1">
         {/* 所与命題1 */}
         <div className="flex items-center gap-3">
           <label className="text-sm font-medium text-foreground w-24 shrink-0">所与命題1</label>
           <div className="flex items-center gap-2 flex-1">
-            <div className="flex-1 h-12 px-3 py-2 rounded-md border bg-background flex items-center">
+            <div className="flex-1 px-3 py-1 flex items-center">
               <span className="text-base">{step1State.premise1.antecedent || '（未選択）'}</span>
             </div>
-            <span className="text-base font-medium">ならば</span>
-            <div className="flex-1 h-12 px-3 py-2 rounded-md border bg-background flex items-center">
+            <span className="text-base font-medium">→</span>
+            <div className="flex-1 px-3 py-1 flex items-center">
               <span className="text-base">{step1State.premise1.consequent || '（未選択）'}</span>
             </div>
           </div>
@@ -42,28 +42,28 @@ export function PropositionForm({
         <div className="flex items-center gap-3">
           <label className="text-sm font-medium text-foreground w-24 shrink-0">所与命題2</label>
           <div className="flex items-center gap-2 flex-1">
-            <div className="flex-1 h-12 px-3 py-2 rounded-md border bg-background flex items-center">
+            <div className="flex-1 px-3 py-1 flex items-center">
               <span className="text-base">{step1State.premise2.antecedent || '（未選択）'}</span>
             </div>
-            <span className="text-base font-medium">ならば</span>
-            <div className="flex-1 h-12 px-3 py-2 rounded-md border bg-background flex items-center">
+            <span className="text-base font-medium">→</span>
+            <div className="flex-1 px-3 py-1 flex items-center">
               <span className="text-base">{step1State.premise2.consequent || '（未選択）'}</span>
             </div>
           </div>
         </div>
 
         {/* 区切り線 */}
-        <div className="border-t border-border my-4" />
+        <div className="border-t border-border my-1" />
 
         {/* 導出命題 */}
         <div className="flex items-center gap-3">
           <label className="text-sm font-medium text-foreground w-24 shrink-0">導出命題</label>
           <div className="flex items-center gap-2 flex-1">
-            <div className="flex-1 h-12 px-3 py-2 rounded-md border bg-background flex items-center">
+            <div className="flex-1 px-3 py-1 flex items-center">
               <span className="text-base">{step1State.conclusion.antecedent || '（未選択）'}</span>
             </div>
-            <span className="text-base font-medium">ならば</span>
-            <div className="flex-1 h-12 px-3 py-2 rounded-md border bg-background flex items-center">
+            <span className="text-base font-medium">→</span>
+            <div className="flex-1 px-3 py-1 flex items-center">
               <span className="text-base">{step1State.conclusion.consequent || '（未選択）'}</span>
             </div>
           </div>
@@ -105,7 +105,7 @@ export function PropositionForm({
               ))}
             </SelectContent>
           </Select>
-          <span className="text-base font-medium">ならば</span>
+          <span className="text-base font-medium">→</span>
           <Select
             value={step1State.premise1.consequent}
             onValueChange={(value) => {
@@ -165,7 +165,7 @@ export function PropositionForm({
               ))}
             </SelectContent>
           </Select>
-          <span className="text-base font-medium">ならば</span>
+          <span className="text-base font-medium">→</span>
           <Select
             value={step1State.premise2.consequent}
             onValueChange={(value) => {
@@ -228,7 +228,7 @@ export function PropositionForm({
               ))}
             </SelectContent>
           </Select>
-          <span className="text-base font-medium">ならば</span>
+          <span className="text-base font-medium">→</span>
           <Select
             value={step1State.conclusion.consequent}
             onValueChange={(value) => {
