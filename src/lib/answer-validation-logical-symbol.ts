@@ -136,6 +136,58 @@ export function checkStep2Answer(
 }
 
 /**
+ * Step2の各フィールドのエラー状態を返す
+ */
+export function getStep2FieldErrors(
+  step2State: LogicalSymbolStepsState['step2'],
+  problem: ProblemDetail
+): {
+  isLogical: boolean
+  isValid: boolean
+  inferenceType: boolean
+} {
+  if (!step2State) {
+    return {
+      isLogical: false,
+      isValid: false,
+      inferenceType: false,
+    }
+  }
+
+  const correctAnswers = problem.correct_answers
+  const step3Correct = correctAnswers.step3
+
+  // 推論形式のチェック
+  const inferenceTypeMatch = step3Correct?.inference_type
+    ? step2State.inferenceType === step3Correct.inference_type
+    : false
+
+  // is_logicalとis_validは、inference_typeから計算
+  let expectedIsLogical = false
+  let expectedIsValid = false
+
+  if (step3Correct?.inference_type === '演繹推論') {
+    expectedIsLogical = true
+    expectedIsValid = true
+  } else if (step3Correct?.inference_type === '仮説推論') {
+    expectedIsLogical = true
+    expectedIsValid = false
+  } else if (step3Correct?.inference_type === '非形式推論') {
+    expectedIsLogical = false
+    expectedIsValid = false
+  }
+
+  const isLogicalMatch = step2State.isLogical === expectedIsLogical
+  const isValidMatch = step2State.isValid === expectedIsValid
+
+  return {
+    isLogical: isLogicalMatch,
+    isValid: isValidMatch,
+    inferenceType: inferenceTypeMatch,
+  }
+}
+
+/**
  * 指定されたステップの答え合わせ
  */
 export function checkAnswerLogicalSymbol(
