@@ -49,8 +49,7 @@ export function Step2Form({
   return (
     <div className="space-y-6">
       {/* Step1の回答を表示（読み取り専用） */}
-      <div className="p-4 bg-muted rounded-lg">
-        <p className="text-sm font-medium text-muted-foreground mb-4">Step1で答えた内容:</p>
+      <div className="p-4 bg-muted rounded-lg w-2/3">
         <PropositionForm
           problem={problem}
           step1State={step1State}

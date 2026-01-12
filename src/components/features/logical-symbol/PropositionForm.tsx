@@ -26,7 +26,7 @@ export function PropositionForm({
       <div className="space-y-1">
         {/* 所与命題1 */}
         <div className="flex items-center gap-3">
-          <label className="text-sm font-medium text-foreground w-24 shrink-0">所与命題1</label>
+          <label className="text-sm font-semibold text-foreground w-24 shrink-0">所与命題1</label>
           <div className="flex items-center gap-2 flex-1">
             <div className="flex-1 px-3 py-1 flex items-center">
               <span className="text-base">{step1State.premise1.antecedent || '（未選択）'}</span>
@@ -40,7 +40,7 @@ export function PropositionForm({
 
         {/* 所与命題2 */}
         <div className="flex items-center gap-3">
-          <label className="text-sm font-medium text-foreground w-24 shrink-0">所与命題2</label>
+          <label className="text-sm font-semibold text-foreground w-24 shrink-0">所与命題2</label>
           <div className="flex items-center gap-2 flex-1">
             <div className="flex-1 px-3 py-1 flex items-center">
               <span className="text-base">{step1State.premise2.antecedent || '（未選択）'}</span>
@@ -57,7 +57,7 @@ export function PropositionForm({
 
         {/* 導出命題 */}
         <div className="flex items-center gap-3">
-          <label className="text-sm font-medium text-foreground w-24 shrink-0">導出命題</label>
+          <label className="text-sm font-semibold text-foreground w-24 shrink-0">導出命題</label>
           <div className="flex items-center gap-2 flex-1">
             <div className="flex-1 px-3 py-1 flex items-center">
               <span className="text-base">{step1State.conclusion.antecedent || '（未選択）'}</span>
@@ -77,7 +77,7 @@ export function PropositionForm({
     <div className="space-y-4">
       {/* 所与命題1 */}
       <div className="flex items-center gap-3">
-        <label className="text-sm font-medium text-foreground w-24 shrink-0">所与命題1</label>
+        <label className="text-sm font-semibold text-foreground w-24 shrink-0">所与命題1</label>
         <div className="flex items-center gap-2 flex-1">
           <Select
             value={step1State.premise1.antecedent}
@@ -137,7 +137,7 @@ export function PropositionForm({
 
       {/* 所与命題2 */}
       <div className="flex items-center gap-3">
-        <label className="text-sm font-medium text-foreground w-24 shrink-0">所与命題2</label>
+        <label className="text-sm font-semibold text-foreground w-24 shrink-0">所与命題2</label>
         <div className="flex items-center gap-2 flex-1">
           <Select
             value={step1State.premise2.antecedent}
@@ -200,7 +200,7 @@ export function PropositionForm({
 
       {/* 導出命題 */}
       <div className="flex items-center gap-3">
-        <label className="text-sm font-medium text-foreground w-24 shrink-0">導出命題</label>
+        <label className="text-sm font-semibold text-foreground w-24 shrink-0">導出命題</label>
         <div className="flex items-center gap-2 flex-1">
           <Select
             value={step1State.conclusion.antecedent}

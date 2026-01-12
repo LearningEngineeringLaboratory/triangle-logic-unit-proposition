@@ -21,6 +21,8 @@ import { Step2Form } from '@/components/features/logical-symbol/Step2Form'
 import { checkAnswerLogicalSymbol } from '@/lib/answer-validation-logical-symbol'
 import { LogicalSymbolStepsState } from '@/lib/types'
 import { mapLogicalSymbolUiToDbState, mapLogicalSymbolDbToUiState } from '@/lib/utils'
+import { StepHint } from '@/components/features/problem-detail/step-components/StepHint'
+import { StepTermDefinition } from '@/components/features/problem-detail/step-components/StepTermDefinition'
 
 interface LogicalSymbolPageProps {
   params: Promise<{
@@ -422,6 +424,64 @@ export default function LogicalSymbolPage({ params }: LogicalSymbolPageProps) {
                 </div>
               )}
             </div>
+          </div>
+        ),
+        hints: (
+          <div className="space-y-4">
+            {currentStep === 1 && (
+              <>
+                <StepTermDefinition>
+                  <strong>所与命題</strong>：論証の前提となる命題。導出命題ではない命題のこと。<br />
+                  <strong>導出命題</strong>：論証において前提から導かれる命題。「したがって」などの接続詞があり、結論となる命題。
+                </StepTermDefinition>
+                <StepHint>
+                「PであるならばQである。したがって、PであるならばRである。なぜならば、QであるならばRであるからである。」という論証の場合、所与命題は「PであるならばQである」と「QであるならばRである」となり、導出命題は「PであるならばRである」となります。
+                </StepHint>
+              </>
+            )}
+            {currentStep === 2 && (
+              <>
+                <StepTermDefinition>
+                  <strong>演繹推論</strong>：推論として論理的であり、さらに、所与命題を正しいと仮定したときに導出命題が必ず正しいといえる推論のこと。<br />
+                  <strong>仮説推論</strong>：推論として論理的であるが、所与命題を正しいと仮定しても導出命題が必ず正しいとはいえない推論のこと。<br />
+                  <strong>非形式推論</strong>：推論として論理的ではない推論。推論として論理的ではない場合、所与命題を正しいと仮定しても導出命題が必ず正しいといえません。
+                  
+                  <div className="mt-4 overflow-x-auto">
+                    <table className="w-full border-collapse text-sm">
+                      <thead>
+                        <tr className="border-b-2 border-primary/30">
+                          <th className="px-3 py-2 text-left font-semibold text-foreground bg-primary/5">推論形式</th>
+                          <th className="px-3 py-2 text-center font-semibold text-foreground bg-primary/5">所与命題</th>
+                          <th className="px-3 py-2 text-center font-semibold text-foreground bg-primary/5">導出命題</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr className="border-b border-primary/20">
+                          <td className="px-3 py-2 font-medium text-foreground">演繹推論</td>
+                          <td className="px-3 py-2 text-center text-foreground">X→Y, Y→Z</td>
+                          <td className="px-3 py-2 text-center text-foreground">X→Z</td>
+                        </tr>
+                        <tr className="border-b border-primary/20">
+                          <td className="px-3 py-2 font-medium text-foreground">仮説推論(1)</td>
+                          <td className="px-3 py-2 text-center text-foreground">X→Z, Y→Z</td>
+                          <td className="px-3 py-2 text-center text-foreground">X→Y</td>
+                        </tr>
+                        <tr className="border-b border-primary/20">
+                          <td className="px-3 py-2 font-medium text-foreground">仮説推論(2)</td>
+                          <td className="px-3 py-2 text-center text-foreground">X→Y, X→Z</td>
+                          <td className="px-3 py-2 text-center text-foreground">Y→Z</td>
+                        </tr>
+                        <tr>
+                          <td className="px-3 py-2 font-medium text-foreground">非形式推論</td>
+                          <td className="px-3 py-2 text-center text-foreground">その他</td>
+                          <td className="px-3 py-2 text-center text-foreground">その他</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </StepTermDefinition>
+              </>
+            )}
           </div>
         ),
         footer: (

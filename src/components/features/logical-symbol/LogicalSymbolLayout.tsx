@@ -6,13 +6,14 @@ interface LogicalSymbolLayoutProps {
   slots: {
     header: ReactNode
     content: ReactNode
+    hints?: ReactNode
     footer: ReactNode
   }
 }
 
 /**
  * 比較実験用のレイアウトコンポーネント
- * 左右分割なしの単一カラム構成
+ * 左右分割構成：左側にコンテンツ、右側にヒント
  */
 export function LogicalSymbolLayout({ slots }: LogicalSymbolLayoutProps) {
   return (
@@ -25,11 +26,23 @@ export function LogicalSymbolLayout({ slots }: LogicalSymbolLayoutProps) {
           </div>
         )}
 
-        {/* 中央コンテンツ（単一カラム、スクロール可能） */}
-        <div className="flex-1 min-h-0 overflow-y-auto bg-background">
-          <div className="container mx-auto px-4 py-6 max-w-4xl">
-            {slots.content}
+        {/* 中央行（flex-1）: モバイルは縦積み、LG以上で2カラム */}
+        <div className="flex-1 min-h-0 flex flex-col gap-4 md:gap-0 md:grid md:grid-cols-[1fr_400px] overflow-hidden">
+          {/* 左: メインコンテンツ（スクロール可能） */}
+          <div className="h-full overflow-y-auto bg-background">
+            <div className="container mx-auto px-4 py-6 max-w-4xl">
+              {slots.content}
+            </div>
           </div>
+          
+          {/* 右: ヒント（スクロール可能） */}
+          {slots.hints && (
+            <div className="h-full overflow-y-auto bg-background border-l border-border">
+              <div className="px-4 py-6">
+                {slots.hints}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* フッター（答え合わせボタン） */}
