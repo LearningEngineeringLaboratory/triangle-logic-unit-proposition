@@ -83,9 +83,9 @@ export async function logSelectDropdownLogicalSymbol(params: {
 }
 
 /**
- * ステップ完了イベントを記録（比較実験用）
+ * 答え合わせイベントを記録（比較実験用）
  */
-export async function logStepCompletedLogicalSymbol(params: {
+export async function logCheckAnswerLogicalSymbol(params: {
   step: 1 | 2
   isCorrect: boolean
   attemptId?: string
@@ -101,7 +101,7 @@ export async function logStepCompletedLogicalSymbol(params: {
     userId: params.userId ?? context.userId ?? undefined,
     attemptId: params.attemptId,
     problemId: params.problemId,
-    kind: 'step_completed',
+    kind: 'check_answer',
     payload: {
       step: params.step,
       is_correct: params.isCorrect,
@@ -133,31 +133,6 @@ export async function logStepNavigationLogicalSymbol(params: {
       from_step: params.fromStep,
       to_step: params.toStep,
     },
-  })
-}
-
-/**
- * 答え合わせボタンクリックイベントを記録（比較実験用）
- */
-export async function logCheckAnswerLogicalSymbol(params: {
-  step: 1 | 2
-  attemptId?: string
-  problemId?: string
-  sessionId?: string
-  userId?: string
-  state?: unknown
-}) {
-  const context = getLogContext()
-  await logEventLogicalSymbol({
-    sessionId: params.sessionId ?? context.sessionId ?? undefined,
-    userId: params.userId ?? context.userId ?? undefined,
-    attemptId: params.attemptId,
-    problemId: params.problemId,
-    kind: 'check_answer',
-    payload: {
-      step: params.step,
-    },
-    state: params.state,
   })
 }
 

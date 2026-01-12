@@ -14,7 +14,7 @@ import { useProblemStepsLogicalSymbol } from '@/hooks/useProblemStepsLogicalSymb
 import { useProblemAttempt } from '@/hooks/useProblemAttempt'
 import { useEffect, useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { logStepNavigationLogicalSymbol, logCheckAnswerLogicalSymbol, logStepCompletedLogicalSymbol } from '@/lib/logging-logical-symbol'
+import { logStepNavigationLogicalSymbol, logCheckAnswerLogicalSymbol } from '@/lib/logging-logical-symbol'
 import { useSession } from '@/hooks/useSession'
 import { Step1Form } from '@/components/features/logical-symbol/Step1Form'
 import { Step2Form } from '@/components/features/logical-symbol/Step2Form'
@@ -226,18 +226,6 @@ export default function LogicalSymbolPage({ params }: LogicalSymbolPageProps) {
     
     if (!currentStateFragment) return
 
-    // 答え合わせボタンクリックのログ記録
-    if (sessionInfo && attemptId) {
-      await logCheckAnswerLogicalSymbol({
-        step: stepNumber,
-        attemptId,
-        problemId: problem.problem_id,
-        sessionId: sessionInfo.sessionId,
-        userId: sessionInfo.userId,
-        state: steps,
-      }).catch(console.error)
-    }
-
     const isCorrect = checkAnswerLogicalSymbol(stepNumber, steps, problem)
 
     if (isCorrect) {
@@ -247,9 +235,9 @@ export default function LogicalSymbolPage({ params }: LogicalSymbolPageProps) {
       
       updateStep(stepNumber, updatedState)
 
-      // ステップ完了のログ記録
+      // 答え合わせのログ記録（正解）
       if (sessionInfo && attemptId) {
-        await logStepCompletedLogicalSymbol({
+        await logCheckAnswerLogicalSymbol({
           step: stepNumber,
           isCorrect: true,
           attemptId,
@@ -277,9 +265,9 @@ export default function LogicalSymbolPage({ params }: LogicalSymbolPageProps) {
       setFeedbackType('error')
       setFeedbackVisible(true)
 
-      // ステップ完了のログ記録（不正解）
+      // 答え合わせのログ記録（不正解）
       if (sessionInfo && attemptId) {
-        await logStepCompletedLogicalSymbol({
+        await logCheckAnswerLogicalSymbol({
           step: stepNumber,
           isCorrect: false,
           attemptId,
