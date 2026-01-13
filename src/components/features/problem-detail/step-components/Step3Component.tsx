@@ -140,7 +140,7 @@ export const Step3Component = ({
         <div className="flex flex-col gap-4 w-full max-w-3xl">
           <div className="flex flex-col gap-2 mt-6">
             <span className="text-sm font-medium text-foreground">
-              問題1. この論証は推論として論理的ですか？ここで、論理的であるとは、形式論理を満たす論証* であることを意味します。
+              問題1. この論証は推論として論理的ですか？
             </span>
             <Select value={verificationValue} onValueChange={handleVerificationChange}>
               <SelectTrigger className={`w-full h-14 rounded-xl border-2 text-lg py-3 ${verificationValue ? '' : 'animate-glow-pulse'}`}>
@@ -182,7 +182,43 @@ export const Step3Component = ({
             </Select>
           </div>
           <StepTermDefinition>
-            <p className="text-sm leading-relaxed text-foreground whitespace-pre-line mb-4">
+            * <strong>演繹推論</strong>：推論として論理的であり、さらに、所与命題を正しいと仮定したときに導出命題が必ず正しいといえる推論のこと。<br />
+            * <strong>仮説推論</strong>：推論として論理的であるが、所与命題を正しいと仮定しても導出命題が必ず正しいとはいえない推論のこと。<br />
+            * <strong>非形式推論</strong>：推論として論理的ではない推論。推論として論理的ではない場合、所与命題を正しいと仮定しても導出命題が必ず正しいといえません。
+            <div className="mt-4 overflow-x-auto">
+              <table className="w-full border-collapse text-sm">
+                <thead>
+                  <tr className="border-b-2 border-primary/30">
+                    <th className="px-3 py-2 text-left font-semibold text-foreground bg-primary/5">推論形式</th>
+                    <th className="px-3 py-2 text-center font-semibold text-foreground bg-primary/5">所与命題</th>
+                    <th className="px-3 py-2 text-center font-semibold text-foreground bg-primary/5">導出命題</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr className="border-b border-primary/20">
+                    <td className="px-3 py-2 font-medium text-foreground">演繹推論</td>
+                    <td className="px-3 py-2 text-center text-foreground">X→Y, Y→Z</td>
+                    <td className="px-3 py-2 text-center text-foreground">X→Z</td>
+                  </tr>
+                  <tr className="border-b border-primary/20">
+                    <td className="px-3 py-2 font-medium text-foreground">仮説推論(1)</td>
+                    <td className="px-3 py-2 text-center text-foreground">X→Z, Y→Z</td>
+                    <td className="px-3 py-2 text-center text-foreground">X→Y</td>
+                  </tr>
+                  <tr className="border-b border-primary/20">
+                    <td className="px-3 py-2 font-medium text-foreground">仮説推論(2)</td>
+                    <td className="px-3 py-2 text-center text-foreground">X→Y, X→Z</td>
+                    <td className="px-3 py-2 text-center text-foreground">Y→Z</td>
+                  </tr>
+                  <tr>
+                    <td className="px-3 py-2 font-medium text-foreground">非形式推論</td>
+                    <td className="px-3 py-2 text-center text-foreground">その他</td>
+                    <td className="px-3 py-2 text-center text-foreground">その他</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            {/* <p className="text-sm leading-relaxed text-foreground whitespace-pre-line mb-4">
               * 形式論理を満たす論証：推論として論理的な構造を持つ論証のこと。以下のような構造を持つ推論のことを指します。
             </p>
             <div className="mb-4">
@@ -193,16 +229,7 @@ export const Step3Component = ({
                 height={400}
                 className="rounded-lg w-full h-auto"
               />
-            </div>
-            <p className="text-sm leading-relaxed text-foreground whitespace-pre-line mb-4">
-              * 演繹推論：推論として論理的であり、さらに、所与命題を正しいと仮定したときに導出命題が必ず正しいといえる推論のこと。
-            </p>
-            <p className="text-sm leading-relaxed text-foreground whitespace-pre-line mb-4">
-              * 仮説推論：推論として論理的であるが、所与命題を正しいと仮定しても導出命題が必ず正しいとはいえない推論のこと。
-            </p>
-            <p className="text-sm leading-relaxed text-foreground whitespace-pre-line mb-4">
-              * 非形式推論：推論として論理的ではない推論。推論として論理的ではない場合、所与命題を正しいと仮定しても導出命題が必ず正しいといえません。
-            </p>
+            </div> */}
           </StepTermDefinition>
         </div>
       </div>

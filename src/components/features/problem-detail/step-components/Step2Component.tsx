@@ -62,7 +62,7 @@ export const Step2Component = ({ stepNumber, isCurrentStep = true, isPastStep = 
         2. 命題右下の矢印を他の命題に接続して、論証の構造を作成してください。
       </div>
       <StepTermDefinition>
-        * 所与命題：論証において事実としている命題や、前提となる命題のこと。
+        * <strong>所与命題</strong>：論証の前提となる命題。導出命題ではない命題のこと。
       </StepTermDefinition>
       <StepHint>
       「PであるならばQである。したがって、PであるならばRである。なぜならば、QであるならばRであるからである。」という論証の場合、所与命題は「PであるならばQである」と「QであるならばRである」になります。

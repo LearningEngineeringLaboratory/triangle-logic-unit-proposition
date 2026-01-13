@@ -85,8 +85,8 @@ export function Step2Form({
             <SelectValue placeholder="選択してください" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="はい">はい</SelectItem>
-            <SelectItem value="いいえ">いいえ</SelectItem>
+            <SelectItem value="はい">推論として論理的である</SelectItem>
+            <SelectItem value="いいえ">推論として論理的でない</SelectItem>
           </SelectContent>
         </Select>
         {fieldErrors && !fieldErrors.isLogical && (
@@ -116,8 +116,8 @@ export function Step2Form({
             <SelectValue placeholder="選択してください" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="はい">はい</SelectItem>
-            <SelectItem value="いいえ">いいえ</SelectItem>
+            <SelectItem value="はい">常に正しい</SelectItem>
+            <SelectItem value="いいえ">常に正しいとはいえない</SelectItem>
           </SelectContent>
         </Select>
         {fieldErrors && !fieldErrors.isValid && (
