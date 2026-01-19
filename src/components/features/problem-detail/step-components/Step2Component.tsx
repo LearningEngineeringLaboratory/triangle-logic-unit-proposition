@@ -25,7 +25,7 @@ export const Step2Component = ({ stepNumber, isCurrentStep = true, isPastStep = 
         <div className="flex items-center gap-3 mb-4">
           <div className="flex items-center gap-2">
             <h3 className="text-base font-semibold text-muted-foreground/70">
-              Step {stepNumber}: 三角ロジックの構成
+              Step {stepNumber}: 前提の構成
             </h3>
           </div>
           {isCompleted && (
@@ -35,7 +35,7 @@ export const Step2Component = ({ stepNumber, isCurrentStep = true, isPastStep = 
           )}
         </div>
         <div className="text-sm leading-relaxed text-muted-foreground/70 whitespace-pre-line">
-          この論証の前提となる命題（所与命題）を構成しましょう。
+          この論証の前提を構成しましょう。
           {'\n\n'}
           1. 前提に必要な部品を追加
           {'\n'}
@@ -50,22 +50,24 @@ export const Step2Component = ({ stepNumber, isCurrentStep = true, isPastStep = 
     <>
       <div className="flex items-center gap-3 mb-4">
         <h3 className="text-lg font-semibold text-foreground">
-          Step {stepNumber}: 三角ロジックの構成
+          Step {stepNumber}: 前提の構成
         </h3>
       </div>
       <div className="text-base leading-relaxed text-foreground whitespace-pre-line mb-6">
-        この論証の所与命題* を構成しましょう。<br />
+        この論証の前提を構成しましょう。<br />
         
-        {'\n\n'}
+        {'\n'}
         1. 画面右側のエリア下部から必要な命題を追加してください。
         {'\n'}
         2. 命題右下の矢印を他の命題に接続して、論証の構造を作成してください。
       </div>
-      <StepTermDefinition>
-        * <strong>所与命題</strong>：論証の前提となる命題。導出命題ではない命題のこと。
-      </StepTermDefinition>
       <StepHint>
-      「PであるならばQである。したがって、PであるならばRである。なぜならば、QであるならばRであるからである。」という論証の場合、所与命題は「PであるならばQである」と「QであるならばRである」になります。
+      <div className="my-4 border-2 p-2 rounded-xl">
+        <strong>PであるならばQである。</strong><br />
+        したがってPであるならばRである。<br />
+        なぜならば<strong>QであるならばRである</strong>からである。
+        </div>
+      という論証の場合、前提は<strong>「PであるならばQである」</strong>と<strong>「QであるならばRである」</strong>になります。
       </StepHint>
     </>
   )

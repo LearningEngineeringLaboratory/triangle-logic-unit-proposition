@@ -64,7 +64,7 @@ export function Step2Form({
       </div>
 
       {/* 問題1: 論理的か */}
-      <div className="flex flex-col gap-2">
+      {/* <div className="flex flex-col gap-2">
         <span className="text-sm font-medium text-foreground">
           問題1. この論証は推論として論理的ですか？
         </span>
@@ -92,7 +92,7 @@ export function Step2Form({
         {fieldErrors && !fieldErrors.isLogical && (
           <span className="text-sm text-destructive">正しくありません</span>
         )}
-      </div>
+      </div> */}
 
       {/* 問題2: 妥当か */}
       <div className="flex flex-col gap-2">

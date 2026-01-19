@@ -25,7 +25,7 @@ export const Step1Component = ({ stepNumber, isCurrentStep = true, isPastStep = 
         <div className="flex items-center gap-3 mb-4">
           <div className="flex items-center gap-2">
             <h3 className="text-base font-semibold text-muted-foreground/70">
-              Step {stepNumber}: 導出命題を構成
+              Step {stepNumber}: 結論を構成
             </h3>
           </div>
           {isCompleted && (
@@ -35,7 +35,7 @@ export const Step1Component = ({ stepNumber, isCurrentStep = true, isPastStep = 
           )}
         </div>
         <div className="text-sm leading-relaxed text-muted-foreground/70 whitespace-pre-line">
-          この論証が導いている命題（導出命題）を構成しましょう。
+          この論証の結論を構成しましょう。
         </div>
       </>
     )
@@ -46,18 +46,20 @@ export const Step1Component = ({ stepNumber, isCurrentStep = true, isPastStep = 
     <>
       <div className="flex items-center gap-3 mb-4">
         <h3 className="text-lg font-semibold text-foreground">
-          Step {stepNumber}: 導出命題を構成
+          Step {stepNumber}: 結論を構成
         </h3>
       </div>
       <div className="text-base leading-relaxed text-foreground whitespace-pre-line mb-6">
-        この論証の導出命題* を構成しましょう。<br />
+        この論証の結論を構成しましょう。<br />
         画面右側のエリアで選択肢を選択してください。
       </div>
-      <StepTermDefinition>
-        * <strong>導出命題</strong>：論証において前提から導かれる命題。「したがって」などの接続詞があり、結論となる命題。
-      </StepTermDefinition>
       <StepHint>
-      「PであるならばQである。したがって、PであるならばRである。なぜならば、QであるならばRであるからである。」という論証の場合、導出命題は「PであるならばRである」となります。
+        <div className="my-4 border-2 p-2 rounded-xl">
+        PであるならばQである。<br />
+        したがって<strong>PであるならばRである。</strong><br />
+        なぜならばQであるならばRであるからである。
+        </div>
+      という論証の場合、結論は<strong>「PであるならばRである」</strong>となります。
       </StepHint>
     </>
   )

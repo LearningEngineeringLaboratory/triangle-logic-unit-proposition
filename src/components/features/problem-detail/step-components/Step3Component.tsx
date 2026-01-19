@@ -60,7 +60,7 @@ export const Step3Component = ({
           )}
         </div>
         <div className="text-sm leading-relaxed text-muted-foreground/70 whitespace-pre-line">
-          構成した三角ロジックをもとに、この論証の推論形式と妥当性を答えましょう。
+          構成した論証の構造をもとに、この論証の推論形式と妥当性を答えましょう。
         </div>
       </>
     )
@@ -133,12 +133,12 @@ export const Step3Component = ({
           Step {stepNumber}: 推論形式の判別
         </h3>
       </div>
-      <div className="text-base leading-relaxed text-foreground whitespace-pre-line mb-6">
-        構成した三角ロジックをもとに、以下の問題に答えましょう。
+      <div className="text-base leading-relaxed text-foreground whitespace-pre-line">
+        構成した論証の構造をもとに、以下の問題に答えましょう。
       </div>
       <div className="mb-6">
         <div className="flex flex-col gap-4 w-full max-w-3xl">
-          <div className="flex flex-col gap-2 mt-6">
+          {/* <div className="flex flex-col gap-2 mt-6">
             <span className="text-sm font-medium text-foreground">
               問題1. この論証は推論として論理的ですか？
             </span>
@@ -151,47 +151,47 @@ export const Step3Component = ({
                 <SelectItem value="低い">推論として論理的でない</SelectItem>
               </SelectContent>
             </Select>
-          </div>
+          </div> */}
 
-          <div className="flex flex-col gap-2 mt-6">
+          <div className="flex flex-col gap-2 mt-4">
             <span className="text-sm font-medium text-foreground">
-              問題2. この論証は、所与命題を正しいと仮定したとき、導出命題は必ず正しいといえますか？
+              問題1. この論証は、前提を正しいと仮定したとき、結論は必ず正しいといえますか？
             </span>
             <Select value={validityValue} onValueChange={handleValidityChange}>
               <SelectTrigger className={`w-full h-14 rounded-xl border-2 text-lg py-3 ${validityValue ? '' : 'animate-glow-pulse'}`}>
                 <SelectValue placeholder="選択してください" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="妥当">常に正しい</SelectItem>
-                <SelectItem value="非妥当">常に正しいとはいえない</SelectItem>
+                <SelectItem value="妥当">◯  常に正しい</SelectItem>
+                <SelectItem value="非妥当">×  常に正しいとはいえない</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
-          <div className="flex flex-col gap-2 mt-6">
-            <span className="text-sm font-medium text-foreground">問題3. この論証の推論形式を答えてください。</span>
+          <div className="flex flex-col gap-2 mt-4">
+            <span className="text-sm font-medium text-foreground">問題2. この論証の推論形式を答えてください。</span>
             <Select value={inferenceTypeValue} onValueChange={handleInferenceTypeChange}>
               <SelectTrigger className={`w-full h-14 rounded-xl border-2 text-lg py-3 ${inferenceTypeValue ? '' : 'animate-glow-pulse'}`}>
                 <SelectValue placeholder="選択してください" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="演繹推論">演繹推論*</SelectItem>
-                <SelectItem value="仮説推論">仮説推論*</SelectItem>
-                <SelectItem value="非形式推論">非形式推論*</SelectItem>
+                <SelectItem value="演繹推論">演繹推論</SelectItem>
+                <SelectItem value="仮説推論">仮説推論</SelectItem>
+                <SelectItem value="非形式推論">非形式推論</SelectItem>
               </SelectContent>
             </Select>
           </div>
           <StepTermDefinition>
-            * <strong>演繹推論</strong>：推論として論理的であり、さらに、所与命題を正しいと仮定したときに導出命題が必ず正しいといえる推論のこと。<br />
-            * <strong>仮説推論</strong>：推論として論理的であるが、所与命題を正しいと仮定しても導出命題が必ず正しいとはいえない推論のこと。<br />
-            * <strong>非形式推論</strong>：推論として論理的ではない推論。推論として論理的ではない場合、所与命題を正しいと仮定しても導出命題が必ず正しいといえません。
+            <strong>演繹推論</strong>：推論として論理的であり、さらに、前提を正しいと仮定したときに結論が必ず正しいといえる推論のこと。<br />
+            <strong>仮説推論</strong>：推論として論理的であるが、前提を正しいと仮定しても結論が必ず正しいとはいえない推論のこと。構造は演繹推論と同じですが、結論の位置が異なっています。<br />
+            <strong>非形式推論</strong>：推論として論理的ではない推論。推論として論理的ではない場合、前提を正しいと仮定しても結論が必ず正しいといえません。
             <div className="mt-4 overflow-x-auto">
               <table className="w-full border-collapse text-sm">
                 <thead>
                   <tr className="border-b-2 border-primary/30">
                     <th className="px-3 py-2 text-left font-semibold text-foreground bg-primary/5">推論形式</th>
-                    <th className="px-3 py-2 text-center font-semibold text-foreground bg-primary/5">所与命題</th>
-                    <th className="px-3 py-2 text-center font-semibold text-foreground bg-primary/5">導出命題</th>
+                    <th className="px-3 py-2 text-center font-semibold text-foreground bg-primary/5">前提</th>
+                    <th className="px-3 py-2 text-center font-semibold text-foreground bg-primary/5">結論</th>
                   </tr>
                 </thead>
                 <tbody>

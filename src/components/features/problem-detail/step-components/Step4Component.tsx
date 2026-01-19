@@ -26,13 +26,13 @@ export const Step4Component = ({
   const consequentLabel = nodeValues?.consequent ?? 'Q'
   const instructionContent = (
     <>
-      三角ロジックを修正し、この論証の導出命題である
+      構造を修正し、この論証の結論である
       <br />
       「<span className="font-semibold">{antecedentLabel}ならば{consequentLabel}</span>」
       <br />
-      を演繹推論として導く論証を構成してください。
+      を演繹推論として導く論証の構造を構成してください。
       複数パターンある場合は、成り立つパターンのうち一つを作成してください。<br />
-      また、不要な接続があれば非表示にしてください。
+      また、不要な接続があれば削除または非表示にしてください。
     </>
   )
   if (isPastStep) {

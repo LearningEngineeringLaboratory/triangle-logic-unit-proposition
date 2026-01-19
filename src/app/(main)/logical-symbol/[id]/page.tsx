@@ -329,7 +329,7 @@ export default function LogicalSymbolPage({ params }: LogicalSymbolPageProps) {
               {currentStep === 1 && (
                 <div className="space-y-4">
                   <p className="text-base leading-relaxed text-foreground">
-                    この論証の所与命題と導出命題を構成しましょう。
+                    この論証の前提と結論を構成しましょう。
                   </p>
                   <Step1Form
                     problem={problem}
@@ -369,30 +369,28 @@ export default function LogicalSymbolPage({ params }: LogicalSymbolPageProps) {
         hints: (
           <div className="space-y-4">
             {currentStep === 1 && (
-              <>
-                <StepTermDefinition>
-                  <strong>所与命題</strong>：論証の前提となる命題。導出命題ではない命題のこと。<br />
-                  <strong>導出命題</strong>：論証において前提から導かれる命題。「したがって」などの接続詞があり、結論となる命題。
-                </StepTermDefinition>
                 <StepHint>
-                「PであるならばQである。したがって、PであるならばRである。なぜならば、QであるならばRであるからである。」という論証の場合、所与命題は「PであるならばQである」と「QであるならばRである」となり、導出命題は「PであるならばRである」となります。
+                <div className="my-4 border-2 p-2 rounded-xl">
+                  PであるならばQである。<br />
+                  したがって、PであるならばRである。<br />
+                  なぜならば、QであるならばRであるからである。
+                </div>
+                という論証の場合、前提は「PであるならばQである」と「QであるならばRである」となり、結論は「PであるならばRである」となります。
                 </StepHint>
-              </>
             )}
             {currentStep === 2 && (
               <>
                 <StepTermDefinition>
-                  <strong>演繹推論</strong>：推論として論理的であり、さらに、所与命題を正しいと仮定したときに導出命題が必ず正しいといえる推論のこと。<br />
-                  <strong>仮説推論</strong>：推論として論理的であるが、所与命題を正しいと仮定しても導出命題が必ず正しいとはいえない推論のこと。<br />
-                  <strong>非形式推論</strong>：推論として論理的ではない推論。推論として論理的ではない場合、所与命題を正しいと仮定しても導出命題が必ず正しいといえません。
-                  
+                  <strong>演繹推論</strong>：推論として論理的であり、さらに、前提を正しいと仮定したときに結論が必ず正しいといえる推論のこと。<br />
+                  <strong>仮説推論</strong>：推論として論理的であるが、前提を正しいと仮定しても結論が必ず正しいとはいえない推論のこと。構造は演繹推論と同じですが、結論の位置が異なっています。<br />
+                  <strong>非形式推論</strong>：推論として論理的ではない推論。推論として論理的ではない場合、前提を正しいと仮定しても結論が必ず正しいといえません。
                   <div className="mt-4 overflow-x-auto">
                     <table className="w-full border-collapse text-sm">
                       <thead>
                         <tr className="border-b-2 border-primary/30">
                           <th className="px-3 py-2 text-left font-semibold text-foreground bg-primary/5">推論形式</th>
-                          <th className="px-3 py-2 text-center font-semibold text-foreground bg-primary/5">所与命題</th>
-                          <th className="px-3 py-2 text-center font-semibold text-foreground bg-primary/5">導出命題</th>
+                          <th className="px-3 py-2 text-center font-semibold text-foreground bg-primary/5">前提</th>
+                          <th className="px-3 py-2 text-center font-semibold text-foreground bg-primary/5">結論</th>
                         </tr>
                       </thead>
                       <tbody>
