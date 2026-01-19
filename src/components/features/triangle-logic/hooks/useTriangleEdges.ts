@@ -28,7 +28,7 @@ export function useTriangleEdges({
         target: 'consequent',
         type: 'triangleEdge',
         data: {
-          label: 'ならば',
+          label: 'ならば\n（結論）',
           isActive: true,
           isDeletable: false,
           arrowType: 'triangle',
@@ -49,7 +49,7 @@ export function useTriangleEdges({
           type: 'triangleEdge',
           selectable: true,
           data: {
-            label: 'ならば',
+            label: 'ならば\n（前提）',
             isActive: true,
             isDeletable: true,
             onDelete: () => {
@@ -70,7 +70,7 @@ export function useTriangleEdges({
           target: link.to,
           type: 'triangleEdge',
           data: {
-            label: 'ならば',
+            label: 'ならば\n（前提）',
             isActive: true,
             isDeletable: false,
           },
@@ -107,7 +107,7 @@ export function useTriangleEdges({
           type: 'triangleEdge',
           selectable: isStep4NewLink,
           data: {
-            label: 'ならば',
+            label: 'ならば\n（前提）',
             isActive,
             isToggleable: !isDerivedLink && isStep2Link,
             isDeletable: isStep4NewLink,
@@ -167,7 +167,7 @@ export function useTriangleEdges({
           type: 'triangleEdge',
           data: {
             isActive,
-            label: isActive ? 'ならば' : undefined,
+            label: isActive ? 'ならば\n（前提）' : undefined,
             isToggleable: false,
             isDeletable: false,
             onToggle: undefined,

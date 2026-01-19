@@ -172,13 +172,15 @@ export function TriangleEdge({ id, source, target, style, data }: TriangleEdgePr
         <>
           <EdgeLabelRenderer>
             <div
-              className={`nodrag nopan p-1 bg-background rounded-md text-xs transition-colors ${
+              className={`nodrag nopan p-1 bg-background rounded-md text-[0.625rem] transition-colors ${
                 isSelected ? 'border-[5px] border-amber-300' : 'border border-border'
               }`}
               style={{
                 position: 'absolute',
                 transform: `translate(-50%, -50%) translate(${labelX}px, ${labelY}px)`,
                 pointerEvents: 'all',
+                whiteSpace: 'pre-line',
+                textAlign: 'center',
               }}
             >
               {label}
@@ -219,7 +221,7 @@ export function TriangleEdge({ id, source, target, style, data }: TriangleEdgePr
               position: 'absolute',
               left: labelX,
               top: labelY,
-              transform: 'translate(-50%, -50%) translate(25px, -20px)',
+              transform: 'translate(-50%, -50%) translate(-25px, -20px)',
               pointerEvents: 'all',
             }}
           >

@@ -87,10 +87,10 @@ export function checkStep1Answer(
  * Step2の答え合わせ
  * 
  * correct_answers.step3からinference_typeを取得し、
- * それに基づいてis_logicalとis_validを計算
- * - 演繹推論: is_logical=true, is_valid=true
- * - 仮説推論: is_logical=true, is_valid=false
- * - 非形式推論: is_logical=false, is_valid=false
+ * それに基づいてis_validを計算
+ * - 演繹推論: is_valid=true
+ * - 仮説推論: is_valid=false
+ * - 非形式推論: is_valid=false
  */
 export function checkStep2Answer(
   step2State: LogicalSymbolStepsState['step2'],
@@ -111,28 +111,23 @@ export function checkStep2Answer(
     ? step2State.inferenceType === step3Correct.inference_type
     : false
 
-  // is_logicalとis_validは、inference_typeから計算
-  // 演繹推論: is_logical=true, is_valid=true
-  // 仮説推論: is_logical=true, is_valid=false
-  // 非形式推論: is_logical=false, is_valid=false
-  let expectedIsLogical = false
+  // is_validは、inference_typeから計算
+  // 演繹推論: is_valid=true
+  // 仮説推論: is_valid=false
+  // 非形式推論: is_valid=false
   let expectedIsValid = false
 
   if (step3Correct?.inference_type === '演繹推論') {
-    expectedIsLogical = true
     expectedIsValid = true
   } else if (step3Correct?.inference_type === '仮説推論') {
-    expectedIsLogical = true
     expectedIsValid = false
   } else if (step3Correct?.inference_type === '非形式推論') {
-    expectedIsLogical = false
     expectedIsValid = false
   }
 
-  const isLogicalMatch = step2State.isLogical === expectedIsLogical
   const isValidMatch = step2State.isValid === expectedIsValid
 
-  return isLogicalMatch && isValidMatch && inferenceTypeMatch
+  return isValidMatch && inferenceTypeMatch
 }
 
 /**
@@ -148,7 +143,7 @@ export function getStep2FieldErrors(
 } {
   if (!step2State) {
     return {
-      isLogical: false,
+      isLogical: true, // 使用しないので常にtrue
       isValid: false,
       inferenceType: false,
     }
@@ -162,26 +157,21 @@ export function getStep2FieldErrors(
     ? step2State.inferenceType === step3Correct.inference_type
     : false
 
-  // is_logicalとis_validは、inference_typeから計算
-  let expectedIsLogical = false
+  // is_validは、inference_typeから計算
   let expectedIsValid = false
 
   if (step3Correct?.inference_type === '演繹推論') {
-    expectedIsLogical = true
     expectedIsValid = true
   } else if (step3Correct?.inference_type === '仮説推論') {
-    expectedIsLogical = true
     expectedIsValid = false
   } else if (step3Correct?.inference_type === '非形式推論') {
-    expectedIsLogical = false
     expectedIsValid = false
   }
 
-  const isLogicalMatch = step2State.isLogical === expectedIsLogical
   const isValidMatch = step2State.isValid === expectedIsValid
 
   return {
-    isLogical: isLogicalMatch,
+    isLogical: true, // 使用しないので常にtrue
     isValid: isValidMatch,
     inferenceType: inferenceTypeMatch,
   }
