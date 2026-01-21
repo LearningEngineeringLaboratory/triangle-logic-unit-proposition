@@ -218,8 +218,8 @@ export const Step3Component = ({
                 </tbody>
               </table>
             </div>
-            {/* <p className="text-sm leading-relaxed text-foreground whitespace-pre-line mb-4">
-              * 形式論理を満たす論証：推論として論理的な構造を持つ論証のこと。以下のような構造を持つ推論のことを指します。
+            <p className="text-sm leading-relaxed text-foreground whitespace-pre-line mb-4">
+              以下の構造になっていれば演繹推論、もしくは仮説推論です。もし、結論が「◯ → □」の場合は演繹推論となり、それ以外の場所が結論であれば仮説推論となります。
             </p>
             <div className="mb-4">
               <Image
@@ -229,7 +229,7 @@ export const Step3Component = ({
                 height={400}
                 className="rounded-lg w-full h-auto"
               />
-            </div> */}
+            </div>
           </StepTermDefinition>
         </div>
       </div>
