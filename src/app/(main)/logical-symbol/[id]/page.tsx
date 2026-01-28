@@ -18,7 +18,7 @@ import { logStepNavigationLogicalSymbol, logCheckAnswerLogicalSymbol } from '@/l
 import { useSession } from '@/hooks/useSession'
 import { Step1Form } from '@/components/features/logical-symbol/Step1Form'
 import { Step2Form } from '@/components/features/logical-symbol/Step2Form'
-import { checkAnswerLogicalSymbol, getStep2FieldErrors } from '@/lib/answer-validation-logical-symbol'
+import { checkAnswerLogicalSymbol } from '@/lib/answer-validation-logical-symbol'
 import { LogicalSymbolStepsState } from '@/lib/types'
 import { StepHint } from '@/components/features/problem-detail/step-components/StepHint'
 import { StepTermDefinition } from '@/components/features/problem-detail/step-components/StepTermDefinition'
@@ -44,11 +44,6 @@ export default function LogicalSymbolPage({ params }: LogicalSymbolPageProps) {
   const [completedProblemsCount, setCompletedProblemsCount] = useState(0)
   const [isProblemCompleted, setIsProblemCompleted] = useState(false)
   const previousStepRef = useRef<number>(1)
-  const [step2FieldErrors, setStep2FieldErrors] = useState<{
-    isLogical: boolean
-    isValid: boolean
-    inferenceType: boolean
-  } | null>(null)
 
   // ステップ管理
   const {
@@ -181,9 +176,6 @@ export default function LogicalSymbolPage({ params }: LogicalSymbolPageProps) {
         userId: sessionInfo?.userId,
       }).catch(console.error)
       previousStepRef.current = currentStep
-      
-      // ステップ変更時にエラー状態をリセット
-      setStep2FieldErrors(null)
     }
   }, [currentStep, problem, attemptId, sessionInfo])
 
@@ -237,9 +229,6 @@ export default function LogicalSymbolPage({ params }: LogicalSymbolPageProps) {
     const isCorrect = checkAnswerLogicalSymbol(stepNumber, steps, problem)
 
     if (isCorrect) {
-      // エラー状態をリセット
-      setStep2FieldErrors(null)
-      
       setFeedbackType('success')
       setFeedbackVisible(true)
       const updatedState = { ...currentStateFragment, isPassed: true }
@@ -273,19 +262,13 @@ export default function LogicalSymbolPage({ params }: LogicalSymbolPageProps) {
         }
       }, 1500)
     } else {
-      // Step2の場合は、drawerを表示せずにフィールドエラーを設定
-      if (stepNumber === 2) {
-        const fieldErrors = getStep2FieldErrors(steps.step2, problem)
-        setStep2FieldErrors(fieldErrors)
-      } else {
-        // Step1の場合は従来通りdrawerを表示
-        setFeedbackType('error')
-        setFeedbackVisible(true)
-        
-        setTimeout(() => {
-          setFeedbackVisible(false)
-        }, 2000)
-      }
+      // 両ステップとも同じエラーモーダルを表示
+      setFeedbackType('error')
+      setFeedbackVisible(true)
+      
+      setTimeout(() => {
+        setFeedbackVisible(false)
+      }, 2000)
 
       // 答え合わせのログ記録（不正解）
       if (sessionInfo && attemptId) {
@@ -351,15 +334,12 @@ export default function LogicalSymbolPage({ params }: LogicalSymbolPageProps) {
                     problem={problem}
                     step1State={steps.step1!}
                     step2State={steps.step2!}
-                    onStep2Change={(updates) => {
-                      updateStep(2, updates)
-                      // フィールドが変更された時にエラー状態をリセット
-                      setStep2FieldErrors(null)
-                    }}
+                onStep2Change={(updates) => {
+                  updateStep(2, updates)
+                }}
                     attemptId={attemptId}
                     sessionInfo={sessionInfo}
                     currentState={getCurrentState()}
-                    fieldErrors={step2FieldErrors}
                   />
                 </div>
               )}

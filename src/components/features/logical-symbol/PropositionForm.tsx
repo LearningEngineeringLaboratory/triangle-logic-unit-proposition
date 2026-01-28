@@ -57,7 +57,7 @@ export function PropositionForm({
 
         {/* 結論 */}
         <div className="flex items-center gap-3">
-          <label className="text-sm font-semibold text-foreground w-24 shrink-0">結論</label>
+          <label className="text-sm font-semibold text-foreground w-24 shrink-0">結論 ∴</label>
           <div className="flex items-center gap-2 flex-1">
             <div className="flex-1 px-3 py-1 flex items-center">
               <span className="text-base">{step1State.conclusion.antecedent || '（未選択）'}</span>
@@ -200,7 +200,7 @@ export function PropositionForm({
 
       {/* 結論 */}
       <div className="flex items-center gap-3">
-        <label className="text-sm font-semibold text-foreground w-24 shrink-0">結論</label>
+        <label className="text-sm font-semibold text-foreground w-24 shrink-0">結論 ∴</label>
         <div className="flex items-center gap-2 flex-1">
           <Select
             value={step1State.conclusion.antecedent}

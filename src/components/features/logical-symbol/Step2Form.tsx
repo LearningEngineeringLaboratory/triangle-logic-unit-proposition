@@ -14,11 +14,6 @@ interface Step2FormProps {
   attemptId?: string | null
   sessionInfo?: { sessionId: string; userId: string } | null
   currentState?: unknown // 現在の全ステップの状態（ログ記録用）
-  fieldErrors?: {
-    isLogical: boolean
-    isValid: boolean
-    inferenceType: boolean
-  } | null // フィールドごとのエラー状態（nullの場合はエラー表示なし）
 }
 
 export function Step2Form({
@@ -29,7 +24,6 @@ export function Step2Form({
   attemptId,
   sessionInfo,
   currentState,
-  fieldErrors,
 }: Step2FormProps) {
   // ログ記録付きで更新する関数
   const handleChange = useCallback((field: string, value: string, updates: Partial<LogicalSymbolStep2State>) => {
@@ -94,10 +88,10 @@ export function Step2Form({
         )}
       </div> */}
 
-      {/* 問題2: 妥当か */}
+      {/* 問題1: 妥当か */}
       <div className="flex flex-col gap-2">
         <span className="text-sm font-medium text-foreground">
-          問題2. この論証は、所与命題を正しいと仮定したとき、導出命題は必ず正しいといえますか？
+          問題1. この論証は、所与命題を正しいと仮定したとき、導出命題は必ず正しいといえますか？
         </span>
         <Select
           value={isValidValue}
@@ -111,7 +105,6 @@ export function Step2Form({
         >
           <SelectTrigger 
             className={`w-full h-14 rounded-xl border-2 text-lg py-3 ${isValidValue ? '' : 'animate-glow-pulse'}`}
-            aria-invalid={fieldErrors ? !fieldErrors.isValid : undefined}
           >
             <SelectValue placeholder="選択してください" />
           </SelectTrigger>
@@ -120,15 +113,12 @@ export function Step2Form({
             <SelectItem value="いいえ">常に正しいとはいえない</SelectItem>
           </SelectContent>
         </Select>
-        {fieldErrors && !fieldErrors.isValid && (
-          <span className="text-sm text-destructive">正しくありません</span>
-        )}
       </div>
 
-      {/* 問題3: 推論形式 */}
+      {/* 問題2: 推論形式 */}
       <div className="flex flex-col gap-2">
         <span className="text-sm font-medium text-foreground">
-          問題3. この論証の推論形式を答えてください。
+          問題2. この論証の推論形式を答えてください。
         </span>
         <Select
           value={step2State.inferenceType}
@@ -142,7 +132,6 @@ export function Step2Form({
         >
           <SelectTrigger 
             className={`w-full h-14 rounded-xl border-2 text-lg py-3 ${step2State.inferenceType ? '' : 'animate-glow-pulse'}`}
-            aria-invalid={fieldErrors ? !fieldErrors.inferenceType : undefined}
           >
             <SelectValue placeholder="選択してください" />
           </SelectTrigger>
@@ -152,9 +141,6 @@ export function Step2Form({
             <SelectItem value="非形式推論">非形式推論</SelectItem>
           </SelectContent>
         </Select>
-        {fieldErrors && !fieldErrors.inferenceType && (
-          <span className="text-sm text-destructive">正しくありません</span>
-        )}
       </div>
     </div>
   )
